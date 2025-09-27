@@ -68,8 +68,8 @@ add more here
 ## Requirements Verification
 
 ### Testing Framework
-**Selected Framework:** [e.g., Jest + React Testing Library, PyTest, JUnit, etc.]
-**Justification:** [Why this framework makes sense for your project]
+**Selected Framework:** pick a testing framework
+**Justification:** why we picked it
 
 ### Test Cases
 
