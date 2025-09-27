@@ -17,11 +17,16 @@
 describe the project and the scope
 
 ### Usage Scenario
-who are the users and how will they use it.
+A graduating student or early professional opens the webapp and uploads a folder of their work artifacts. The system scans the uploaded folder and extracts metadata, then analyzes the contents to only return files that they've worked on. The user can then use the dashboard to pick which artifacts to showcase and then export it as a folder containing all their organized work. Employers will be able to access these folders and evaluate the person's skills and growth.
 
 #### Target User Groups
-1. **[User Group 1]:**
-2. **[User Group 2]:**
+1. **Graduating Students:**
+- They want to create a portfolio to show their work for internships, careers, or graduate programs.
+- They have a lot of work artifacts from their schooling and want to organize them.
+
+2. **Early Career Professionals:**
+- They have been working on personal or career projects.
+- They want to track their growth, reflect on past projects, and/or strengthen their portfolio.
 
 ### Proposed Solution
 talk about technical solution. stack, architecture, etc.
