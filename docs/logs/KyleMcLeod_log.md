@@ -10,6 +10,7 @@
 
 ## September 22-28
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/a6999f11-c3db-4aa2-9b07-e669e74e2122" />
+
 - Put together the project proposal template
 - Worked on a system architecture diagram with the team
 - Revised the diagram based on other teams suggestions
