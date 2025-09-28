@@ -160,14 +160,41 @@ do for all members
 
 ## Timeline & Milestones
 
-### Milestone 1: [Date]
-- list key deliverables and requirements to be completed
+### Milestone 1: [September - October]
+#### *Project Planning & Setup*
+- Finilize project scope and requirements
+- Choose techonology stack
+- Finish Project Proposal
 
-### Milestone 2: [Date]
-- list key deliverables and requirements to be completed
+### Milestone 2: [November]
+#### *File Upload & Scanning*
+- Implement a folder upload feature in webapp
+- Build backend to scan files and extract metadata
+- Test with sample folders
 
-### Final Delivery: [Date]
-- project to be completed
+### Milestone 3: [December]
+#### *Artifact Categorization & Analysis Engine*
+- Develop categorization logic to filter artifacts
+
+### Milestone 4: [January]
+#### *Dashboard & Visualization Development*
+- Build draft dashboard
+- Implement filtering and privacy controls 
+
+### Milestone 5: [February]
+#### *Folder Export Features*
+- Implement export of organized artifacts
+
+### Milestone 6: [March]
+#### *Refinement & Advanced Features*
+- Improve visualizations and dashboard usability
+- Add any optional features
+- Conduct user testing and gather feedback
+
+### Final Delivery: [April]
+#### *Final Testing & Delivery*
+- System integration and bug fixes
+- Finalize documentation, deployment, and project presentation
 
 ## Conclusion
 summarize the plan and express confidence in the team's ability to deliver the project successfully.
