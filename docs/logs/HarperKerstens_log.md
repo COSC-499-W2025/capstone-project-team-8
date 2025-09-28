@@ -7,3 +7,10 @@
 - Collaborated to create team requirements with team
 - Discussed with other groups about their ideas for project
 -  Revised project requirements based off feedback from other groups
+
+
+## September 22-28
+
+- Discussed with other groups on their Architecture designs
+- Researched Tech stack options for project
+- Worked on Project Proposal Document
