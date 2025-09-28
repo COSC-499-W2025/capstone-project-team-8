@@ -44,23 +44,23 @@ talk about technical solution. stack, architecture, etc.
 Our solution saves time by automating artifact organization, tracks project growth with metadata insights, offers an intuitive dashboard for curation, enables flexible export options for offline sharing, and ensures secure, private handling of user files—features that many existing portfolio tools lack.  
 
 ### Technology Stack
-list all the tech we will use and its use case.
 
 #### Frontend
 - **Framework/Library:** React (for building reusable UI components and state management)  
 - **Styling:** Tailwind CSS (for rapid and responsive UI design)  
-- **Additional Tools:** Next.js (for server-side rendering and routing)  
+- **Additional Tools:** Next.js (for server-side rendering and routing)
 
 #### Backend
-- **Language:** JavaScript/TypeScript  
-- **Framework:** Node.js with Express (for API handling and server logic)  
-- **Database:** PostgreSQL (for storing metadata, user accounts, and portfolio configurations)  
+- **Language:** JavaScript 
+- **Framework:** Node.js with Next.js API routes (for API handling and server logic)  
+- **Database:** MySQL (for storing metadata, user accounts, and portfolio configurations)
+- **Authentication:** NextAuth (for secure authentication)
 - **Additional Services:** Cloud Storage (AWS S3 or equivalent for file uploads and management)  
 
 #### Development & Deployment
 - **Version Control:** Git, GitHub  
 - **Testing Framework:** Jest + React Testing Library (unit and integration testing for frontend and backend)  
-- **Deployment Platform:** Vercel (for frontend) and Render/Heroku (for backend)  
+- **Deployment Platform:** Vercel 
 
 ## Functional Requirements
 
