@@ -10,6 +10,7 @@
   - Harper Kerstens
   - Jordan Truong
   - Kyle Porter
+  - Matin Raoufi
 
 ## Project Overview
 
