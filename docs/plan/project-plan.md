@@ -44,20 +44,20 @@ why is our solution better than existing ones.
 list all the tech we will use and its use case.
 
 #### Frontend
-- **Framework/Library:** tbd
-- **Styling:** tbd
-- **Additional Tools:** tbd
+- **Framework/Library:** React (for building reusable UI components and state management)  
+- **Styling:** Tailwind CSS (for rapid and responsive UI design)  
+- **Additional Tools:** Next.js (for server-side rendering and routing)  
 
 #### Backend
-- **Language:** tbd
-- **Framework:** tbd
-- **Database:** tbd
-- **Additional Services:** tbd
+- **Language:** JavaScript/TypeScript  
+- **Framework:** Node.js with Express (for API handling and server logic)  
+- **Database:** PostgreSQL (for storing metadata, user accounts, and portfolio configurations)  
+- **Additional Services:** Cloud Storage (AWS S3 or equivalent for file uploads and management)  
 
 #### Development & Deployment
-- **Version Control:** Git, GitHub
-- **Testing Framework:** tbd
-- **Deployment Platform:** tbd
+- **Version Control:** Git, GitHub  
+- **Testing Framework:** Jest + React Testing Library (unit and integration testing for frontend and backend)  
+- **Deployment Platform:** Vercel (for frontend) and Render/Heroku (for backend)  
 
 ## Functional Requirements
 
@@ -70,23 +70,41 @@ list all the tech we will use and its use case.
 
 add more here
 
-
 ## Requirements Verification
 
 ### Testing Framework
-**Selected Framework:** pick a testing framework
-**Justification:** why we picked it
+**Selected Framework:** Jest with React Testing Library  
+**Justification:** Jest is widely used with JavaScript/TypeScript projects, supports fast unit and integration testing, and works seamlessly with both Node.js and React. React Testing Library complements it by enabling testing of UI behavior rather than implementation details. This ensures high reliability and maintainability.  
 
 ### Test Cases
 
-#### 1 - add requirement title
+#### 1 - File Upload Handling
 - **Test Case 1:**
-  - **Input:** inputs
-  - **Expected Output:** outputs
-  - **Test Type:** is it front or back
-  - **Automation:** how to
+  - **Input:** A folder containing multiple files of different types (e.g., `.pdf`, `.docx`, `.png`)  
+  - **Expected Output:** The system successfully uploads the folder and stores metadata for each file.  
+  - **Test Type:** Backend  
+  - **Automation:** Automated Jest test with mock file uploads  
 
-add more here
+#### 2 - Metadata Extraction
+- **Test Case 1:**
+  - **Input:** A `.pdf` and `.docx` file uploaded by the user  
+  - **Expected Output:** Extracted metadata (file name, size, date modified, type) stored in the database  
+  - **Test Type:** Backend  
+  - **Automation:** Automated Jest test simulating file parsing  
+
+#### 3 - Dashboard Display
+- **Test Case 1:**
+  - **Input:** User has uploaded three valid files  
+  - **Expected Output:** Dashboard displays all three files with metadata and selection options  
+  - **Test Type:** Frontend  
+  - **Automation:** React Testing Library rendering test  
+
+#### 4 - Export Portfolio
+- **Test Case 1:**
+  - **Input:** User selects two files to showcase and clicks “Export”  
+  - **Expected Output:** System generates a downloadable folder with only the selected files, organized properly  
+  - **Test Type:** Full-stack (frontend trigger, backend processing)  
+  - **Automation:** Integration test with mocked backend and frontend action  
 
 ## Proposed Workload Distribution
 
