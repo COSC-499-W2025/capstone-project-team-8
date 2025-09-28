@@ -11,6 +11,8 @@
 
 ## September 22-28
 
+<img width="534" height="311" alt="Week4" src="https://github.com/user-attachments/assets/c1635b81-22b7-4214-9753-29a3c514af5a" />
+
 - Discussed with other groups on their Architecture designs
 - Researched Tech stack options for project
 - Worked on Project Proposal Document
