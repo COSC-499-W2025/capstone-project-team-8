@@ -2,7 +2,7 @@
 
 ## Team Information
 - **Team:** Team 8
-- **Project:** [Project Name/Title]
+- **Project:** Mining Digital Work Artifacts
 - **Date:** [Current Date]
 - **Team Members:** 
   - Kyle McLeod
@@ -14,8 +14,8 @@
 
 ## Project Overview
 
-### Scope
-describe the project and the scope
+### Project Scope
+The scope of our project includes developing file upload and scanning, creating an analysis engine, designing a dashboard, and supporting folder export.
 
 ### Usage Scenario
 A graduating student or early professional opens the webapp and uploads a folder of their work artifacts. The system scans the uploaded folder and extracts metadata, then analyzes the contents to only return files that they've worked on. The user can then use the dashboard to pick which artifacts to showcase and then export it as a folder containing all their organized work. Employers will be able to access these folders and evaluate the person's skills and growth.
