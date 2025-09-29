@@ -178,7 +178,7 @@ Our solution saves time by automating artifact organization, tracks project grow
 
 ### Milestone 1: [September - October]
 #### *Project Planning & Setup*
-- Finilize project scope and requirements
+- Finalize project scope and requirements
 - Choose techonology stack
 - Finish Project Proposal
 
