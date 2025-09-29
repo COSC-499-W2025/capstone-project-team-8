@@ -104,28 +104,29 @@ Our solution saves time by automating artifact organization, tracks project grow
 #### Portability
 - The system shall run on multiple operating systems.  
 
+
+## Risk Management
+
+### Security Risks
+- **Malicious File Uploads:** Implement file type validation and sandboxed processing
+- **Data Breaches:** Use encryption at rest and implement secure deletion policies
+- **Authentication Bypass:** Regular security audits and penetration testing
+
+### Project Risks
+- **Scope Creep:** Strict adherence to milestone deliverables
+- **Team Member Availability:** Cross-training on critical components
+- **Technology Learning Curve:** Dedicated research sprints for complex features
+
+### Technical Risks
+- **File Size Limitations:** Implement progressive upload and processing for large folders
+- **Unsupported File Types:** Build extensible parser system for future format support
+- **Performance with Large Datasets:** Implement pagination and lazy loading
+
 ## Requirements Verification
 
 ### Testing Framework
 **Selected Framework:** Jest with React Testing Library  
 **Justification:** Jest is widely used with JavaScript/TypeScript projects, supports fast unit and integration testing, and works seamlessly with both Node.js and React. React Testing Library complements it by enabling testing of UI behavior rather than implementation details.  
-### Risk Management
-
-#### Security Risks
-- **Malicious File Uploads:** Implement file type validation and sandboxed processing
-- **Data Breaches:** Use encryption at rest and implement secure deletion policies
-- **Authentication Bypass:** Regular security audits and penetration testing
-
-#### Project Risks
-- **Scope Creep:** Strict adherence to milestone deliverables
-- **Team Member Availability:** Cross-training on critical components
-- **Technology Learning Curve:** Dedicated research sprints for complex features
-
-#### Technical Risks
-- **File Size Limitations:** Implement progressive upload and processing for large folders
-- **Unsupported File Types:** Build extensible parser system for future format support
-- **Performance with Large Datasets:** Implement pagination and lazy loading
-
 
 ### Test Cases
 
