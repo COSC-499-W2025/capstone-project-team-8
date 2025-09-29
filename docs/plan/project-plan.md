@@ -146,17 +146,35 @@ Our solution saves time by automating artifact organization, tracks project grow
 
 ### Team Member Assignments
 
-#### [Member 1 Name]
-- **Primary Requirements:** list the ones they take on
-- **Secondary Requirements:** list
-- **Difficulty Balance:** ensure a mix of easy, medium, and hard tasks
+#### Kyle McLeod
+- **Primary Requirements:** File upload handling, Metadata extraction logic  
+- **Secondary Requirements:** Database setup and integration  
+- **Difficulty Balance:** Mix of medium (upload logic), hard (metadata parsing), and easy (basic database schemas)  
 
-#### [Member 2 Name]
-- **Primary Requirements:** list the ones they take on
-- **Secondary Requirements:** list
-- **Difficulty Balance:** ensure a mix of easy, medium, and hard tasks
+#### Charlie Schwebius
+- **Primary Requirements:** Dashboard UI implementation, File filtering and search controls  
+- **Secondary Requirements:** Frontend testing with React Testing Library  
+- **Difficulty Balance:** Mix of medium (dashboard), hard (filters), and easy (UI tests)  
 
-do for all members
+#### Harper Kerstens
+- **Primary Requirements:** Backend API development (Node.js/Next.js), Export portfolio feature  
+- **Secondary Requirements:** Authentication setup with NextAuth  
+- **Difficulty Balance:** Mix of hard (API + export), medium (auth), and easy (basic routes)  
+
+#### Jordan Truong
+- **Primary Requirements:** Security and privacy enforcement (permissions, rate limiting, HTTPS)  
+- **Secondary Requirements:** Assist with backend deployment on Vercel  
+- **Difficulty Balance:** Mix of hard (security measures), medium (rate limiting), and easy (deployment setup)  
+
+#### Kyle Porter
+- **Primary Requirements:** Reporting engine for project insights, Line-of-code analysis and blame integration  
+- **Secondary Requirements:** Database query optimization  
+- **Difficulty Balance:** Mix of hard (blame analysis), medium (reporting engine), and easy (query tuning)  
+
+#### Matin Raoufi
+- **Primary Requirements:** Usability and cross-platform responsiveness (mobile/tablet support)  
+- **Secondary Requirements:** Testing integration (end-to-end tests for file upload and export)  
+- **Difficulty Balance:** Mix of medium (responsive design), hard (E2E tests), and easy (UI polish)  
 
 ## Timeline & Milestones
 
