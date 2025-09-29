@@ -68,8 +68,8 @@ Our solution saves time by automating artifact organization, tracks project grow
 - The system shall extract metadata from working files.  
 - The system shall analyze content of applicable working files.  
 - The system shall analyze the number of lines of code written in each language and give insights on the code that has been written.  
-- The system shall be able to use the blame function of version control systems to see what was done by the user.  
-
+- The system shall be able to use the blame function of version control systems to see what was done by the user.
+- The system shall support common file formats: .js, .py, .java, .cpp, .html, .css, .md, .txt, .pdf, .docx, .png, .jpg
 #### Reporting & Organization
 - The system shall produce a detailed report on the projects that were uploaded and present them on the dashboard.  
 - The system shall sort projects based on their estimated detail and content.  
