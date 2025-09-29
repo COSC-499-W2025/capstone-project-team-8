@@ -5,6 +5,7 @@
 |jordany78|Jordan Truong|
 |cschwebi|Charlie Schwebius|
 |matin0014|Matin Raoufi|
+|Porter-K|Kyle Porter|
 
 ## Sept 22 - 28
 
