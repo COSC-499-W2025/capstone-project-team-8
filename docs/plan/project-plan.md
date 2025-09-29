@@ -213,4 +213,4 @@ Our solution saves time by automating artifact organization, tracks project grow
 - Finalize documentation, deployment, and project presentation
 
 ## Conclusion
-summarize the plan and express confidence in the team's ability to deliver the project successfully.
+In this plan, we defined the scope of our project, which includes features like file upload and scanning, an analysis engine, a dashboard, and exportable folders to help users showcase their work. Our tech stack includes React, Tailwind CSS, Node.js, MySQL, and NextAuth, which together provide a solid foundation for making our web application secure and responsive. Our testing plan uses Jest and React Testing Library to ensure that our core functionality will work reliably. Our workload distribution separates the tasks like dashboard development, backend APIs, security, testing, and usability across the team in a balanced way. Finally, the timeline and milestones break the project into clear, easily digestible stages, gradually expanding on everything from September to April.
