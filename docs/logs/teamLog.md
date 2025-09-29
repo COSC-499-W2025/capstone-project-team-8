@@ -6,6 +6,7 @@
 |cschwebi|Charlie Schwebius|
 |matin0014|Matin Raoufi|
 |Porter-K|Kyle Porter|
+|harperkerstens|Harper Kerstens|
 
 ## Sept 22 - 28
 
