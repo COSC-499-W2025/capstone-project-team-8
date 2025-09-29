@@ -3,7 +3,7 @@
 ## Team Information
 - **Team:** Team 8
 - **Project:** Mining Digital Work Artifacts
-- **Date:** [Current Date]
+- **Date:** Sept. 28, 2025
 - **Team Members:** 
   - Kyle McLeod
   - Charlie Schwebius
