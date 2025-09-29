@@ -29,8 +29,6 @@ A graduating student or early professional opens the webapp and uploads a folder
 - They have been working on personal or career projects.
 - They want to track their growth, reflect on past projects, and/or strengthen their portfolio.
 
-### Proposed Solution
-talk about technical solution. stack, architecture, etc.
 
 #### Key Features
 - **Automated Artifact Organization:** Automatically identifies relevant work artifacts from uploaded folders.  
