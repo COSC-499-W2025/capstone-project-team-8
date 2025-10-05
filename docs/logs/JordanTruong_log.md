@@ -17,3 +17,5 @@
 - Helped create our level 1 DFD
 - Discussed with other teams about what wnet well and what could be improved in their diagrams
 - Made changes based on what could be improved in our diagram
+- We all discussed and came to an agreement on how the diagram should be organized in a short time
+- We could've spent more time reviewing the diagram to fully understand the process
