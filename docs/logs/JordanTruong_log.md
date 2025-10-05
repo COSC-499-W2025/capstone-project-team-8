@@ -14,6 +14,6 @@
 ## Week 5 September 29th - October 3rd:
 <img width="1073" height="630" alt="image" src="https://github.com/user-attachments/assets/8cf8f69f-d9d1-44da-9233-7ca1cf7be132" /></br>
 ### Recap:
-- Created DFD level 1 diagram
+- Helped create our level 1 DFD
 - Discussed with other teams about what wnet well and what could be improved in their diagrams
 - Made changes based on what could be improved in our diagram
