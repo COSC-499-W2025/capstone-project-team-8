@@ -19,7 +19,7 @@
 
 ## September 29-October 5
 
-
+<img width="1082" height="635" alt="September29-Oct5" src="https://github.com/user-attachments/assets/7f67060b-0d0d-4795-8edc-c0505b79d158" />
 
 - Developed dataflow diagram with team members in class
 - Met with peers to go over each others diagrams
