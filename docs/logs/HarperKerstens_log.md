@@ -16,3 +16,12 @@
 - Discussed with other groups on their Architecture designs
 - Researched Tech stack options for project
 - Worked on Project Proposal Document
+
+## September 29-October 5
+
+
+
+- Developed dataflow diagram with team members in class
+- Met with peers to go over each others diagrams
+- Reflected on our diagrams as a team
+- Revised our diagrams based on feedback from peers
