@@ -16,3 +16,11 @@ September 22-28
 - Reviewed other teams suggestion with group
 - Discussed tech stack with group
 
+September 29 - Oct 5
+
+
+<img width="1090" height="637" alt="image" src="https://github.com/user-attachments/assets/f82c3e9c-3457-4514-93be-cc2e7545ca86" />
+
+- helped make the level 0 DFD & helped with level 1 DFD
+- Reviewed other groups DFD's
+- Reviewed feedback from other groups with our group 
