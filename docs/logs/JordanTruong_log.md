@@ -19,3 +19,11 @@
 - Made changes based on what could be improved in our diagram
 - We all discussed and came to an agreement on how the diagram should be organized in a short time
 - We could've spent more time reviewing the diagram to fully understand the process
+## Week 6 October 6th - October 10th:
+<img width="1075" height="635" alt="image" src="https://github.com/user-attachments/assets/2eececa7-8579-446d-b23a-4ba3d8649c03" /></br>
+### Recap:
+- Created skeleton structure for our Docker setup
+- Reviewed Harper's Django file structure/setup
+- Learnt a bit of Django/Python
+- This week we were able to get the ball rolling and setting up our project more
+- Next week we'll spend more time assigning tasks to each other and getting a solid plan

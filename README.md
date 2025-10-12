@@ -12,6 +12,9 @@ Please use the provided folder structure for your project. You are free to organ
 │   ├── logs                # Team and individual Logs
 │   └── ...          
 ├── src                     # Source files (alternatively `app`)
+├── backend                 # Django backend
+│   ├── src                 # Django project files
+│   └── requirements.txt    # Python dependencies
 ├── tests                   # Automated tests 
 ├── utils                   # Utility files
 └── README.md
