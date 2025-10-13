@@ -10,6 +10,3 @@ services:
       - ./src/frontend:/app
     environment:
       - NODE_ENV=development
-    dns:
-      - 1.1.1.1        # Cloudflare
-      - 8.8.8.8        # Google   command: npm run dev
