@@ -13,7 +13,7 @@
 		- 1.3.1 Initialize repo and basic folder structure
 		- 1.3.2 Create initial README and revise diagrams
 2. File Upload & Scanning (Oct- Nov)
-	- 2.1 Frontend: Folder upload UI
+	- 2.1 Frontend: Folder upload fucntionality
 		- 2.1.1 Implement folder selection and upload
 		- 2.1.2 Give feedback on upload process
 		- 2.1.3 Request user permission before accessing files
