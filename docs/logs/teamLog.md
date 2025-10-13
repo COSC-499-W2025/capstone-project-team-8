@@ -16,6 +16,7 @@
 - Set up Django backend framework
 - Set up Next.js frontend framework
 - Set up and familiarized ourselves with the expected pull request process (PR template, commenting, etc)
+- Reviewed PR's and provided feedback
 
 ### Burnup Chart
 <img width="1727" height="882" alt="image" src="https://github.com/user-attachments/assets/b9141939-d185-4a80-bbc2-277b077223c3" />
