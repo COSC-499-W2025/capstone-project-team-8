@@ -13,3 +13,10 @@
 
 - Worked on level 0 and level 1 data flow diagrams
 - Get feedback and compared DFDs with other groups
+
+## Oct 6 - 12
+<img width="1624" height="931" alt="20251012_23h02m40s_grim" src="https://github.com/user-attachments/assets/b2875eda-ba9b-4f6c-8849-e35558f34179" />
+
+- Set up docker for backend
+- Reviewd teamates code
+- Discussions with team on which technologies to use
