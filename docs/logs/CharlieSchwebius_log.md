@@ -15,3 +15,12 @@
 - As a team, created Level 0 and Level 1 Data Flow Diagrams
 - Met with other teams to review each other's diagrams
 - Reflected together as a team on our diagrams (What did we like? What did we overlook? etc.)
+
+## October 6 - 12
+<img width="1897" height="1103" alt="image" src="https://github.com/user-attachments/assets/871fe97d-2836-4795-be3c-7824b644ba5b" />
+
+- Revised Data flow and system architecture diagrams to match what we've discussed as a team
+- Created work breakdown structure following the lecture example
+- Added descriptions to data flow and system architecture diagrams to explain our thought process and how to read them
+- Spent time learning about Django
+- Spent time refreshing my mind on Docker
