@@ -1,9 +1,7 @@
-version: "3.8"
-
 services:
   frontend:
     build:
-      context: .
+      context: ./src/frontend
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
@@ -12,4 +10,6 @@ services:
       - ./src/frontend:/app
     environment:
       - NODE_ENV=development
-    command: npm run dev
+    dns:
+      - 1.1.1.1        # Cloudflare
+      - 8.8.8.8        # Google   command: npm run dev
