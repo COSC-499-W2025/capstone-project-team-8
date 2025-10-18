@@ -9,7 +9,7 @@ services:
 
   frontend:
     build:
-      context: .
+      context: ./src/frontend
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
