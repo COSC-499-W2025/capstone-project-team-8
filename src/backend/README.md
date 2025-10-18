@@ -29,11 +29,6 @@ source venv/bin/activate
 
 ### 4. Install Dependencies
 ```bash
-pip install django djangorestframework
-```
-
-Or if you have a requirements.txt file:
-```bash
 pip install -r requirements.txt
 ```
 
