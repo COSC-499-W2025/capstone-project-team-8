@@ -1,3 +1,2 @@
-from django.test import TestCase
+# tests moved to top-level `tests/` directory (tests/test_upload_folder.py)
 
-# Create your tests here.
