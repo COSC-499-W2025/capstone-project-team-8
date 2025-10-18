@@ -8,6 +8,7 @@ class UploadFolderTests(TestCase):
     def setUp(self):
         self.client = Client()
 
+    # creates an in-memory zip archive to test
     def make_zip_bytes(self, files: dict) -> bytes:
         """Create an in-memory zip archive. files is a dict of name->content bytes or str."""
         bio = io.BytesIO()
@@ -16,11 +17,13 @@ class UploadFolderTests(TestCase):
                 data = content.encode("utf-8") if isinstance(content, str) else content
                 z.writestr(name, data)
         return bio.getvalue()
-
+    
+    #Tests getting the API for upload folder
     def test_get_usage(self):
         resp = self.client.get("/api/upload-folder/")
         self.assertEqual(resp.status_code, 200)
 
+    #Tests analyzing a zip upload foa file of each type
     def test_post_zip(self):
         files = {
             "folder/readme.md": "Hello world",
@@ -38,12 +41,14 @@ class UploadFolderTests(TestCase):
         self.assertIn("content", types)
         self.assertIn("code", types)
 
+    #Tests uploading with no file
     def test_missing_file(self):
         resp = self.client.post("/api/upload-folder/", {})
         self.assertEqual(resp.status_code, 400)
         data = resp.json()
         self.assertIn("error", data)
 
+    #Tests uploading a non-zip file
     def test_non_zip_upload(self):
         txt = SimpleUploadedFile("notazip.txt", b"this is not a zip", content_type="text/plain")
         resp = self.client.post("/api/upload-folder/", {"file": txt})
@@ -51,6 +56,7 @@ class UploadFolderTests(TestCase):
         data = resp.json()
         self.assertIn("Uploaded file is not a zip archive", data.get("error", ""))
 
+    #Tests to check that nested folders are supported
     def test_nested_folders(self):
         files = {
             "a/b/c/deep.txt": "deep",
