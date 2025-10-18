@@ -25,3 +25,12 @@
 - Met with peers to go over each others diagrams
 - Reflected on our diagrams as a team
 - Revised our diagrams based on feedback from peers
+
+## October 6-12
+
+<img width="1085" height="636" alt="October6-12" src="https://github.com/user-attachments/assets/d0b714b0-092f-4338-a827-f8721d3a1327" />
+
+- Researched different python backend frameworks
+- Discussed with team which backend framework to use
+- Implemented Django backend framework
+- Restructured Django set up based off team members feedback

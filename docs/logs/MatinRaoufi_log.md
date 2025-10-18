@@ -23,4 +23,15 @@ September 29 - Oct 5
 
 - helped make the level 0 DFD & helped with level 1 DFD
 - Reviewed other groups DFD's
-- Reviewed feedback from other groups with our group 
+- Reviewed feedback from other groups with our group
+
+Oct 6 - Oct 12
+
+<img width="1079" height="633" alt="image" src="https://github.com/user-attachments/assets/4c82df6e-f3df-48c5-abe7-9bfca3c40b4f" />
+
+- Learned about DJango framework
+- Reviewed pull requests
+- Reviewed docker
+- Discussed database tech with team
+- Provided feedback on pull requests
+
