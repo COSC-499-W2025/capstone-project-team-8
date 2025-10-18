@@ -1,6 +1,12 @@
-version: "3.8"
-
 services:
+  backend:
+    build: ./src/backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src/backend:/app
+
   frontend:
     build:
       context: .
