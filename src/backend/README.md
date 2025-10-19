@@ -7,13 +7,20 @@
 
 ## Quick Start with Docker
 
-From the project root:
+From the project root (`capstone-project-team-8/`):
 
 ```bash
 docker compose up
 ```
 
 This starts the Django backend with MySQL database.
+
+**What this does:**
+
+- Starts MySQL 8.0 database container
+- Runs Django migrations automatically
+- Starts Django development server on `http://localhost:8000`
+- All services run together (MySQL, backend, frontend)
 
 ## Local Development Setup
 
@@ -50,10 +57,16 @@ pip install -r requirements.txt
 Copy the example environment file:
 
 ```bash
+# Windows
+copy .env.example .env
+
+# Mac/Linux
 cp .env.example .env
 ```
 
 The default values work with Docker Compose. For custom MySQL setup, edit `.env` with your credentials.
+
+**About python-decouple:** This package manages environment variables securely, keeping secrets out of your code and Git repository.
 
 ### 6. Run Migrations
 
