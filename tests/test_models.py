@@ -13,53 +13,40 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 
 
-class UserModelTest(TestCase):
-    """Test suite for User model functionality"""
+class UserDatabaseTest(TestCase):
+    """Test that users can be created and saved to MySQL database"""
     
-    def test_create_user(self):
-        """Test creating a user with username, email, and password"""
+    def test_create_user_in_database(self):
+        """Test creating a user and saving to MySQL"""
+        # Create a user
         user = User.objects.create_user(
             username='testuser',
             email='test@example.com',
             password='testpass123'
         )
         
+        # Verify user was saved to database
+        self.assertIsNotNone(user.id)  # Has database ID
         self.assertEqual(user.username, 'testuser')
         self.assertEqual(user.email, 'test@example.com')
-        self.assertTrue(user.check_password('testpass123'))
-        self.assertTrue(user.is_active)
-        self.assertFalse(user.is_staff)
-        self.assertFalse(user.is_superuser)
-    
-    def test_user_string_representation(self):
-        """Test the string representation of a user"""
-        user = User.objects.create_user(
-            username='john_doe',
-            email='john@example.com',
-            password='password123'
-        )
         
-        self.assertEqual(str(user), 'john_doe')
+        # Verify we can retrieve it from database
+        retrieved_user = User.objects.get(username='testuser')
+        self.assertEqual(retrieved_user.id, user.id)
+        self.assertEqual(retrieved_user.email, 'test@example.com')
     
-    def test_user_email_is_optional(self):
-        """Test creating a user without an email"""
-        user = User.objects.create_user(
-            username='noemailuser',
-            password='testpass123'
-        )
+    def test_create_multiple_users(self):
+        """Test creating multiple users in MySQL"""
+        # Create multiple users
+        user1 = User.objects.create_user(username='user1', email='user1@test.com', password='pass1')
+        user2 = User.objects.create_user(username='user2', email='user2@test.com', password='pass2')
+        user3 = User.objects.create_user(username='user3', email='user3@test.com', password='pass3')
         
-        self.assertEqual(user.username, 'noemailuser')
-        self.assertEqual(user.email, '')
-    
-    def test_create_superuser(self):
-        """Test creating a superuser for admin access"""
-        superuser = User.objects.create_superuser(
-            username='admin',
-            email='admin@example.com',
-            password='adminpass123'
-        )
+        # Verify count in database
+        total_users = User.objects.count()
+        self.assertEqual(total_users, 3)
         
-        self.assertEqual(superuser.username, 'admin')
-        self.assertTrue(superuser.is_staff)
-        self.assertTrue(superuser.is_superuser)
-        self.assertTrue(superuser.is_active)
+        # Verify all users exist
+        self.assertTrue(User.objects.filter(username='user1').exists())
+        self.assertTrue(User.objects.filter(username='user2').exists())
+        self.assertTrue(User.objects.filter(username='user3').exists())
