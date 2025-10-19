@@ -23,6 +23,72 @@ Please use the provided folder structure for your project. You are free to organ
 Please use a branching workflow, and once an item is ready, do remember to issue a PR, review, and merge it into the master branch.
 Be sure to keep your docs and README.md up-to-date.
 
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Docker and Docker Compose
+- Python 3.10+
+- Node.js 18+
+
+### Development Setup
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd capstone-project-team-8
+   ```
+
+2. **Start all services with Docker**
+
+   ```bash
+   docker compose up
+   ```
+
+   This starts:
+   - MySQL database on `localhost:3306`
+   - Django backend on `localhost:8000`
+   - Next.js frontend on `localhost:3000`
+
+3. **Backend setup (local development)**
+
+   ```bash
+   cd src/backend
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   pip install -r requirements.txt
+   
+   # Copy environment template
+   cp .env.example .env
+   
+   # Run migrations
+   python manage.py migrate
+   
+   # Run tests
+   python manage.py test ../../tests
+   ```
+
+### Environment Variables
+
+The backend requires a `.env` file. Copy `.env.example` and update values:
+
+```bash
+cd src/backend
+cp .env.example .env
+```
+
+Default values work with Docker Compose setup.
+
+### Running Tests
+
+```bash
+cd src/backend
+python manage.py test ../../tests
+```
+
+## 📚 Documentation Links
+
 # [Data Flow Diagram](./docs/design/DFD.md)
 
 # [System Architecture Diagram](./docs/design/SAD.md)

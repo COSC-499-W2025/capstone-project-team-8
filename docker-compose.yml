@@ -1,16 +1,48 @@
 services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: capstone_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: capstone_db
+      MYSQL_USER: capstone_user
+      MYSQL_PASSWORD: capstone_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
   backend:
     build: ./src/backend
+    container_name: capstone_backend
     restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
       - ./src/backend:/app
+    environment:
+      - DB_NAME=capstone_db
+      - DB_USER=capstone_user
+      - DB_PASSWORD=capstone_pass
+      - DB_HOST=db
+      - DB_PORT=3306
+      - SECRET_KEY=django-insecure-docker-dev-key
+    depends_on:
+      db:
+        condition: service_healthy
 
   frontend:
     build:
       context: ./src/frontend
       dockerfile: Dockerfile
+    container_name: capstone_frontend
+    restart: unless-stopped
     ports:
       - "3000:3000"
     working_dir: /app
@@ -19,3 +51,6 @@ services:
     environment:
       - NODE_ENV=development
     command: npm run dev
+
+volumes:
+  mysql_data:
