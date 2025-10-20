@@ -34,3 +34,11 @@
 - Discussed with team which backend framework to use
 - Implemented Django backend framework
 - Restructured Django set up based off team members feedback
+
+## October 13-19
+
+- Implemented file upload functionality in Django backend
+- Implemented basic categorization of uploaded files based off file type
+- Testing new implemented features
+- Refactored file upload code and backend to improve modular code structure
+- Reviewed team members code and provided feedback
