@@ -2,3 +2,4 @@ django
 djangorestframework
 mysqlclient
 python-decouple
+python-dotenv

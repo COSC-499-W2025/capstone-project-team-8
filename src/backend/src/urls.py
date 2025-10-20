@@ -16,8 +16,28 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.http import HttpResponse
+
+
+def index(request):
+        html = """
+        <html>
+            <head><title>Backend API</title></head>
+            <body>
+                <h1>Backend API</h1>
+                <ul>
+                    <li><a href="/admin/">Django Admin</a></li>
+                    <li><a href="/api/upload-folder/">Upload Folder API (POST)</a></li>
+                </ul>
+            </body>
+        </html>
+        """
+        return HttpResponse(html)
+
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+        path("", index, name="index"),
+        path("admin/", admin.site.urls),
+        path("api/", include("app.urls")),
 ]
