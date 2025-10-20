@@ -4,12 +4,12 @@ A web application that enables users to upload, scan, and analyze their work art
 
 ## Technology Stack
 
-### Frontend 📄 [Frontend README.md](./src/frontend/README.md)
+### Frontend 📄 [View Frontend README.md](./src/frontend/README.md)
 - **Framework:** Next.js 13+
 - **Styling:** Tailwind CSS
 - **Language:** JavaScript
 
-### Backend 📄 [Backend README.md](./src/backend/README.md)
+### Backend 📄 [View Backend README.md](./src/backend/README.md)
 - **Framework:** Django 4.2+
 - **Database:** MySQL
 - **API:** Django REST Framework
