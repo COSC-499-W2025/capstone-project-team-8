@@ -26,10 +26,20 @@
 ## October 6-10
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/7fca0375-5f18-4cc4-b697-c69d39765a72" />
 
-
 - Installed Next.js to a front end folder (we probably won't be using this until miletsone 2 but it is good to see the whole project folder setup)
 - Documented on how to start the front end server
 - Created issues on our Kanban board and assigned tasks to teammates
 - Reviewed Harper and Charlie's pull requests
 - Suggested revisions on the backend folder structure
 - Read Django docs to learn how to create API routes
+
+- ## October 13-17
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/023f0d28-72e4-4251-8409-b422113aea29" />
+
+- created a document proposing a plan for our AI analysis layer
+- compared multiple cloud hosting platforms for AI hosting
+- the document has 3 different ooptions we can choose and we will further discuss the final choice in our next team meeting
+- created issues on our kanban board
+- reviewed harpers pull request
+- reviewed matins pull request
+- updated main readme file
