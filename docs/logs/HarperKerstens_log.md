@@ -37,6 +37,8 @@
 
 ## October 13-19
 
+<img width="1085" height="629" alt="October13-19" src="https://github.com/user-attachments/assets/922de45f-2c9a-4352-a195-0747b4bc1f5a" />
+
 - Implemented file upload functionality in Django backend
 - Implemented basic categorization of uploaded files based off file type
 - Testing new implemented features
