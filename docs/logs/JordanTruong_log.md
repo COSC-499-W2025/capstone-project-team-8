@@ -27,3 +27,10 @@
 - Learnt a bit of Django/Python
 - This week we were able to get the ball rolling and setting up our project more
 - Next week we'll spend more time assigning tasks to each other and getting a solid plan
+## Week 7 October 13th - October 17th:
+<img width="1069" height="629" alt="image" src="https://github.com/user-attachments/assets/e065ff8d-ffb8-4855-af68-67de7535ef4b" /></br>
+### Recap:
+- Researched more on Django/Python setup with our MySQL Docker database
+- Reviewed/Tested multiple PRs and gave insightful feedback where I could
+- This week we setup the web app for uploading folders and also setup the database
+- Next week we'll work more on developing these issues
