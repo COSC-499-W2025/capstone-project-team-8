@@ -18,5 +18,12 @@
 <img width="1624" height="931" alt="20251012_23h02m40s_grim" src="https://github.com/user-attachments/assets/b2875eda-ba9b-4f6c-8849-e35558f34179" />
 
 - Set up docker for backend
-- Reviewd teamates code
+- Reviewed teamates code
 - Discussions with team on which technologies to use
+
+## Oct 13 - 19
+<img width="1620" height="940" alt="20251019_23h05m53s_grim" src="https://github.com/user-attachments/assets/0d449ec8-f029-4044-b224-1f4e634d79d8" />
+
+- Reviewed teamates code
+- Discussions with team on which technologies to use for database
+- Add authentication api in backend
