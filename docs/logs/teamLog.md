@@ -8,7 +8,7 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
-## Week 6: Oct 13 - 17
+## Week 7: Oct 13 - 17
 
 #### This week we:
 - Dockerized frontend
