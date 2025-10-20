@@ -2,18 +2,37 @@
 
 A web application that enables users to upload, scan, and analyze their work artifacts. The app helps organize and showcase selected files via a dashboard, allowing users to export a portfolio folder for employers to review their skills and growth.
 
+- **Course:** COSC 499 (Winter 2025)  
+- **Team:** Team 8
+- **Team Members**:
+    - Jordan Truong
+    - Kyle Porter
+    - Charlie Schwebius
+    - Harper Kerstens
+    - Matin Raoufi
+    - Kyle McLeod
+
 ## Technology Stack
 
-### Frontend 📄 [View Frontend README.md](./src/frontend/README.md)
-- **Framework:** Next.js 13+
-- **Styling:** Tailwind CSS
-- **Language:** JavaScript
+### Frontend 📄 [Frontend Documentation](./src/frontend/README.md)
 
-### Backend 📄 [View Backend README.md](./src/backend/README.md)
-- **Framework:** Django 4.2+
-- **Database:** MySQL
-- **API:** Django REST Framework
-- **Language:** Python 3.8+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Next.js | 13+ | React framework with SSR |
+| React | 18+ | Reusable components & Next.js built on React|
+| Tailwind CSS | Latest | Utility-first CSS styling |
+| JavaScript | ES6+ | Primary frontend language |
+
+### Backend 📄 [Backend Documentation](./src/backend/README.md)
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Django | 4.2+ | Python web framework |
+| Django REST Framework | Latest | API development |
+| Python | 3.8+ | Backend programming language |
+| MySQL | 8.0+ | Primary data storage |
+| MySQL | Latest | Development database |
+| Docker | Latest | Containerization |
 
 ## Diagrams & Work Breakdown Structure
 
