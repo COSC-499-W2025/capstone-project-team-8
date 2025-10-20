@@ -35,3 +35,12 @@ Oct 6 - Oct 12
 - Discussed database tech with team
 - Provided feedback on pull requests
 
+Oct 13 - Oct 19
+<img width="1091" height="644" alt="image" src="https://github.com/user-attachments/assets/7edc2495-59ae-495a-896e-c1226016aedb" />
+
+- Setup a local MySQL database and dockerized it
+- Reviewed pull requests
+- Tested my own and teammates code
+- Documented database setup and pull requested for peer review
+
+
