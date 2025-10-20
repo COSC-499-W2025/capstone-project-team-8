@@ -8,6 +8,21 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 6: Oct 13 - 17
+
+#### This week we:
+- Dockerized frontend
+- Dockerized backend
+- Got a MySQL local database running and dockerized it
+- Implemented a simple file type analyzer/classifier - this will be one of many layers of processing in our analysis pipeline
+- Wrote tests for our file classifier
+- Wrote tests to confirm the database connection is working
+- Wrote a document on our AI/LLM server hosting plan
+- Refactored our codebase
+- Created issues in our kanban dashboard for next weeks sprint
+
+Overall this was a productive week and we are just finalizing our project setup before we make major changes and updates. We will be discussing the AI model plan during next week and once that is complete, we will be working on core functionality. Our plan is to separate the file processing into multiple small layers, and this will allow us to assign chunks to each teammate independently.
+  
 ## Week 6: Oct 6 - 12
 
 #### This week we:
