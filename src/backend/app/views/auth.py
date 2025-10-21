@@ -124,7 +124,7 @@ class LoginView(APIView):
                   <input type="text" name="username"/><br>
                   <label>Password</label>
                   <input type="password" name="password"/><br>
-                  <button type="submit">signup</button><br>
+                  <button type="submit">login</button><br>
                 </form>
               </body>
             </html>
