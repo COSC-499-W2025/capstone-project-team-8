@@ -9,7 +9,7 @@ app.use(cors());
 const OLLAMA_API = "http://localhost:11434/api/generate";
 
 app.post("/api/query", async (req, res) => {
-  const { prompt, model = "llama3" } = req.body;
+  const { prompt, model = "mistral" } = req.body;
 
   try {
     const response = await axios.post(OLLAMA_API, {
