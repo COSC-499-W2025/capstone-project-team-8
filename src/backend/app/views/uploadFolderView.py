@@ -174,21 +174,44 @@ class UploadFolderView(APIView):
                             r["project_root"] = root
                             break
 
-        return JsonResponse({"results": results})
             # Perform project-level classification
+            project_classifications = {}
             try:
-                project_classification = project_classifier.classify_project(archive_path)
+                # Classify the overall zip file
+                overall_classification = project_classifier.classify_project(archive_path)
+                project_classifications["overall"] = overall_classification
+                
+                # If we found Git projects, classify each one individually
+                if projects:
+                    for root_path, tag in projects.items():
+                        try:
+                            project_class = project_classifier.classify_project(root_path)
+                            project_classifications[f"project_{tag}"] = {
+                                **project_class,
+                                "project_root": str(root_path.relative_to(tmpdir_path)) if root_path.is_relative_to(tmpdir_path) else str(root_path),
+                                "project_tag": tag
+                            }
+                        except Exception as e:
+                            project_classifications[f"project_{tag}"] = {
+                                "classification": "unknown",
+                                "confidence": 0.0,
+                                "error": str(e),
+                                "project_root": str(root_path.relative_to(tmpdir_path)) if root_path.is_relative_to(tmpdir_path) else str(root_path),
+                                "project_tag": tag
+                            }
             except Exception as e:
                 # If project classification fails, continue without it
-                project_classification = {
-                    "classification": "unknown",
-                    "confidence": 0.0,
-                    "error": str(e)
+                project_classifications = {
+                    "overall": {
+                        "classification": "unknown",
+                        "confidence": 0.0,
+                        "error": str(e)
+                    }
                 }
 
         return JsonResponse({
             "results": results,
-            "project_classification": project_classification
+            "project_classifications": project_classifications
         })
 
     def get(self, request, format=None):
@@ -198,7 +221,7 @@ class UploadFolderView(APIView):
             "endpoint": "/api/upload-folder/",
             "method": "POST",
             "field": "file (zip archive)",
-            "description": "Upload a zip file containing a folder of files. The server will extract and analyze files by type (image/content/code) and classify the overall project type (coding/writing/art/mixed).",
+            "description": "Upload a zip file containing a folder of files. The server will extract and analyze files by type (image/content/code), discover Git repositories, tag files with project information, and classify project types (coding/writing/art/mixed).",
         }
 
         if "text/html" in accept:
@@ -210,7 +233,7 @@ class UploadFolderView(APIView):
                   <input type="file" name="file" accept=".zip" />
                   <button type="submit">Upload</button>
                 </form>
-                <p>Note: Use POST with form field 'file' containing a zip archive. The system will analyze individual files and classify the overall project type.</p>
+                <p>Note: Use POST with form field 'file' containing a zip archive. The system will analyze individual files, discover Git repositories, and classify project types.</p>
               </body>
             </html>
             """
