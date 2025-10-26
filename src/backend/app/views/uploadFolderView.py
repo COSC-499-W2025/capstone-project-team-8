@@ -80,6 +80,8 @@ class UploadFolderView(APIView):
         analyzers = importlib.import_module("app.services.analyzers")
 
         results = []
+        git_analysis = None
+
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
             # write uploaded file to disk first
@@ -91,15 +93,30 @@ class UploadFolderView(APIView):
             with zipfile.ZipFile(archive_path, "r") as z:
                 z.extractall(tmpdir)
 
+            # Check for .git directory in extracted files
+            git_repo_path = None
+            for root, dirs, files in os.walk(tmpdir):
+                if '.git' in dirs:
+                    git_repo_path = Path(root)
+                    git_analysis = analyzers.analyze_git_repository(git_repo_path)
+                    break
+
             for root, _, files in os.walk(tmpdir):
                 for fname in files:
                     fpath = Path(root) / fname
+                    # Skip .git directory contents
+                    if '.git' in fpath.parts:
+                        continue
                     # Use classifier to determine category and call analyzer
                     kind = classify_file(fpath)
                     if kind == "image":
                         res = analyzers.analyze_image(fpath)
                     elif kind == "code":
                         res = analyzers.analyze_code(fpath)
+                        # Add git blame information if in a git repo
+                        if git_repo_path and git_repo_path in fpath.parents:
+                            blame_info = analyzers.analyze_file_blame(fpath, git_repo_path)
+                            res["blame"] = blame_info
                     elif kind == "content":
                         res = analyzers.analyze_content(fpath)
                     else:
@@ -120,8 +137,11 @@ class UploadFolderView(APIView):
                         res.setdefault("path", fname)
 
                     results.append(res)
+        response_data = {"results": results}
+        if git_analysis:
+            response_data["git_analysis"] = git_analysis
 
-        return JsonResponse({"results": results})
+        return JsonResponse(response_data)
 
     def get(self, request, format=None):
         """Return usage or HTML form."""
