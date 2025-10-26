@@ -1,5 +1,5 @@
 
-from django.contrib.auth.models import User
+from app.models import User  # Custom User model
 from django.contrib.auth import authenticate
 from django.db import IntegrityError
 from rest_framework.request import Request
