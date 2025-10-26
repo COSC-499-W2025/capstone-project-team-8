@@ -13,8 +13,11 @@ import importlib
 # These are the categories that a file will be classified as based off its extension
 # The current system is expecting a zip files to be uploaded
 # After these are scanned they would get sent to a respective analyzer
-# What's currently missing is a way for multiple files to be categorized as a project, this just analyzes all file types individually.
-# In it's state it can check for nested files as well.
+# Currently, it can only distinguish between repositories by searching them for a ".git" folder.
+# Anything found within that folder would be tagged as part of that repository.
+# Found projects are given two tags, one that is numeric (project_tag) and one that is human-readable (project_root).
+# Project tag is increased sequentially starting at 1 for each discovered repository.
+# Anything found outside of any .git folder would not receive a project tag.
 
 EXT_IMAGE = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tif", ".tiff"}
 EXT_CODE = {
@@ -100,6 +103,8 @@ class UploadFolderView(APIView):
                     git_repo_path = Path(root)
                     git_analysis = analyzers.analyze_git_repository(git_repo_path)
                     break
+            # Discover git projects under the extracted tree so files can be tagged
+            projects = analyzers.discover_git_projects(tmpdir_path)
 
             for root, _, files in os.walk(tmpdir):
                 for fname in files:
@@ -131,21 +136,67 @@ class UploadFolderView(APIView):
                     # Normalize path to be relative to the extracted tmpdir so we don't leak absolute temp paths
                     try:
                         rel = fpath.relative_to(tmpdir_path)
-                        res["path"] = str(rel)
+                        # Normalize to POSIX-style path (forward slashes) for consistent matching
+                        res["path"] = Path(rel).as_posix()
                     except Exception:
                         # Fallback: use the filename only
                         res.setdefault("path", fname)
 
-                    results.append(res)
+                results.append(res)
+        
+        # Post-process results to assign project tags.
+        # Prefer using the authoritative `projects` mapping discovered earlier
+        # (project_root Path -> numeric tag). Build a tag->relative-root mapping
+        # and use it to assign both numeric `project_tag` and human-readable
+        # `project_root` to results. If `projects` is empty, fall back to the
+        # previous heuristic that parsed '/.git/' from result paths.
+        projects_rel = {}
+        if projects:
+                for root_path, tag in projects.items():
+                    try:
+                        rel_root = root_path.relative_to(tmpdir_path)
+                        root_str = Path(rel_root).as_posix()
+                    except Exception:
+                        # If relative conversion fails, fall back to the resolved path string
+                        root_str = str(root_path)
+                    projects_rel[tag] = root_str
+
+                # assign tags using projects_rel
+                for r in results:
+                    p = r.get("path", "")
+                    for tag, root_str in projects_rel.items():
+                        if p == root_str or p.startswith(root_str + "/"):
+                            r["project_tag"] = tag
+                            r["project_root"] = root_str
+                            break
+            else:
+                # Fallback heuristic: detect '.git' mentions in paths and assign root string as tag
+                project_roots = []
+                for r in results:
+                    p = r.get("path", "")
+                    if "/.git/" in p or p.endswith("/.git") or p.endswith("/.git/HEAD"):
+                        root = p.split("/.git/")[0] if "/.git/" in p else p.rsplit("/", 1)[0]
+                        if root not in project_roots:
+                            project_roots.append(root)
+
+                for r in results:
+                    p = r.get("path", "")
+                    for root in project_roots:
+                        if p == root or p.startswith(root + "/"):
+                            # for fallback we only have root string; set both fields to it
+                            r["project_tag"] = root
+                            r["project_root"] = root
+                            break
+
+                            r["project_tag"] = root
+                            r["project_root"] = root
+                            break
+
         response_data = {"results": results}
         if git_analysis:
             response_data["git_analysis"] = git_analysis
 
         return JsonResponse(response_data)
-
-    def get(self, request, format=None):
-        """Return usage or HTML form."""
-        accept = request.META.get("HTTP_ACCEPT", "")
         usage = {
             "endpoint": "/api/upload-folder/",
             "method": "POST",

@@ -73,6 +73,7 @@ class UploadFolderTests(TestCase):
         self.assertTrue(any("script.js" in p for p in paths))
         self.assertTrue(any("image.jpg" in p for p in paths))
 
+    # Tests uploading a folder with a .git directory
     def test_git_repository_analysis(self):
         """Test uploading a folder with a .git directory"""
         # This would require creating a test git repo in memory
@@ -90,3 +91,100 @@ class UploadFolderTests(TestCase):
         # Check that git analysis was attempted
         self.assertIn("results", data)
         
+    # Tests that files inside a single git repo get a project_tag and are the same tag
+    def test_project_tag_single_repo(self):
+        files = {
+            # place a .git directory marker and some files under repo/
+            "repo/.git/HEAD": "ref: refs/heads/main",
+            "repo/README.md": "repo readme",
+            "repo/src/main.py": "print('hello')",
+            "other/file.txt": "outside",
+        }
+        zip_bytes = self.make_zip_bytes(files)
+        upload = SimpleUploadedFile("repo.zip", zip_bytes, content_type="application/zip")
+        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        # collect project tags for files under repo/
+        repo_tags = {
+            item.get("project_tag")
+            for item in data["results"]
+            if item.get("path", "").startswith("repo/") and ".git/" not in item.get("path", "")
+        }
+
+        # files in repo should have a tag and all the same tag
+        self.assertTrue(len(repo_tags) == 1, f"Expected one tag for repo files, got {repo_tags}")
+        self.assertIsNotNone(next(iter(repo_tags)))
+        
+        git_tags = {
+            item.get("project_tag")
+            for item in data["results"]
+            if item.get("path", "").startswith("repo/.git/")
+        }
+        self.assertTrue(all(tag is not None for tag in git_tags))
+        # Also ensure project_root is present for repo files
+        repo_roots = {
+            item.get("project_root")
+            for item in data["results"]
+            if item.get("path", "").startswith("repo/") and ".git/" not in item.get("path", "")
+        }
+        self.assertTrue(len(repo_roots) == 1)
+        self.assertIsNotNone(next(iter(repo_roots)))
+
+    # Tests that multiple repos get different project tags
+    def test_project_tag_multiple_repos(self):
+        files = {
+            "r1/.git/HEAD": "ref: refs/heads/main",
+            "r1/a.txt": "one",
+            "r2/.git/HEAD": "ref: refs/heads/main",
+            "r2/b.txt": "two",
+            "r1/sub/c.py": "print(1)",
+            "r2/sub/d.py": "print(2)",
+        }
+        zip_bytes = self.make_zip_bytes(files)
+        upload = SimpleUploadedFile("multi.zip", zip_bytes, content_type="application/zip")
+        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        r1_tags = {
+            item.get("project_tag")
+            for item in data["results"]
+            if item.get("path", "").startswith("r1/") and ".git/" not in item.get("path", "")
+        }
+        r2_tags = {
+            item.get("project_tag")
+            for item in data["results"]
+            if item.get("path", "").startswith("r2/") and ".git/" not in item.get("path", "")
+        }
+
+        # Each repo should have at least one tag, and those tags should not be the same
+        self.assertTrue(len(r1_tags) == 1, f"Expected one tag for r1, got {r1_tags}")
+        self.assertTrue(len(r2_tags) == 1, f"Expected one tag for r2, got {r2_tags}")
+        self.assertNotEqual(next(iter(r1_tags)), next(iter(r2_tags)))
+
+        git_tags_r1 = {
+            item.get("project_tag")
+            for item in data["results"]
+            if item.get("path", "").startswith("r1/.git/")
+        }
+        git_tags_r2 = {
+            item.get("project_tag")
+            for item in data["results"]
+            if item.get("path", "").startswith("r2/.git/")
+        }
+        self.assertTrue(all(tag is not None for tag in git_tags_r1))
+        self.assertTrue(all(tag is not None for tag in git_tags_r2))
+        # Ensure project_root exists and differs for r1 and r2 files
+        r1_roots = {
+            item.get("project_root")
+            for item in data["results"]
+            if item.get("path", "").startswith("r1/") and ".git/" not in item.get("path", "")
+        }
+        r2_roots = {
+            item.get("project_root")
+            for item in data["results"]
+            if item.get("path", "").startswith("r2/") and ".git/" not in item.get("path", "")
+        }
+        self.assertTrue(len(r1_roots) == 1)
+        self.assertTrue(len(r2_roots) == 1)
+        self.assertNotEqual(next(iter(r1_roots)), next(iter(r2_roots)))
