@@ -24,7 +24,7 @@ EXT_CODE = {
     ".py", ".pyw", ".pyi",
     ".js", ".jsx", ".mjs", ".cjs",
     ".ts", ".tsx",
-    ".java",
+    ".java",".jsp",
     ".c", ".h", ".cpp", ".cc", ".cxx", ".hpp", ".hh",
     ".cs",
     ".go",
@@ -78,9 +78,11 @@ class UploadFolderView(APIView):
         if not zipfile.is_zipfile(upload):
             return JsonResponse({"error": "Uploaded file is not a zip archive."}, status=400)
 
-        # Import analyzers here to avoid circular import problems at module import time.
+        # Import analyzers and project classifier here to avoid circular import problems at module import time.
         # The analyzers implementation now lives at app/services/analyzers.py
+        # The project classifier implementation now lives at app/services/project_classifier.py
         analyzers = importlib.import_module("app.services.analyzers")
+        project_classifier = importlib.import_module("app.services.project_classifier")
 
         results = []
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -173,6 +175,21 @@ class UploadFolderView(APIView):
                             break
 
         return JsonResponse({"results": results})
+            # Perform project-level classification
+            try:
+                project_classification = project_classifier.classify_project(archive_path)
+            except Exception as e:
+                # If project classification fails, continue without it
+                project_classification = {
+                    "classification": "unknown",
+                    "confidence": 0.0,
+                    "error": str(e)
+                }
+
+        return JsonResponse({
+            "results": results,
+            "project_classification": project_classification
+        })
 
     def get(self, request, format=None):
         """Return usage or HTML form."""
@@ -181,7 +198,7 @@ class UploadFolderView(APIView):
             "endpoint": "/api/upload-folder/",
             "method": "POST",
             "field": "file (zip archive)",
-            "description": "Upload a zip file containing a folder of files. The server will extract and analyze files by type (image/content/code).",
+            "description": "Upload a zip file containing a folder of files. The server will extract and analyze files by type (image/content/code) and classify the overall project type (coding/writing/art/mixed).",
         }
 
         if "text/html" in accept:
@@ -193,7 +210,7 @@ class UploadFolderView(APIView):
                   <input type="file" name="file" accept=".zip" />
                   <button type="submit">Upload</button>
                 </form>
-                <p>Note: Use POST with form field 'file' containing a zip archive.</p>
+                <p>Note: Use POST with form field 'file' containing a zip archive. The system will analyze individual files and classify the overall project type.</p>
               </body>
             </html>
             """
