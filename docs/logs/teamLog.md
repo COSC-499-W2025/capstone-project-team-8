@@ -19,6 +19,8 @@
 - Reviewed PR's and provided feedback
 - Wrote tests for our new analysis functions
 
+Our team has made a lot of progress on our extraction and analysis process. Our extraction layer is close to being complete and we will be forwarding the data to our analysis engine. Our team collaboration has been great and we have been answering eachothers questions in our group Discord channel. So far, we have had no problems as a team, and we have our tasks set for next week.
+
 Our Week 8 Milestone:
 <img width="1070" height="812" alt="image" src="https://github.com/user-attachments/assets/2c749fe1-3957-42b4-9571-53a00dec52b6" />
 
