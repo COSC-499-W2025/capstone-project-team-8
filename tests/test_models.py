@@ -10,7 +10,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.settings')
 django.setup()
 
 from django.test import TestCase
-from django.contrib.auth.models import User
+from app.models import User  # Use custom User model
 
 
 class UserDatabaseTest(TestCase):
