@@ -43,3 +43,14 @@
 - reviewed harpers pull request
 - reviewed matins pull request
 - updated main readme file
+
+- ## October 20-24
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/d7c0fedd-f40c-41e3-85f2-eca0af9093c7" />
+
+- designed and created an AI layer that will play a crucial role in getting insights on files
+- scalable and easily portable so we can host it on any cloud host
+- chose a cloud host provider and am now going to work on deploying the model so we can use a powerful model for testing
+- did weekly logs
+- reviewed harpers pull request on file classification
+- reviewed matins pull request on database configuration
+- populated kanban board with more tasks for next week
