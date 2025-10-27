@@ -131,9 +131,9 @@ def extract_project_features(root_dir: Union[str, Path]) -> Dict[str, Any]:
 def simple_score_classify(
     root_dir: Union[str, Path],
     min_files_for_confident: int = 2,
-    weights: Tuple[float, float, float] = (3.0, 2.0, 2.5),
+    weights: Tuple[float, float, float] = (3.0, 2.0, 2.5), # 3.0 for code, 2.0 for text, 2.5 for image
     folder_bonus: float = 1.5,
-    margin_threshold: float = 0.2,
+    margin_threshold: float = 0.25, # 0.25 for mixed classification
     force_mixed: bool = True
 ) -> str:
     """
