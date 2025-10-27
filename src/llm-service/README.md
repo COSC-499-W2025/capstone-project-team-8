@@ -59,12 +59,12 @@ node index.js
 On bash / macOS / Linux:
 
 ```bash
-PORT=3000 node index.js
+PORT=3001 node index.js
 ```
 
 ## API Usage
  
- POST to `http://127.0.0.1:3000/api/query`
+ POST to `http://127.0.0.1:3001/api/query`
  
   Express forwards to Ollama and can add auth, logging, rate limits, or payload normalization.
 
@@ -85,7 +85,7 @@ Open Postman → New Request → POST
 URL:
 
 ``` 
-http://127.0.0.1:3000/api/generate
+http://127.0.0.1:3001/api/generate
 ```
 
 Headers:
