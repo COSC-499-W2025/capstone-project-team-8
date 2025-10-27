@@ -258,7 +258,7 @@ class ProjectClassifierTests(TestCase):
         }
         project_path = self.create_test_project(files)
         
-        # With default margin (0.25), should be mixed
+        # With default margin (0.2), should be coding (code files dominate)
         result_default = simple_score_classify(project_path)
         
         # With higher margin (1.0), should pick the top one

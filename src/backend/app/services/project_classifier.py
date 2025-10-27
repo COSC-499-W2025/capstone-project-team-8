@@ -45,7 +45,6 @@ CODE_EXTS = {
 TEXT_EXTS = {
     '.txt', '.md', '.doc', '.docx', '.pdf', '.tex', '.bib',
     '.rtf', '.odt', '.pages',  # Additional document formats
-    '.csv',  # Data files that are text-based
     '.log'  # Log files
 }
 
@@ -131,10 +130,11 @@ def extract_project_features(root_dir: Union[str, Path]) -> Dict[str, Any]:
 
 def simple_score_classify(
     root_dir: Union[str, Path],
-    min_files_for_confident: int = 3,
-    weights: Tuple[float, float, float] = (3.0, 1.5, 2.0),
+    min_files_for_confident: int = 2,
+    weights: Tuple[float, float, float] = (3.0, 2.0, 2.5),
     folder_bonus: float = 1.5,
-    margin_threshold: float = 0.25
+    margin_threshold: float = 0.2,
+    force_mixed: bool = True
 ) -> str:
     """
     Classify a project using a scoring-based heuristic approach.
@@ -157,7 +157,7 @@ def simple_score_classify(
     text_ratio = features['text_count'] / total_files
     image_ratio = features['image_count'] / total_files
     
-    # Apply weights to get base scores
+    # Apply weights to get base scores (default weights are 3.0 for code, 2.0 for text, 2.5 for image)
     code_weight, text_weight, image_weight = weights
     score_code = code_ratio * code_weight
     score_text = text_ratio * text_weight
@@ -180,19 +180,39 @@ def simple_score_classify(
         for ext in features['ext_counts'].keys()
     )
     if readme_indicators:
-        score_code += 0.25
-        score_text += 0.25
+        score_code += 0.5
+        score_text += 0.2
     
+    # requirements.txt files suggest coding projects
+    requirements_indicators = any(
+        'requirements' in ext.lower() or ext.lower() in {'.txt'}
+        for ext in features['ext_counts'].keys()
+    )
+    if requirements_indicators:
+        score_code += 0.3
+
     # License files suggest coding projects
     license_indicators = any(
         'license' in ext.lower() or ext.lower() in {'.txt', '.md'}
         for ext in features['ext_counts'].keys()
     )
     if license_indicators:
-        score_code += 0.25
+        score_code += 0.5
+    
+    # Package files suggest coding projects
+    package_indicators = any(
+        ext.lower() in {'.json', '.toml', '.yaml', '.yml', '.ini', '.cfg'}
+        for ext in features['ext_counts'].keys()
+    )
+    if package_indicators:
+        score_code += 0.3
     
     # If project is too small, return unknown
     if total_files < min_files_for_confident:
+        return 'unknown'
+    
+    # Special case: empty project
+    if total_files == 0:
         return 'unknown'
     
     # Determine classification
@@ -208,10 +228,22 @@ def simple_score_classify(
     second_label, second_score = sorted_scores[1]
     
     # Check if top score is significantly higher than second
-    if top_score >= (second_score + margin_threshold):
-        return top_label
-    else:
+    score_difference = top_score - second_score
+    
+    # Check if we have multiple file types (indicating mixed content)
+    has_multiple_types = sum(1 for count in [features['code_count'], features['text_count'], features['image_count']] if count > 0) >= 2
+    
+    # Consider mixed if:
+    # 1. Both scores are reasonably high and close, OR
+    # 2. We have multiple file types and both top scores are decent (only if force_mixed is True)
+    condition1 = score_difference < margin_threshold and top_score > 1.0 and second_score > 0.8
+    condition2 = has_multiple_types and top_score > 0.8 and second_score > 0.5 and score_difference < 1.0
+    
+    if force_mixed and (condition1 or condition2):
         return f"mixed:{top_label}+{second_label}"
+    
+    # If not mixed, return the top category
+    return top_label
 
 
 def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
@@ -251,9 +283,13 @@ def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
             text_ratio = features['text_count'] / features['total_files']
             image_ratio = features['image_count'] / features['total_files']
             
-            # Simple confidence calculation
+            # Improved confidence calculation
             max_ratio = max(code_ratio, text_ratio, image_ratio)
-            confidence = min(max_ratio * 2, 1.0)  # Cap at 1.0
+            # Base confidence on file ratio and total files
+            base_confidence = max_ratio * 1.5
+            # Boost confidence for more files
+            file_boost = min(features['total_files'] * 0.1, 0.3)
+            confidence = min(base_confidence + file_boost, 1.0)
             
             return {
                 'classification': classification,
@@ -273,7 +309,11 @@ def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
         image_ratio = features['image_count'] / features['total_files']
         
         max_ratio = max(code_ratio, text_ratio, image_ratio)
-        confidence = min(max_ratio * 2, 1.0)
+        # Base confidence on file ratio and total files
+        base_confidence = max_ratio * 1.5
+        # Boost confidence for more files
+        file_boost = min(features['total_files'] * 0.1, 0.3)
+        confidence = min(base_confidence + file_boost, 1.0)
         
         return {
             'classification': classification,
