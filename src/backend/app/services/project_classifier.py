@@ -181,7 +181,7 @@ def simple_score_classify(
     )
     if readme_indicators:
         score_code += 0.5
-        score_text += 0.2
+        score_text += 0.1
     
     # requirements.txt files suggest coding projects
     requirements_indicators = any(
@@ -189,7 +189,7 @@ def simple_score_classify(
         for ext in features['ext_counts'].keys()
     )
     if requirements_indicators:
-        score_code += 0.3
+        score_code += 0.5
 
     # License files suggest coding projects
     license_indicators = any(
