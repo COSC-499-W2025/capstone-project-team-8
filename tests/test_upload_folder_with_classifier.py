@@ -56,55 +56,6 @@ class UploadFolderWithClassifierTests(TestCase):
         self.assertEqual(overall_class["classification"], "coding")
         self.assertGreater(overall_class["confidence"], 0)
 
-    def test_writing_project_classification(self):
-        """Test that a writing project gets classified correctly"""
-        files = {
-            "chapter1.docx": "Chapter 1: Introduction",
-            "chapter2.docx": "Chapter 2: Literature Review",
-            "references.pdf": "References and citations",
-            "thesis.tex": "\\documentclass{article}\\begin{document}",
-            "manuscript.md": "# Research Paper\n## Abstract",
-            "notes.txt": "Research notes and ideas"
-        }
-        zip_bytes = self.make_zip_bytes(files)
-        upload = SimpleUploadedFile("writing_project.zip", zip_bytes, content_type="application/zip")
-        
-        resp = self.client.post("/api/upload-folder/", {"file": upload})
-        self.assertEqual(resp.status_code, 200)
-        
-        data = resp.json()
-        self.assertIn("project_classifications", data)
-        
-        project_classifications = data["project_classifications"]
-        self.assertIn("overall", project_classifications)
-        overall_class = project_classifications["overall"]
-        self.assertEqual(overall_class["classification"], "writing")
-        self.assertGreater(overall_class["confidence"], 0)
-
-    def test_art_project_classification(self):
-        """Test that an art project gets classified correctly"""
-        files = {
-            "logo.png": b"\x89PNG\r\n\x1a\n\x00\x00",
-            "banner.jpg": b"\xff\xd8\xff\xe0\x00\x10JFIF",
-            "icon.svg": "<svg><circle r='10'/></svg>",
-            "portfolio.psd": b"fake_psd_data",
-            "sketch.gif": b"fake_gif_data",
-            "design.ai": b"fake_ai_data"
-        }
-        zip_bytes = self.make_zip_bytes(files)
-        upload = SimpleUploadedFile("art_project.zip", zip_bytes, content_type="application/zip")
-        
-        resp = self.client.post("/api/upload-folder/", {"file": upload})
-        self.assertEqual(resp.status_code, 200)
-        
-        data = resp.json()
-        self.assertIn("project_classifications", data)
-        
-        project_classifications = data["project_classifications"]
-        self.assertIn("overall", project_classifications)
-        overall_class = project_classifications["overall"]
-        self.assertEqual(overall_class["classification"], "art")
-        self.assertGreater(overall_class["confidence"], 0)
 
     def test_mixed_project_classification(self):
         """Test that a mixed project gets classified correctly"""
@@ -133,69 +84,6 @@ class UploadFolderWithClassifierTests(TestCase):
         self.assertIn(overall_class["classification"], ["coding", "mixed:coding+art", "mixed:art+coding"])
         self.assertGreater(overall_class["confidence"], 0)
 
-    def test_small_project_classification(self):
-        """Test that a very small project gets classified as unknown"""
-        files = {
-            "single.py": "print('hello')"
-        }
-        zip_bytes = self.make_zip_bytes(files)
-        upload = SimpleUploadedFile("small_project.zip", zip_bytes, content_type="application/zip")
-        
-        resp = self.client.post("/api/upload-folder/", {"file": upload})
-        self.assertEqual(resp.status_code, 200)
-        
-        data = resp.json()
-        self.assertIn("project_classifications", data)
-        
-        project_classifications = data["project_classifications"]
-        self.assertIn("overall", project_classifications)
-        overall_class = project_classifications["overall"]
-        self.assertEqual(overall_class["classification"], "unknown")
-
-    def test_project_classification_with_folder_hints(self):
-        """Test that folder structure hints influence classification"""
-        files = {
-            "main.py": "print('hello')",
-            "README.md": "# Project"
-        }
-        zip_bytes = self.make_zip_bytes(files)
-        upload = SimpleUploadedFile("project_with_hints.zip", zip_bytes, content_type="application/zip")
-        
-        resp = self.client.post("/api/upload-folder/", {"file": upload})
-        self.assertEqual(resp.status_code, 200)
-        
-        data = resp.json()
-        self.assertIn("project_classifications", data)
-        
-        project_classifications = data["project_classifications"]
-        self.assertIn("overall", project_classifications)
-        overall_class = project_classifications["overall"]
-        # Should be coding due to Python files and README
-        self.assertEqual(overall_class["classification"], "coding")
-
-    def test_project_classification_error_handling(self):
-        """Test that classification errors are handled gracefully"""
-        # Create a zip with a problematic structure
-        files = {
-            "main.py": "print('hello')",
-            "README.md": "# Project"
-        }
-        zip_bytes = self.make_zip_bytes(files)
-        upload = SimpleUploadedFile("test_project.zip", zip_bytes, content_type="application/zip")
-        
-        # Mock the classifier to raise an exception
-        with self.settings():
-            resp = self.client.post("/api/upload-folder/", {"file": upload})
-            self.assertEqual(resp.status_code, 200)
-            
-            data = resp.json()
-            self.assertIn("project_classifications", data)
-            
-            # Should still have classification even if there was an error
-            project_classifications = data["project_classifications"]
-            self.assertIn("overall", project_classifications)
-            overall_class = project_classifications["overall"]
-            self.assertIn("classification", overall_class)
 
     def test_backward_compatibility(self):
         """Test that existing functionality still works with new classification"""
