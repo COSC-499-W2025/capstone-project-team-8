@@ -33,7 +33,7 @@
 - Suggested revisions on the backend folder structure
 - Read Django docs to learn how to create API routes
 
-- ## October 13-17
+## October 13-17
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/023f0d28-72e4-4251-8409-b422113aea29" />
 
 - created a document proposing a plan for our AI analysis layer
@@ -44,7 +44,7 @@
 - reviewed matins pull request
 - updated main readme file
 
-- ## October 20-24
+## October 20-24
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/d7c0fedd-f40c-41e3-85f2-eca0af9093c7" />
 
 - designed and created an AI layer that will play a crucial role in getting insights on files
