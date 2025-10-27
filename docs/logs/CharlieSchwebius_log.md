@@ -30,3 +30,11 @@
 
 - Continued research into our selected framework (Django)
 - Researched solutions to some of our core problems (File input, data scraping, finding file contributors, attributing contributions, external AI analysis tools)
+## Week 8 (October 20 - 26)
+<img width="1910" height="1117" alt="image" src="https://github.com/user-attachments/assets/f1170f39-a6af-4abe-856a-c7b504bce476" />
+
+- Created heuristic project classifier based on file names, file types, and folder names
+- Created tests and documentation for this classifier
+- Researched Ollama and other local LLM models (How good are they for what we need, etc.)
+- Troubleshot local machine issues (issues connecting to mySQL in Docker, issues with Next.js packages)
+  
