@@ -43,4 +43,16 @@ Oct 13 - Oct 19
 - Tested my own and teammates code
 - Documented database setup and pull requested for peer review
 
+Oct 20 - Oct 26
+<img width="1247" height="649" alt="image" src="https://github.com/user-attachments/assets/8b20c376-7e95-44fd-9e21-f3f4984cb17c" />
+
+- Discussed Potential AI integration with group
+- Reviewed pull requests
+- Tested teammates code
+- Tested my own code
+- Setup user model for database
+- Created several tests
+- Pull requested and documented my work
+
+
 
