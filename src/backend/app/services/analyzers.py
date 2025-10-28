@@ -3,7 +3,8 @@ from typing import Dict, Any, List, Optional
 from pathlib import Path
 from typing import Dict, Any, Optional
 import os
-
+import shutil
+import subprocess
 
 def analyze_image(path: Path) -> Dict[str, Any]:
     # Placeholder image analysis - return basic metadata
@@ -33,11 +34,19 @@ def analyze_code(path: Path) -> Dict[str, Any]:
         lines = None
     return {"type": "code", "path": str(path), "lines": lines}
 
+def _git_bin() -> Optional[str]:
+    """Return path to git executable from GIT_BIN env or PATH."""
+    return os.environ.get("GIT_BIN") or shutil.which("git")
+
 def analyze_git_repository(path: Path) -> Dict[str, Any]:
     """
     Analyze a git repository to extract contribution information.
     Returns contributor stats, commit history, and file blame information.
     """
+    git = _git_bin()
+    if not git:
+        return {"type": "git", "error": "git not available. Install git or set GIT_BIN to the git executable."}
+    
     try:
         # Check if .git directory exists
         git_dir = path / '.git'
@@ -54,20 +63,23 @@ def analyze_git_repository(path: Path) -> Dict[str, Any]:
             text=True,
             timeout=30
         )
-        
         if result.returncode != 0:
             return {"type": "git", "error": "Failed to read git log"}
         
         # Parse commit counts
         contributors = []
-        for line in result.stdout.strip().split('\n'):
-            if line.strip():
-                parts = line.strip().split('\t', 1)
-                if len(parts) == 2:
-                    contributors.append({
-                        "commits": int(parts[0]),
-                        "author": parts[1]
-                    })
+        for line in result.stdout.strip().split("\n"):
+            s = line.strip()
+            if not s:
+                continue
+            parts = s.split("\t", 1)
+            if len(parts) == 2:
+                try:
+                    commits = int(parts[0].strip())
+                except ValueError:
+                    continue
+                contributors.append({"commits": commits, "author": parts[1]})
+
         
         # Get total file count and lines changed per author
         stats_result = subprocess.run(
@@ -77,26 +89,21 @@ def analyze_git_repository(path: Path) -> Dict[str, Any]:
             timeout=30
         )
         
-        author_stats = {}
-        current_author = None
+        author_stats: Dict[str, Any] = {}
+        current_author: Optional[str] = None
         
         for line in stats_result.stdout.split('\n'):
-            line = line.strip()
-            if not line:
+            s = line.strip()
+            if not s:
                 continue
             
             # Check if line is an author name (no tabs)
-            if '\t' not in line:
-                current_author = line
-                if current_author not in author_stats:
-                    author_stats[current_author] = {
-                        "lines_added": 0,
-                        "lines_deleted": 0,
-                        "files_changed": set()
-                    }
+            if '\t' not in s:
+                current_author = s
+                author_stats.setdefault(current_author, {"lines_added": 0, "lines_deleted": 0, "files_changed": set()})
             elif current_author:
                 # Parse numstat line: added\tdeleted\tfilename
-                parts = line.split('\t')
+                parts = s.split('\t')
                 if len(parts) == 3:
                     added, deleted, filename = parts
                     if added != '-' and deleted != '-':
@@ -105,9 +112,9 @@ def analyze_git_repository(path: Path) -> Dict[str, Any]:
                         author_stats[current_author]["files_changed"].add(filename)
         
         # Convert sets to counts
-        for author in author_stats:
-            author_stats[author]["files_changed"] = len(author_stats[author]["files_changed"])
-        
+        for a in list(author_stats.keys()):
+            author_stats[a]["files_changed"] = len(author_stats[a]["files_changed"])
+
         return {
             "type": "git",
             "path": str(path),
@@ -126,33 +133,32 @@ def analyze_file_blame(file_path: Path, repo_path: Path) -> Dict[str, Any]:
     """
     Get git blame information for a specific file to show line-by-line contributions.
     """
+    git = _git_bin()
+    if not git:
+        return {"error": "git not available. Install git or set GIT_BIN to the git executable."}
+
     try:
+        rel = str(file_path.relative_to(repo_path))
         result = subprocess.run(
-            ['git', '-C', str(repo_path), 'blame', '--line-porcelain', str(file_path.relative_to(repo_path))],
+            [git, "-C", str(repo_path), "blame", "--line-porcelain", rel],
             capture_output=True,
             text=True,
-            timeout=30
+            timeout=30,
         )
         
         if result.returncode != 0:
             return {"error": "Failed to get blame information"}
         
         # Parse blame output
-        author_lines = {}
-        current_author = None
-        
-        for line in result.stdout.split('\n'):
-            if line.startswith('author '):
-                current_author = line[7:]  # Remove 'author ' prefix
-                if current_author not in author_lines:
-                    author_lines[current_author] = 0
-                author_lines[current_author] += 1
-        
-        return {
-            "type": "blame",
-            "file": str(file_path),
-            "contributions": author_lines
-        }
+        author_lines: Dict[str, int] = {}
+        for line in result.stdout.split("\n"):
+            if line.startswith("author "):
+                author = line[7:]
+                author_lines[author] = author_lines.get(author, 0) + 1
+
+        return {"type": "blame", "file": str(file_path), "contributions": author_lines}
+    except subprocess.TimeoutExpired:
+        return {"error": "Blame analysis timed out"}
         
     except Exception as e:
         return {"error": f"Blame analysis failed: {str(e)}"}

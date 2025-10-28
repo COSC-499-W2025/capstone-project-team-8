@@ -14,6 +14,11 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
+# Make the path explicit for the app
+ENV GIT_BIN=/usr/bin/git
+
 # Install Python dependencies
 COPY ./requirements.txt ./
 RUN pip install --upgrade pip

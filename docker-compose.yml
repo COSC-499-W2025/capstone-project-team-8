@@ -26,6 +26,7 @@ services:
       - "8000:8000"
     volumes:
       - ./src/backend:/app
+      - ./tests:/app/tests
     environment:
       - DB_NAME=capstone_db
       - DB_USER=capstone_user
@@ -33,6 +34,7 @@ services:
       - DB_HOST=db
       - DB_PORT=3306
       - SECRET_KEY=django-insecure-docker-dev-key
+      - GIT_BIN=/usr/bin/git
     depends_on:
       db:
         condition: service_healthy
