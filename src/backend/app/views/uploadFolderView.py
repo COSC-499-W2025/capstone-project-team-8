@@ -68,6 +68,30 @@ def classify_file(path: Path):
 class UploadFolderView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
+    def get(self, request, format=None):
+        usage = {
+            "endpoint": "/api/upload-folder/",
+            "method": "POST",
+            "field": "file (zip archive)",
+            "description": "Upload a zip file containing a folder of files. The server will extract and analyze files by type (image/content/code).",
+        }
+        accept = request.META.get("HTTP_ACCEPT", "")
+        if "text/html" in accept:
+            html = """
+            <html>
+                <body>
+                <h1>Upload Folder</h1>
+                <form method="post" enctype="multipart/form-data">
+                  <input type="file" name="file" accept=".zip" />
+                  <button type="submit">Upload</button>
+                </form>
+                <p>Note: Use POST with form field 'file' containing a zip archive.</p>
+              </body>
+            </html>
+            """
+            return HttpResponse(html)
+        return JsonResponse({"usage": usage})
+
     def post(self, request, format=None):
         """Accept a ZIP file upload representing a folder. Extract and analyze files."""
         upload = request.FILES.get("file")
@@ -85,6 +109,9 @@ class UploadFolderView(APIView):
         project_classifier = importlib.import_module("app.services.project_classifier")
 
         results = []
+        git_analysis = None
+        projects = {}
+
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
             # write uploaded file to disk first
@@ -99,57 +126,127 @@ class UploadFolderView(APIView):
             # Discover git projects under the extracted tree so files can be tagged
             projects = analyzers.discover_git_projects(tmpdir_path)
 
-            for root, _, files in os.walk(tmpdir):
+            # Check for .git directory in extracted files
+            git_repo_path = None
+            if projects:
+                # Pick the first discovered repo for top-level analysis (optional)
+                git_repo_path = next(iter(projects.keys()))
+                git_analysis = analyzers.analyze_git_repository(git_repo_path)
+
+            # Faster check: is git available for blame?
+            try:
+                git_available = analyzers._git_bin() is not None
+            except Exception:
+                git_available = False
+
+            # Walk all files and analyze
+            for root, _, files in os.walk(tmpdir_path):
                 for fname in files:
                     fpath = Path(root) / fname
-                    # Use classifier to determine category and call analyzer
+
+                    # Skip .git directory contents from file analysis
+                    if ".git" in fpath.parts:
+                        continue
+
                     kind = classify_file(fpath)
                     if kind == "image":
                         res = analyzers.analyze_image(fpath)
                     elif kind == "code":
                         res = analyzers.analyze_code(fpath)
+                        # Add blame if possible and file is within the chosen repo
+                        if git_available and git_repo_path and git_repo_path in fpath.parents:
+                            res["blame"] = analyzers.analyze_file_blame(fpath, git_repo_path)
                     elif kind == "content":
                         res = analyzers.analyze_content(fpath)
                     else:
                         res = {"type": "unknown", "path": str(fpath)}
 
-                    # Guarantee a 'type' field exists (some analyzers may omit it)
                     if not isinstance(res, dict):
-                        # Ensure we always append a dict
                         res = {"type": kind if kind else "unknown", "path": str(fpath)}
                     res.setdefault("type", kind if kind else "unknown")
 
-                    # Normalize path to be relative to the extracted tmpdir so we don't leak absolute temp paths
+                    # Normalize to relative POSIX path for response
                     try:
                         rel = fpath.relative_to(tmpdir_path)
-                        # Normalize to POSIX-style path (forward slashes) for consistent matching
                         res["path"] = Path(rel).as_posix()
                     except Exception:
-                        # Fallback: use the filename only
-                        res.setdefault("path", fname)
+                        res["path"] = fpath.name
 
                     results.append(res)
-
-            # Post-process results to assign project tags.
-            # Prefer using the authoritative `projects` mapping discovered earlier
-            # (project_root Path -> numeric tag). Build a tag->relative-root mapping
-            # and use it to assign both numeric `project_tag` and human-readable
-            # `project_root` to results. If `projects` is empty, fall back to the
-            # previous heuristic that parsed '/.git/' from result paths.
-            projects_rel = {}
-            if projects:
-                for root_path, tag in projects.items():
-                    try:
-                        rel_root = root_path.relative_to(tmpdir_path)
-                        root_str = Path(rel_root).as_posix()
-                    except Exception:
-                        # If relative conversion fails, fall back to the resolved path string
-                        root_str = str(root_path)
-                    projects_rel[tag] = root_str
-
-                # assign tags using projects_rel
+        
+        # Post-process results to assign project tags.
+        # Prefer using the authoritative `projects` mapping discovered earlier
+        # (project_root Path -> numeric tag). Build a tag->relative-root mapping
+        # and use it to assign both numeric `project_tag` and human-readable
+        # `project_root` to results. If `projects` is empty, fall back to the
+        # previous heuristic that parsed '/.git/' from result paths.
+        response_data = {"results": results}
+        if projects:
+            projects_rel: dict[int, str] = {}
+            for root_path, tag in projects.items():
+                # Convert repo root to relative POSIX string for matching
+                try:
+                    # root_path was under tmpdir_path; we can reconstruct relative by stripping common prefix
+                    # Since tmpdir_path no longer exists, rely on string replacement fallback if needed
+                    # But discover_git_projects used absolute resolved paths; emulate relative by joining names from root_path
+                    # Simpler: find the leaf folder name sequence beneath the temp root by scanning result paths.
+                    # We will derive by picking any result path that starts with the repo leaf segment.
+                    # However, we stored relative paths in results, so re-derive using the shortest common prefix in results.
+                    # Easier approach: compute the last folder name sequence from root_path and find matching result prefix.
+                    # In practice, root_path is tmpdir/XYZ..., so just take the final components after tmpdir.
+                    pass
+                except Exception:
+                    pass
+            # Derive relative roots directly by scanning results for .git markers (consistent with tests)
+            repo_roots: dict[int, str] = {}
+            # For each discovered project root, find a representative path prefix in results:
+            for root_path, tag in projects.items():
+                # Take the lowest-level directory name(s) under the zip by comparing to first-level result paths
+                # Best-effort: choose the shortest path in results that appears to belong to this repo
+                candidates = []
                 for r in results:
                     p = r.get("path", "")
+                    # If this was extracted under root_path, its absolute startswith root_path; we lost that relation,
+                    # so approximate by looking for '<repo_name>/' prefix. Use the tail name of root_path.
+                    repo_name = root_path.name
+                    if p == repo_name or p.startswith(repo_name + "/"):
+                        candidates.append(p.split("/")[0])
+                if candidates:
+                    repo_roots[tag] = min(candidates, key=len)
+                else:
+                    # Fallback to the leaf directory name
+                    repo_roots[tag] = root_path.name
+
+            # Assign tags to results using repo_roots prefixes
+            for r in results:
+                p = r.get("path", "")
+                for tag, root_str in repo_roots.items():
+                    if p == root_str or p.startswith(root_str + "/"):
+                        r["project_tag"] = tag
+                        r["project_root"] = root_str
+                        break
+        else:
+            # Fallback heuristic if no projects discovered
+            project_roots: list[str] = []
+            for r in results:
+                p = r.get("path", "")
+                if "/.git/" in p or p.endswith("/.git") or p.endswith("/.git/HEAD"):
+                    root = p.split("/.git/")[0] if "/.git/" in p else p.rsplit("/", 1)[0]
+                    if root and root not in project_roots:
+                        project_roots.append(root)
+            for r in results:
+                p = r.get("path", "")
+                for root in project_roots:
+                    if p == root or p.startswith(root + "/"):
+                        r["project_tag"] = root
+                        r["project_root"] = root
+                        break
+
+        if git_analysis:
+            response_data["git_analysis"] = git_analysis
+
+        return JsonResponse(response_data)
+    
                     for tag, root_str in projects_rel.items():
                         if p == root_str or p.startswith(root_str + "/"):
                             r["project_tag"] = tag

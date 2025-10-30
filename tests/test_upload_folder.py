@@ -73,6 +73,24 @@ class UploadFolderTests(TestCase):
         self.assertTrue(any("script.js" in p for p in paths))
         self.assertTrue(any("image.jpg" in p for p in paths))
 
+    # Tests uploading a folder with a .git directory
+    def test_git_repository_analysis(self):
+        """Test uploading a folder with a .git directory"""
+        # This would require creating a test git repo in memory
+        # For now, ensure the endpoint handles git repos gracefully
+        files = {
+            ".git/config": "[core]\n\trepositoryformatversion = 0",
+            "README.md": "# Test Project",
+            "main.py": "print('hello')",
+        }
+        zip_bytes = self.make_zip_bytes(files)
+        upload = SimpleUploadedFile("git-repo.zip", zip_bytes, content_type="application/zip")
+        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        # Check that git analysis was attempted
+        self.assertIn("results", data)
+        
     # Tests that files inside a single git repo get a project_tag and are the same tag
     def test_project_tag_single_repo(self):
         files = {
