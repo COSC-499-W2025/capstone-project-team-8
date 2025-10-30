@@ -8,6 +8,26 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 8: Oct 20 - 24
+
+#### This week we:
+- Added additional functionality to our file analyzer
+- Implemented a custom user model for our database
+- Confirmed the plan for our AI host
+- Setup a portable AI/LLM layer which we will host on the cloud
+- Authentication setup
+- Reviewed PR's and provided feedback
+- Wrote tests for our new analysis functions
+
+Our team has made a lot of progress on our extraction and analysis process. Our extraction layer is close to being complete and we will be forwarding the data to our analysis engine. Our team collaboration has been great and we have been answering eachothers questions in our group Discord channel. So far, we have had no problems as a team, and we have our tasks set for next week.
+
+Our Week 8 Milestone:
+<img width="1070" height="812" alt="image" src="https://github.com/user-attachments/assets/2c749fe1-3957-42b4-9571-53a00dec52b6" />
+
+Burn Up Chart:
+<img width="1070" height="812" alt="image" src="https://github.com/user-attachments/assets/2cc8ec9f-d78e-47d2-aeac-bff36cb6b282" />
+
+
 ## Week 7: Oct 13 - 17
 
 #### This week we:

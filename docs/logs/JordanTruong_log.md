@@ -34,3 +34,9 @@
 - Reviewed/Tested multiple PRs and gave insightful feedback where I could
 - This week we setup the web app for uploading folders and also setup the database
 - Next week we'll work more on developing these issues
+## Week 8 October 20th - October 24th:
+<img width="1074" height="629" alt="image" src="https://github.com/user-attachments/assets/c02e74d6-d3b7-4c10-b5cd-fed50ba8cce6" /></br>
+### Recap:
+- This week I worked on the feature: finding Git contributions
+- Researched ways to scan the .git directory
+- Next week I plan on finishing this PR for review

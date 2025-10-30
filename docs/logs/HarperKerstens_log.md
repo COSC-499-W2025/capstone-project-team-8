@@ -44,3 +44,14 @@
 - Testing new implemented features
 - Refactored file upload code and backend to improve modular code structure
 - Reviewed team members code and provided feedback
+
+
+## October 20-26
+
+<img width="1080" height="635" alt="October20-26" src="https://github.com/user-attachments/assets/8644fda1-efa4-4362-adb1-c27b276a52cf" />
+
+- Continued work on file upload functionality
+- Analyzer can now detect repositories in uploaded zip files
+- Assigns tags to files based on file type and repository (repository root and assigned tag)
+- Testing and debugging new features
+- Reviewed team members code and provided feedback

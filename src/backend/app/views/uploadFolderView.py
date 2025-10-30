@@ -24,7 +24,7 @@ EXT_CODE = {
     ".py", ".pyw", ".pyi",
     ".js", ".jsx", ".mjs", ".cjs",
     ".ts", ".tsx",
-    ".java",
+    ".java",".jsp",
     ".c", ".h", ".cpp", ".cc", ".cxx", ".hpp", ".hh",
     ".cs",
     ".go",
@@ -102,9 +102,11 @@ class UploadFolderView(APIView):
         if not zipfile.is_zipfile(upload):
             return JsonResponse({"error": "Uploaded file is not a zip archive."}, status=400)
 
-        # Import analyzers here to avoid circular import problems at module import time.
+        # Import analyzers and project classifier here to avoid circular import problems at module import time.
         # The analyzers implementation now lives at app/services/analyzers.py
+        # The project classifier implementation now lives at app/services/project_classifier.py
         analyzers = importlib.import_module("app.services.analyzers")
+        project_classifier = importlib.import_module("app.services.project_classifier")
 
         results = []
         git_analysis = None
@@ -245,3 +247,93 @@ class UploadFolderView(APIView):
 
         return JsonResponse(response_data)
     
+                    for tag, root_str in projects_rel.items():
+                        if p == root_str or p.startswith(root_str + "/"):
+                            r["project_tag"] = tag
+                            r["project_root"] = root_str
+                            break
+            else:
+                # Fallback heuristic: detect '.git' mentions in paths and assign root string as tag
+                project_roots = []
+                for r in results:
+                    p = r.get("path", "")
+                    if "/.git/" in p or p.endswith("/.git") or p.endswith("/.git/HEAD"):
+                        root = p.split("/.git/")[0] if "/.git/" in p else p.rsplit("/", 1)[0]
+                        if root not in project_roots:
+                            project_roots.append(root)
+
+                for r in results:
+                    p = r.get("path", "")
+                    for root in project_roots:
+                        if p == root or p.startswith(root + "/"):
+                            # for fallback we only have root string; set both fields to it
+                            r["project_tag"] = root
+                            r["project_root"] = root
+                            break
+
+            # Perform project-level classification
+            project_classifications = {}
+            try:
+                # Classify the overall zip file
+                overall_classification = project_classifier.classify_project(archive_path)
+                project_classifications["overall"] = overall_classification
+                
+                # If we found Git projects, classify each one individually
+                if projects:
+                    for root_path, tag in projects.items():
+                        try:
+                            project_class = project_classifier.classify_project(root_path)
+                            project_classifications[f"project_{tag}"] = {
+                                **project_class,
+                                "project_root": str(root_path.relative_to(tmpdir_path)) if root_path.is_relative_to(tmpdir_path) else str(root_path),
+                                "project_tag": tag
+                            }
+                        except Exception as e:
+                            project_classifications[f"project_{tag}"] = {
+                                "classification": "unknown",
+                                "confidence": 0.0,
+                                "error": str(e),
+                                "project_root": str(root_path.relative_to(tmpdir_path)) if root_path.is_relative_to(tmpdir_path) else str(root_path),
+                                "project_tag": tag
+                            }
+            except Exception as e:
+                # If project classification fails, continue without it
+                project_classifications = {
+                    "overall": {
+                        "classification": "unknown",
+                        "confidence": 0.0,
+                        "error": str(e)
+                    }
+                }
+
+        return JsonResponse({
+            "results": results,
+            "project_classifications": project_classifications
+        })
+
+    def get(self, request, format=None):
+        """Return usage or HTML form."""
+        accept = request.META.get("HTTP_ACCEPT", "")
+        usage = {
+            "endpoint": "/api/upload-folder/",
+            "method": "POST",
+            "field": "file (zip archive)",
+            "description": "Upload a zip file containing a folder of files. The server will extract and analyze files by type (image/content/code), discover Git repositories, tag files with project information, and classify project types (coding/writing/art/mixed).",
+        }
+
+        if "text/html" in accept:
+            html = """
+            <html>
+              <body>
+                <h1>Upload Folder</h1>
+                <form method="post" enctype="multipart/form-data">
+                  <input type="file" name="file" accept=".zip" />
+                  <button type="submit">Upload</button>
+                </form>
+                <p>Note: Use POST with form field 'file' containing a zip archive. The system will analyze individual files, discover Git repositories, and classify project types.</p>
+              </body>
+            </html>
+            """
+            return HttpResponse(html)
+
+        return JsonResponse({"usage": usage})
