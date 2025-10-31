@@ -37,24 +37,22 @@ class UploadFolderWithClassifierTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         
         data = resp.json()
-        self.assertIn("results", data)
-        self.assertIn("project_classifications", data)
+        # Check new structure
+        self.assertIn("source", data)
+        self.assertIn("projects", data)
+        self.assertIn("overall", data)
         
-        # Check individual file analysis
-        self.assertGreaterEqual(len(data["results"]), 7)
-        types = {item.get("type") for item in data["results"]}
-        self.assertIn("code", types)
-        self.assertIn("content", types)
+        # Check overall classification
+        overall = data["overall"]
+        self.assertIn("classification", overall)
+        self.assertIn("confidence", overall)
+        self.assertEqual(overall["classification"], "coding")
+        self.assertGreater(overall["confidence"], 0)
         
-        # Check project classifications
-        project_classifications = data["project_classifications"]
-        self.assertIn("overall", project_classifications)
-        
-        overall_class = project_classifications["overall"]
-        self.assertIn("classification", overall_class)
-        self.assertIn("confidence", overall_class)
-        self.assertEqual(overall_class["classification"], "coding")
-        self.assertGreater(overall_class["confidence"], 0)
+        # Check file totals
+        self.assertGreaterEqual(overall["totals"]["files"], 7)
+        self.assertGreater(overall["totals"]["code_files"], 0)
+        self.assertGreater(overall["totals"]["text_files"], 0)
 
 
     def test_mixed_project_classification(self):
@@ -75,14 +73,12 @@ class UploadFolderWithClassifierTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         
         data = resp.json()
-        self.assertIn("project_classifications", data)
+        self.assertIn("overall", data)
         
-        project_classifications = data["project_classifications"]
-        self.assertIn("overall", project_classifications)
-        overall_class = project_classifications["overall"]
+        overall = data["overall"]
         # Should be mixed or one of the dominant types
-        self.assertIn(overall_class["classification"], ["coding", "mixed:coding+art", "mixed:art+coding"])
-        self.assertGreater(overall_class["confidence"], 0)
+        self.assertIn(overall["classification"], ["coding", "mixed:coding+art", "mixed:art+coding"])
+        self.assertGreater(overall["confidence"], 0)
 
 
     def test_backward_compatibility(self):
@@ -99,20 +95,16 @@ class UploadFolderWithClassifierTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         
         data = resp.json()
-        # Should still have the original results structure
-        self.assertIn("results", data)
-        self.assertGreaterEqual(len(data["results"]), 3)
-        types = {item.get("type") for item in data["results"]}
-        self.assertIn("content", types)
-        self.assertIn("code", types)
+        # Check new structure
+        self.assertIn("source", data)
+        self.assertIn("projects", data)
+        self.assertIn("overall", data)
         
-        # Should also have the new project classifications
-        self.assertIn("project_classifications", data)
-        project_classifications = data["project_classifications"]
-        self.assertIn("overall", project_classifications)
-        overall_class = project_classifications["overall"]
-        self.assertIn("classification", overall_class)
-        self.assertIn("confidence", overall_class)
+        # Check overall statistics
+        overall = data["overall"]
+        self.assertIn("classification", overall)
+        self.assertIn("confidence", overall)
+        self.assertGreaterEqual(overall["totals"]["files"], 3)
 
     def test_git_project_discovery_and_classification(self):
         """Test that Git projects are discovered and classified individually"""
@@ -141,34 +133,32 @@ class UploadFolderWithClassifierTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         
         data = resp.json()
-        self.assertIn("results", data)
-        self.assertIn("project_classifications", data)
+        self.assertIn("projects", data)
         
-        # Check that files are tagged with project information
-        results = data["results"]
-        project1_files = [r for r in results if r.get("project_tag") == 1]
-        project2_files = [r for r in results if r.get("project_tag") == 2]
-        untagged_files = [r for r in results if "project_tag" not in r]
+        # Should have 2 projects discovered
+        self.assertEqual(len(data["projects"]), 2)
         
-        # Should have files from both projects
-        self.assertGreater(len(project1_files), 0)
-        self.assertGreater(len(project2_files), 0)
-        self.assertGreater(len(untagged_files), 0)  # standalone.txt
+        # Find the projects
+        project1 = None
+        project2 = None
+        for project in data["projects"]:
+            if project["root"] == "project1":
+                project1 = project
+            elif project["root"] == "project2":
+                project2 = project
         
-        # Check project classifications
-        project_classifications = data["project_classifications"]
-        self.assertIn("overall", project_classifications)
-        self.assertIn("project_1", project_classifications)
-        self.assertIn("project_2", project_classifications)
+        # Both projects should exist
+        self.assertIsNotNone(project1)
+        self.assertIsNotNone(project2)
         
         # Project 1 should be classified as coding (Python)
-        project1_class = project_classifications["project_1"]
-        self.assertEqual(project1_class["classification"], "coding")
-        self.assertIn("project_root", project1_class)
-        self.assertEqual(project1_class["project_tag"], 1)
+        self.assertEqual(project1["classification"]["type"], "coding")
+        self.assertIn("confidence", project1["classification"])
         
         # Project 2 should be classified as coding (JavaScript)
-        project2_class = project_classifications["project_2"]
-        self.assertEqual(project2_class["classification"], "coding")
-        self.assertIn("project_root", project2_class)
-        self.assertEqual(project2_class["project_tag"], 2)
+        self.assertEqual(project2["classification"]["type"], "coding")
+        self.assertIn("confidence", project2["classification"])
+        
+        # Each project should have files
+        self.assertGreater(len(project1["files"]["code"]) + len(project1["files"]["content"]), 0)
+        self.assertGreater(len(project2["files"]["code"]) + len(project2["files"]["content"]), 0)
