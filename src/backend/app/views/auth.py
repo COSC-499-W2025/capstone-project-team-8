@@ -5,38 +5,80 @@ from django.db import IntegrityError
 from rest_framework.request import Request
 from rest_framework.views import APIView
 from django.http import JsonResponse, HttpResponse
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework import status as http_status
 from django.template import engines
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 class SignupView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def post(self, request: Request):
-        username = request.POST['username']
-        email = request.POST['email']
-        password = request.POST['password']
-        confirm_password = request.POST['confirm_password']
+        # Check if request is JSON or form data
+        is_json = request.content_type == 'application/json'
+        
+        # Get data from appropriate source
+        data = request.data if is_json else request.POST
+        
+        try:
+            username = data['username']
+            email = data['email']
+            password = data['password']
+            confirm_password = data['confirm_password']
+        except KeyError as e:
+            if is_json:
+                return JsonResponse(
+                    {"error": f"Missing required field: {str(e)}"},
+                    status=http_status.HTTP_400_BAD_REQUEST
+                )
+            return HttpResponse(
+                b"<html><h1>Missing required field</h1></html>",
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
+        
         if password == confirm_password:
             try:
-                User.objects.create_user(username, email, password)
+                user = User.objects.create_user(username, email, password)
             except IntegrityError:
-                return HttpResponse(
-                        b"<html><h1>Username Taken</h1></html>",
-                        status = http_status.HTTP_400_BAD_REQUEST,
+                if is_json:
+                    return JsonResponse(
+                        {"error": "Username already taken"},
+                        status=http_status.HTTP_400_BAD_REQUEST
                     )
+                return HttpResponse(
+                    b"<html><h1>Username Taken</h1></html>",
+                    status=http_status.HTTP_400_BAD_REQUEST,
+                )
 
+            # For JSON requests, return JWT tokens
+            if is_json:
+                refresh = RefreshToken.for_user(user)
+                return JsonResponse(
+                    {
+                        "access": str(refresh.access_token),
+                        "refresh": str(refresh),
+                        "username": username,
+                    },
+                    status=http_status.HTTP_201_CREATED
+                )
+            
+            # For form requests, use session (backward compatible)
             request.session['username'] = username
             return HttpResponse(
-                    bytes(f"<html><h1>Signed up: {username}</h1></html>", encoding="utf-8"),
-                    status = http_status.HTTP_200_OK,
-                )
+                bytes(f"<html><h1>Signed up: {username}</h1></html>", encoding="utf-8"),
+                status=http_status.HTTP_200_OK,
+            )
         else:
-            return HttpResponse(
-                    b"<html><h1>Invalid Request</h1></html>",
-                status = http_status.HTTP_400_BAD_REQUEST,
+            if is_json:
+                return JsonResponse(
+                    {"error": "Passwords do not match"},
+                    status=http_status.HTTP_400_BAD_REQUEST
                 )
+            return HttpResponse(
+                b"<html><h1>Invalid Request</h1></html>",
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
 
     def get(self, request):
         """Return signupusage or HTML form."""
@@ -81,23 +123,59 @@ class SignupView(APIView):
 
 
 class LoginView(APIView):
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
 
     def post(self, request: Request):
-        username = request.POST['username']
-        password = request.POST['password']
+        # Check if request is JSON or form data
+        is_json = request.content_type == 'application/json'
+        
+        # Get data from appropriate source
+        data = request.data if is_json else request.POST
+        
+        try:
+            username = data['username']
+            password = data['password']
+        except KeyError as e:
+            if is_json:
+                return JsonResponse(
+                    {"error": f"Missing required field: {str(e)}"},
+                    status=http_status.HTTP_400_BAD_REQUEST
+                )
+            return HttpResponse(
+                b"<html><h1>Missing required field</h1></html>",
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
+        
         user = authenticate(request=request, username=username, password=password)
         if user is not None:
+            # For JSON requests, return JWT tokens
+            if is_json:
+                refresh = RefreshToken.for_user(user)
+                return JsonResponse(
+                    {
+                        "access": str(refresh.access_token),
+                        "refresh": str(refresh),
+                        "username": username,
+                    },
+                    status=http_status.HTTP_200_OK
+                )
+            
+            # For form requests, use session (backward compatible)
             request.session['username'] = username
             return HttpResponse(
-                    bytes(f"<html><h1>Logged in: {user}</h1></html>", encoding="utf-8"),
-                    status = http_status.HTTP_200_OK,
-                )
+                bytes(f"<html><h1>Logged in: {user}</h1></html>", encoding="utf-8"),
+                status=http_status.HTTP_200_OK,
+            )
         else:
-            return HttpResponse(
-                    bytes("<html><h1>Wrong username or password.</h1></html>", encoding="utf-8"),
-                    status = http_status.HTTP_401_UNAUTHORIZED,
+            if is_json:
+                return JsonResponse(
+                    {"error": "Invalid username or password"},
+                    status=http_status.HTTP_401_UNAUTHORIZED
                 )
+            return HttpResponse(
+                bytes("<html><h1>Wrong username or password.</h1></html>", encoding="utf-8"),
+                status=http_status.HTTP_401_UNAUTHORIZED,
+            )
 
 
     def get(self, request):
