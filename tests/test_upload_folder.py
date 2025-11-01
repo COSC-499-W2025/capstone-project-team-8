@@ -90,6 +90,9 @@ class UploadFolderTests(TestCase):
         data = resp.json()
         # Check that git analysis was attempted
         self.assertIn("results", data)
+        # git_contributions should be present (may contain errors if git isn't available)
+        self.assertIn("git_contributions", data)
+        self.assertIsInstance(data["git_contributions"], dict)
         
     # Tests that files inside a single git repo get a project_tag and are the same tag
     def test_project_tag_single_repo(self):
@@ -130,6 +133,10 @@ class UploadFolderTests(TestCase):
         }
         self.assertTrue(len(repo_roots) == 1)
         self.assertIsNotNone(next(iter(repo_roots)))
+        # ensure git_contributions contains an entry for this project tag
+        gc = resp.json().get("git_contributions", {})
+        tag = next(iter(repo_tags))
+        self.assertIn(f"project_{tag}", gc)
 
     # Tests that multiple repos get different project tags
     def test_project_tag_multiple_repos(self):
@@ -188,3 +195,10 @@ class UploadFolderTests(TestCase):
         self.assertTrue(len(r1_roots) == 1)
         self.assertTrue(len(r2_roots) == 1)
         self.assertNotEqual(next(iter(r1_roots)), next(iter(r2_roots)))
+        # ensure git_contributions includes both project tags
+        gc = resp.json().get("git_contributions", {})
+        # extract the actual tags used in the response
+        r1_tag = next(iter(r1_tags))
+        r2_tag = next(iter(r2_tags))
+        self.assertIn(f"project_{r1_tag}", gc)
+        self.assertIn(f"project_{r2_tag}", gc)
