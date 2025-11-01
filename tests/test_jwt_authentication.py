@@ -1,14 +1,3 @@
-"""
-Test JWT Authentication functionality
-Following TDD approach - write tests first, then implement features
-
-HYBRID APPROACH:
-- New JWT token endpoints: /api/token/, /api/token/refresh/, /api/token/logout/
-- Updated auth endpoints to return JSON: /api/login/, /api/signup/
-- Backward compatible: existing session auth still works for HTML requests
-- New: JWT authentication for API routes
-"""
-
 import os
 import sys
 import django
