@@ -2,10 +2,26 @@
 
 This microservice provides a small Express API that will act as a layer that is part of our analysis process. 
 
-**Why separate this from our Djago app you might be thinking?** Because we can deploy this microservice completely independently, scale it separately. If we need to rotate cloud providers, it is extremely easy to do so with this architecture. We can simply use our cloud computing trials and clone this microservice to the new environment without touching our main application.
+**Why separate this from our Django app you might be thinking?** Because we can deploy this microservice completely independently, scale it separately. If we need to rotate cloud providers, it is extremely easy to do so with this architecture. We can simply use our cloud computing trials and clone this microservice to the new environment without touching our main application.
 
-**Why use an express.js layer and not the API that comes with Olamma?**
+**Why use an express.js layer and not the API that comes with Ollama?**
 The Express.js API forwards requests to a locally running Ollama instance, which hosts the LLM models. This allows us to handle authentication, logging, rate limiting, and much more when we need to in the future.
+
+## Security Features
+
+This service includes several security measures:
+- **API Key Authentication**: All requests to `/api/query` require a valid API key
+- **Rate Limiting**: Each IP is limited to 10 requests per minute to prevent abuse
+- **Input Validation**: Prompts are validated and limited to 20,000 characters
+- **CORS Protection**: Cross-origin requests are handled securely
+
+### API Key Usage
+
+⚠️ **IMPORTANT**: The API key can be found in the Discord channel. **DO NOT commit the API key to git or share it publicly**. Always use environment variables or `.env` files (which are gitignored).
+
+The API key must be included in requests using either:
+- Header: `x-api-key: YOUR_API_KEY`
+- Query parameter: `?apikey=YOUR_API_KEY`
 
 For development and testing purposes, it is advised that you run a small model on Olamma locally (e.g., `mistral` or `llama3`), which can be pulled from Ollama's model repository. **NOTE:** we will use much powerful models in production.
 
@@ -62,46 +78,40 @@ On bash / macOS / Linux:
 PORT=3001 node index.js
 ```
 
-## API Usage
- 
- POST to `http://127.0.0.1:3001/api/query`
- 
-  Express forwards to Ollama and can add auth, logging, rate limits, or payload normalization.
+## Cloud Based API Usage
 
-Both endpoints expect JSON like this (example) **make sure to specify the model type**:
+### Authentication Required
+
+All requests to the protected endpoints require authentication. Include the API key in your request headers (you can find the key in our group Discord channel):
+
+```bash
+curl -X POST http://129.146.9.215:3001/api/query \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: YOUR_API_KEY_HERE" \
+  -d '{
+    "model": "llama3.1:8b",
+    "prompt": "Your prompt here"
+  }'
+```
+
+### Rate Limiting
+
+- **Limit**: 10 requests per minute per IP address (can increase after testing)
+- **Response**: HTTP 429 (Too Many Requests) when limit exceeded
+- **Reset**: Automatic reset after 1 minute
+
+### Endpoints
+
+**POST** `/api/query` (Protected - requires API key)
+- Forwards requests to Ollama with authentication and rate limiting
+- Expected JSON payload:
 
 ```json
 {
-	"model": "mistral",
-	"prompt": "Answer ONLY in English: Summarize the following text: 'Artificial intelligence is transforming the world.'",
-	"stream": false
+	"model": "llama3.1:8b",
+	"prompt": "Answer ONLY in English: Summarize the following text: 'Artificial intelligence is transforming the world.'"
 }
 ```
 
-### Use Postman (recommended)
-
-Open Postman → New Request → POST
-
-URL:
-
-``` 
-http://127.0.0.1:3001/api/generate
-```
-
-Headers:
-
-```
-Content-Type: application/json
-```
-
-Body → raw → JSON:
-
-```json
-{
-	"model": "mistral",
-	"prompt": "Answer ONLY in English: Summarize the following text: 'Artificial intelligence is transforming the world.'",
-	"stream": false
-}
-```
-
-Click Send and you will get a response.
+**GET** `/health` (Public - no API key required)
+- Returns service health status and uptime
