@@ -19,6 +19,9 @@ import importlib
 # Project tag is increased sequentially starting at 1 for each discovered repository.
 # Anything found outside of any .git folder would not receive a project tag.
 
+# Currently anything outside of a git folder is given a project id = 0
+# In the future we will implement alternative project detection methods.
+
 EXT_IMAGE = {
     '.png', '.jpg', '.jpeg', '.svg', '.psd', '.gif', '.tiff', '.tif',
     '.bmp', '.webp', '.ico', '.raw', '.cr2', '.nef', '.arw',
@@ -106,6 +109,28 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
             "contributors": []
         }
     
+    # Check if there are files without a project_tag (unorganized files)
+    has_unorganized_files = any(
+        r.get("project_tag") is None 
+        and not ("/.git/" in r.get("path", "") or r.get("path", "").endswith("/.git") or r.get("path", "").startswith(".git/"))
+        for r in results
+    )
+    
+    # Create a special project for unorganized files if needed
+    if has_unorganized_files:
+        project_data[0] = {
+            "id": 0,
+            "root": "(non-git-files)",  # TODO: Rename to "(unorganized-files)" in future version
+            "classification": {},
+            "files": {
+                "code": [],
+                "content": [],
+                "image": [],
+                "unknown": []
+            },
+            "contributors": []
+        }
+    
     # Organize files by project
     for r in results:
         file_type = r.get("type", "unknown")
@@ -115,6 +140,10 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
         # Skip files within .git directory
         if "/.git/" in file_path or file_path.endswith("/.git") or file_path.startswith(".git/"):
             continue
+        
+        # Files without a project_tag go to the special unorganized files project (id=0)
+        if project_tag is None and has_unorganized_files:
+            project_tag = 0
         
         if project_tag in project_data:
             # Use just the filename, not the full path
@@ -145,10 +174,14 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
     
     # Add classification data to each project
     for tag in project_data:
-        project_key = f"project_{tag}"
-        if project_key in project_classifications:
-            classification = project_classifications[project_key]
-            
+        # Unorganized files (id=0) use overall classification
+        if tag == 0:
+            classification = project_classifications.get("overall", {})
+        else:
+            project_key = f"project_{tag}"
+            classification = project_classifications.get(project_key, {})
+        
+        if classification:
             # Extract classification type (handle mixed types like "mixed:coding+writing")
             class_type = classification.get("classification", "unknown")
             
@@ -202,7 +235,8 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
     # Build overall statistics
     overall_classification = project_classifications.get("overall", {})
     
-    total_projects = len(project_data)
+    # Count real projects (exclude unorganized files project with id=0)
+    total_projects = len([tag for tag in project_data.keys() if tag != 0])
     total_files = 0
     total_code_files = 0
     total_text_files = 0
@@ -236,7 +270,11 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
     }
     
     # Convert project_data dict to sorted list
-    projects_list = [project_data[tag] for tag in sorted(project_data.keys())]
+    # Sort by tag, but put unorganized files project (id=0) at the end
+    sorted_tags = sorted([tag for tag in project_data.keys() if tag != 0])
+    if 0 in project_data:
+        sorted_tags.append(0)
+    projects_list = [project_data[tag] for tag in sorted_tags]
     
     return {
         "source": "zip_file",
@@ -276,8 +314,9 @@ class UploadFolderView(APIView):
             with zipfile.ZipFile(archive_path, "r") as z:
                 z.extractall(tmpdir)
 
-            # Discover git projects under the extracted tree so files can be tagged
-            projects = analyzers.discover_git_projects(tmpdir_path)
+            # Discover all projects under the extracted tree so files can be tagged
+            # Currently detects Git repositories; future versions will detect other project types
+            projects = analyzers.discover_all_projects(tmpdir_path)
 
             for root, _, files in os.walk(tmpdir):
                 for fname in files:

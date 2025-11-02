@@ -185,6 +185,13 @@ deactivate
 
 This endpoint returns a structured JSON response with project information, file classifications, and contributor statistics.
 
+**Project Detection:** Identifies project boundaries
+
+Currently: Git repositories via `.git` folders. A repo with `frontend/` and `backend/` = ONE project.
+Future: Folder structure analysis.
+
+Files not in any project → special project with `id: 0`, `root: "(non-git-files)"`.
+
 ## Example Response
 
 ```json
@@ -293,12 +300,57 @@ Each project contains:
 
 ## Example: No Git Projects Detected
 
-When uploading a folder without any `.git` directories:
+When uploading a folder without any `.git` directories, files are listed under a special project:
 
 ```json
 {
   "source": "zip_file",
-  "projects": [],
+  "projects": [
+    {
+      "id": 0,
+      "root": "(non-git-files)",
+      "classification": {
+        "type": "coding",
+        "confidence": 0.712,
+        "features": {
+          "total_files": 5,
+          "code": 3,
+          "text": 1,
+          "image": 1
+        }
+      },
+      "files": {
+        "code": [
+          {
+            "path": "script.py",
+            "lines": 45
+          },
+          {
+            "path": "app.js",
+            "lines": 123
+          },
+          {
+            "path": "index.html",
+            "lines": 87
+          }
+        ],
+        "content": [
+          {
+            "path": "notes.txt",
+            "length": 234
+          }
+        ],
+        "image": [
+          {
+            "path": "diagram.png",
+            "size": 15678
+          }
+        ],
+        "unknown": []
+      },
+      "contributors": []
+    }
+  ],
   "overall": {
     "classification": "coding",
     "confidence": 0.712,
@@ -314,16 +366,18 @@ When uploading a folder without any `.git` directories:
 ```
 
 **Note:** When no Git projects are detected:
-- The `projects` array is empty
-- Files are still analyzed and counted in `overall.totals`
-- Individual files are NOT listed (since they don't belong to any project)
-- Classification and totals still work normally
+- A special project with `id: 0` and `root: "(non-git-files)"` is created
+- All files are listed under this project
+- The project uses the overall classification
+- `overall.totals.projects` remains `0` (since this isn't a real Git repository)
+- No contributors are listed (since there's no Git history)
 
 ## Notes
 
 - Files within `.git` directories are excluded from the output
 - Only filenames are shown (not full paths) in the `files` arrays
 - Contributors are sorted by commit count (descending)
-- Projects are identified by the presence of a `.git` directory
-- Files outside of any Git project are still counted in `overall.totals` but not listed under any project
+- **Project Detection:** Currently only Git repositories (via `.git` folders) are detected. Future versions will support detection of other project types
+- Files not belonging to any detected project are grouped under `id: 0` with `root: "(non-git-files)"`
+- The `overall.totals.projects` count excludes the unorganized files project (id=0)
 
