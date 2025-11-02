@@ -275,84 +275,68 @@ confidence = min(base_confidence + file_boost, 1.0)
 ### Upload Folder View
 The classifier integrates with the `UploadFolderView` to provide:
 
-**Individual File Analysis:**
-- File type classification (image, code, content, unknown)
-- Project tagging for Git repositories
-- Path normalization
+**Project Detection:**
+- Git repository discovery via .git folders
+- Project boundary identification
+- Sequential project ID assignment
 
-**Project-Level Classification:**
+**Classification:**
 - Overall zip file classification
-- Individual Git project classifications
+- Individual project classifications
 - Mixed project detection
+- Confidence scoring
 
 **Response Format:**
 ```json
 {
-  "results": [
+  "source": "zip_file",
+  "projects": [
     {
-      "type": "code",
-      "path": "src/main.py",
-      "lines": 45,
-      "project_tag": 1,
-      "project_root": "project1"
-    },
-    {
-      "type": "image",
-      "path": "assets/logo.png",
-      "size": 15234,
-      "project_tag": 1,
-      "project_root": "project1"
-    },
-    {
-      "type": "content",
-      "path": "README.md",
-      "length": 1205,
-      "project_tag": 1,
-      "project_root": "project1"
+      "id": 1,
+      "root": "project1",
+      "classification": {
+        "type": "mixed:coding+art",
+        "confidence": 0.800,
+        "features": {
+          "total_files": 3,
+          "code": 1,
+          "text": 1,
+          "image": 1
+        }
+      },
+      "files": {
+        "code": [
+          {
+            "path": "main.py",
+            "lines": 45
+          }
+        ],
+        "content": [
+          {
+            "path": "README.md",
+            "length": 1205
+          }
+        ],
+        "image": [
+          {
+            "path": "logo.png",
+            "size": 15234
+          }
+        ],
+        "unknown": []
+      },
+      "contributors": []
     }
   ],
-  "project_classifications": { 
-    "overall": {
-      "classification": "mixed:coding+art",
-      "confidence": 0.800,
-      "features": {
-        "total_files": 3,
-        "code_count": 1,
-        "text_count": 1,
-        "image_count": 1,
-        "ext_counts": {
-          ".py": 1,
-          ".md": 1,
-          ".png": 1
-        },
-        "folder_names": {
-          "src": 1,
-          "assets": 1
-        }
-      },
-      "source": "zip_file"
-    },
-    "project_1": {
-      "classification": "mixed:coding+art",
-      "confidence": 0.800,
-      "features": {
-        "total_files": 3,
-        "code_count": 1,
-        "text_count": 1,
-        "image_count": 1,
-        "ext_counts": {
-          ".py": 1,
-          ".md": 1,
-          ".png": 1
-        },
-        "folder_names": {
-          "src": 1,
-          "assets": 1
-        }
-      },
-      "project_root": "project1",
-      "project_tag": 1,
-      "source": "directory"
+  "overall": {
+    "classification": "mixed:coding+art",
+    "confidence": 0.800,
+    "totals": {
+      "projects": 1,
+      "files": 3,
+      "code_files": 1,
+      "text_files": 1,
+      "image_files": 1
     }
   }
 }
@@ -360,34 +344,40 @@ The classifier integrates with the `UploadFolderView` to provide:
 
 **Response Structure Details:**
 
-**Individual File Results (`results` array):**
-- `type`: File classification ("code", "image", "content", "unknown")
-- `path`: Relative path within the zip file
-- `lines`: Number of lines (for code files)
-- `size`: File size in bytes (for image files)
-- `length`: Character count (for content files)
-- `project_tag`: Numeric identifier for Git projects (if applicable)
-- `project_root`: Root path of the Git project (if applicable)
+**Top Level:**
+- `source`: Source type (currently always "zip_file")
+- `projects`: Array of discovered projects
+- `overall`: Aggregate statistics and classification
 
-**Project Classifications (`project_classifications` object):**
-- `overall`: Classification of the entire zip file
-- `project_N`: Individual classifications for each discovered Git project
+**Project Object (`projects` array):**
+- `id`: Numeric project identifier (1, 2, 3...)
+- `root`: Project root directory path
+- `classification`: Project type analysis
+  - `type`: Classification ("coding", "writing", "art", "mixed:type1+type2", "unknown")
+  - `confidence`: Confidence score (0.0 to 1.0)
+  - `features`: File count breakdown
+    - `total_files`: Total files in project
+    - `code`: Number of code files
+    - `text`: Number of text files
+    - `image`: Number of image files
+- `files`: Files organized by type
+  - `code`: Array of `{path, lines}` objects
+  - `content`: Array of `{path, length}` objects
+  - `image`: Array of `{path, size}` objects
+  - `unknown`: Array of file path strings
+- `contributors`: Git contributor information (if applicable)
 
-**Classification Object Structure:**
-- `classification`: Project type ("coding", "writing", "art", "mixed:type1+type2", "unknown")
-- `confidence`: Confidence score (0.0 to 1.0)
-- `features`: Detailed analysis data
-- `project_root`: Root path of the project (for individual projects)
-- `project_tag`: Numeric identifier (for individual projects)
-- `source`: Analysis source ("zip_file" or "directory")
+**Overall Object:**
+- `classification`: Overall project type across all projects
+- `confidence`: Overall confidence score
+- `totals`: Aggregate file counts
+  - `projects`: Number of Git repositories detected
+  - `files`: Total files (excluding .git directory contents)
+  - `code_files`: Total code files
+  - `text_files`: Total text files
+  - `image_files`: Total image files
 
-**Features Object (`features`):**
-- `total_files`: Total number of files analyzed
-- `code_count`: Number of code files
-- `text_count`: Number of text files
-- `image_count`: Number of image files
-- `ext_counts`: Object mapping file extensions to their counts
-- `folder_names`: Object mapping folder names to their occurrence counts
+**File Path Note:** Only filenames are shown in the `files` arrays (not full paths)
 
 ## Examples
 
@@ -478,9 +468,10 @@ thesis/
 Potential improvements to the classification system:
 
 1. **Machine Learning Integration:** Train models on labeled datasets
-2. **Framework Detection:** Recognize specific frameworks and libraries
-6. **Custom Rules:** Allow user-defined classification rules
-7. **Confidence Calibration:** Improve confidence score accuracy
+2. **More Specific Classification:** Recognize specific frameworks (Python-Django, Node-React, etc.)
+3. **Non-Git Project Detection:** Folder structure pattern analysis for projects without .git
+4. **Custom Rules:** Allow user-defined classification rules
+5. **Confidence Calibration:** Improve confidence score accuracy
 
 
 ---
