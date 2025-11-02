@@ -135,13 +135,17 @@ class UploadFolderWithClassifierTests(TestCase):
         data = resp.json()
         self.assertIn("projects", data)
         
-        # Should have 2 projects discovered
-        self.assertEqual(len(data["projects"]), 2)
+        # Should have 3 projects: 2 Git repos + 1 non-git-files (for standalone.txt)
+        self.assertEqual(len(data["projects"]), 3)
+        
+        # Find the Git projects (exclude non-git-files project with id=0)
+        git_projects = [p for p in data["projects"] if p["id"] != 0]
+        self.assertEqual(len(git_projects), 2, "Should have 2 Git projects")
         
         # Find the projects
         project1 = None
         project2 = None
-        for project in data["projects"]:
+        for project in git_projects:
             if project["root"] == "project1":
                 project1 = project
             elif project["root"] == "project2":

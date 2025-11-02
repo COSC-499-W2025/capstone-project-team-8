@@ -143,22 +143,28 @@ class UploadFolderTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         
-        # Check new structure: should have 2 projects
+        # Check new structure: should have at least 2 Git projects
         self.assertIn("projects", data)
-        self.assertEqual(len(data["projects"]), 2)
+        self.assertGreaterEqual(len(data["projects"]), 2)
         
-        # Find the two projects
-        project_roots = {p["root"] for p in data["projects"]}
-        project_ids = {p["id"] for p in data["projects"]}
+        # Find the Git projects (exclude potential non-git-files project with id=0)
+        git_projects = [p for p in data["projects"] if p["id"] != 0]
+        self.assertGreaterEqual(len(git_projects), 2, "Should have at least 2 Git projects")
+        
+        # Find r1 and r2 projects
+        project_roots = {p["root"] for p in git_projects}
+        project_ids = {p["id"] for p in git_projects}
         
         # Should have r1 and r2
         self.assertIn("r1", project_roots)
         self.assertIn("r2", project_roots)
         
-        # Should have different IDs
-        self.assertEqual(len(project_ids), 2)
+        # r1 and r2 should have different IDs
+        r1_project = next(p for p in git_projects if p["root"] == "r1")
+        r2_project = next(p for p in git_projects if p["root"] == "r2")
+        self.assertNotEqual(r1_project["id"], r2_project["id"])
         
-        # Check that each project has files
-        for project in data["projects"]:
+        # Check that each Git project has files
+        for project in [r1_project, r2_project]:
             total_files = len(project["files"]["code"]) + len(project["files"]["content"]) + len(project["files"]["unknown"])
             self.assertGreaterEqual(total_files, 2)
