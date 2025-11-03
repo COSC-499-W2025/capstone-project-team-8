@@ -8,7 +8,7 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
-## Week 9: 
+## Week 9: Oct 25 - 29
 
 ### Our Goals for this week:
 
@@ -23,6 +23,9 @@ Our goal for this week was:
   - Implement feature to detect projects without a repository #72
 
 ### Burn Up Chart
+
+<img width="1044" height="541" alt="image" src="https://github.com/user-attachments/assets/be94c3bf-eb6a-450e-8c12-9f979c6b7e2d" />
+
 
 ### Completed Tasks
 
