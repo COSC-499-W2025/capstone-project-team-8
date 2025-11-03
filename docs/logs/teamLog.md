@@ -44,12 +44,7 @@ Our goal for this week was:
 |      |             |         |
 
 ### Test Report
-
-| Test File | Total Tests | Passing | Failing | Notes |
-|-----------|-------------|---------|---------|-------|
-|           |             |         |         |       |
-|           |             |         |         |       |
-|           |             |         |         |       |
+<img width="794" height="383" alt="image" src="https://github.com/user-attachments/assets/dd645cf4-ee22-488b-8e80-b1d9dd9e0155" />
 
 ## Week 8: Oct 20 - 24
 
