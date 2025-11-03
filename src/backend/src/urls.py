@@ -29,6 +29,7 @@ def index(request):
                 <ul>
                     <li><a href="/admin/">Django Admin</a></li>
                     <li><a href="/api/upload-folder/">Upload Folder API (POST)</a></li>
+                    
                 </ul>
             </body>
         </html>
