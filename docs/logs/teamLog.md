@@ -22,6 +22,9 @@ Our goal for this week was:
   - Create Milestone 1 progress report #90
   - Implement feature to detect projects without a repository #72
 
+  ### Reflection:
+  This week was our first encounter with system breaking bugs. Expecting development to continue as it has this threw a curve ball into our plans for the week. However, the team came together to resolve these issues and use the opportunity to refactor and modularize our code. Overall, we are still happy with our progress being able to make significant developments despite the setbacks.
+
   ### What went well:
   - Successfully set up the LLM cloud server
   - JWT based authentication successfully protects all our routes
@@ -70,6 +73,7 @@ Our goal for this week was:
 - Reviewed PR's and provided feedback
 - Wrote tests for our new analysis functions
 
+### Reflection:
 Our team has made a lot of progress on our extraction and analysis process. Our extraction layer is close to being complete and we will be forwarding the data to our analysis engine. Our team collaboration has been great and we have been answering eachothers questions in our group Discord channel. So far, we have had no problems as a team, and we have our tasks set for next week.
 
   ### What went well:
