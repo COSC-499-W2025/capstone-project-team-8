@@ -180,3 +180,204 @@ When done working:
 ```bash
 deactivate
 ```
+
+# api/folder-uploads/ JSON Output Example
+
+This endpoint returns a structured JSON response with project information, file classifications, and contributor statistics.
+
+**Project Detection:** Identifies project boundaries
+
+Currently: Git repositories via `.git` folders. A repo with `frontend/` and `backend/` = ONE project.
+Future: Folder structure analysis.
+
+Files not in any project → special project with `id: 0`, `root: "(non-git-files)"`.
+
+## Example Response
+
+```json
+{
+  "source": "zip_file",
+  "projects": [
+    {
+      "id": 1,
+      "root": "my-project",
+      "classification": {
+        "type": "coding",
+        "confidence": 0.652,
+        "features": {
+          "total_files": 3,
+          "code": 1,
+          "text": 1,
+          "image": 1
+        }
+      },
+      "files": {
+        "code": [
+          {
+            "path": "main.py",
+            "lines": 127
+          }
+        ],
+        "content": [
+          {
+            "path": "README.md",
+            "length": 1543
+          }
+        ],
+        "image": [
+          {
+            "path": "logo.png",
+            "size": 24567
+          }
+        ],
+        "unknown": []
+      },
+      "contributors": [
+        {
+          "name": "John Doe",
+          "email": "john@example.com",
+          "commits": 15,
+          "lines_added": 847,
+          "lines_deleted": 123,
+          "percent_commits": 60
+        },
+        {
+          "name": "Jane Smith",
+          "email": "jane@example.com",
+          "commits": 10,
+          "lines_added": 456,
+          "lines_deleted": 89,
+          "percent_commits": 40
+        }
+      ]
+    }
+  ],
+  "overall": {
+    "classification": "coding",
+    "confidence": 0.652,
+    "totals": {
+      "projects": 1,
+      "files": 3,
+      "code_files": 1,
+      "text_files": 1,
+      "image_files": 1
+    }
+  }
+}
+```
+
+## Response Structure
+
+### Top Level
+- **`source`** (string): Source type, currently always `"zip_file"`
+- **`projects`** (array): List of discovered Git projects
+- **`overall`** (object): Aggregate statistics across all projects
+
+### Project Object
+Each project contains:
+- **`id`** (integer): Sequential project identifier (1, 2, 3...)
+- **`root`** (string): Project root directory path
+- **`classification`** (object): Project type classification
+  - **`type`**: One of `"coding"`, `"writing"`, `"art"`, `"mixed:type1+type2"`, or `"unknown"`
+  - **`confidence`**: Classification confidence score (0.0 to 1.0)
+  - **`features`** (optional): File count breakdown
+- **`files`** (object): Files organized by type
+  - **`code`**: Array of code files with `path` and `lines`
+  - **`content`**: Array of text/document files with `path` and `length` (characters)
+  - **`image`**: Array of image files with `path` and `size` (bytes)
+  - **`unknown`**: Array of unclassified file paths
+- **`contributors`** (array): Git contribution statistics per author
+
+### Overall Object
+- **`classification`** (string): Overall project type
+- **`confidence`** (number): Overall classification confidence
+- **`totals`** (object): Aggregate file counts
+  - **`projects`**: Number of Git repositories discovered
+  - **`files`**: Total files (excluding `.git` directory contents)
+  - **`code_files`**: Total code files
+  - **`text_files`**: Total text/document files
+  - **`image_files`**: Total image files
+
+## Example: No Git Projects Detected
+
+When uploading a folder without any `.git` directories, files are listed under a special project:
+
+```json
+{
+  "source": "zip_file",
+  "projects": [
+    {
+      "id": 0,
+      "root": "(non-git-files)",
+      "classification": {
+        "type": "coding",
+        "confidence": 0.712,
+        "features": {
+          "total_files": 5,
+          "code": 3,
+          "text": 1,
+          "image": 1
+        }
+      },
+      "files": {
+        "code": [
+          {
+            "path": "script.py",
+            "lines": 45
+          },
+          {
+            "path": "app.js",
+            "lines": 123
+          },
+          {
+            "path": "index.html",
+            "lines": 87
+          }
+        ],
+        "content": [
+          {
+            "path": "notes.txt",
+            "length": 234
+          }
+        ],
+        "image": [
+          {
+            "path": "diagram.png",
+            "size": 15678
+          }
+        ],
+        "unknown": []
+      },
+      "contributors": []
+    }
+  ],
+  "overall": {
+    "classification": "coding",
+    "confidence": 0.712,
+    "totals": {
+      "projects": 0,
+      "files": 5,
+      "code_files": 3,
+      "text_files": 1,
+      "image_files": 1
+    }
+  }
+}
+```
+
+**Note:** When no Git projects are detected:
+- A special project with `id: 0` and `root: "(non-git-files)"` is created
+- All files are listed under this project
+- The project uses the overall classification
+- `overall.totals.projects` remains `0` (since this isn't a real Git repository)
+- No contributors are listed (since there's no Git history)
+
+## Notes
+
+- Files within `.git` directories are excluded from the output
+- Only filenames are shown (not full paths) in the `files` arrays
+- Contributors are sorted by commit count (descending)
+- **Project Detection:** Currently only Git repositories (via `.git` folders) are detected. Future versions will support detection of other project types
+- Files not belonging to any detected project are grouped under `id: 0` with `root: "(non-git-files)"`
+- The `overall.totals.projects` count excludes the unorganized files project (id=0)
+

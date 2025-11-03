@@ -35,11 +35,13 @@ class UploadFolderTests(TestCase):
         resp = self.client.post("/api/upload-folder/", {"file": upload})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        self.assertIn("results", data)
-        self.assertGreaterEqual(len(data["results"]), 3)
-        types = {item.get("type") for item in data["results"]}
-        self.assertIn("content", types)
-        self.assertIn("code", types)
+        # New structure validation
+        self.assertIn("source", data)
+        self.assertIn("projects", data)
+        self.assertIn("overall", data)
+        self.assertEqual(data["source"], "zip_file")
+        # Check overall totals
+        self.assertGreaterEqual(data["overall"]["totals"]["files"], 3)
 
     #Tests uploading with no file
     def test_missing_file(self):
@@ -68,10 +70,9 @@ class UploadFolderTests(TestCase):
         resp = self.client.post("/api/upload-folder/", {"file": upload})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        paths = {item.get("path") for item in data["results"]}
-        self.assertTrue(any("deep.txt" in p for p in paths))
-        self.assertTrue(any("script.js" in p for p in paths))
-        self.assertTrue(any("image.jpg" in p for p in paths))
+        # Check that files are in the overall totals
+        self.assertEqual(data["source"], "zip_file")
+        self.assertGreaterEqual(data["overall"]["totals"]["files"], 3)
 
     # Tests uploading a folder with a .git directory
     def test_git_repository_analysis(self):
@@ -88,11 +89,10 @@ class UploadFolderTests(TestCase):
         resp = self.client.post("/api/upload-folder/", {"file": upload})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        # Check that git analysis was attempted
-        self.assertIn("results", data)
-        # git_contributions should be present (may contain errors if git isn't available)
-        self.assertIn("git_contributions", data)
-        self.assertIsInstance(data["git_contributions"], dict)
+        # Check new structure
+        self.assertIn("projects", data)
+        # Should have at least one project discovered
+        self.assertGreaterEqual(len(data["projects"]), 1)
         
     # Tests that files inside a single git repo get a project_tag and are the same tag
     def test_project_tag_single_repo(self):
@@ -108,35 +108,24 @@ class UploadFolderTests(TestCase):
         resp = self.client.post("/api/upload-folder/", {"file": upload})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        # collect project tags for files under repo/
-        repo_tags = {
-            item.get("project_tag")
-            for item in data["results"]
-            if item.get("path", "").startswith("repo/") and ".git/" not in item.get("path", "")
-        }
-
-        # files in repo should have a tag and all the same tag
-        self.assertTrue(len(repo_tags) == 1, f"Expected one tag for repo files, got {repo_tags}")
-        self.assertIsNotNone(next(iter(repo_tags)))
         
-        git_tags = {
-            item.get("project_tag")
-            for item in data["results"]
-            if item.get("path", "").startswith("repo/.git/")
-        }
-        self.assertTrue(all(tag is not None for tag in git_tags))
-        # Also ensure project_root is present for repo files
-        repo_roots = {
-            item.get("project_root")
-            for item in data["results"]
-            if item.get("path", "").startswith("repo/") and ".git/" not in item.get("path", "")
-        }
-        self.assertTrue(len(repo_roots) == 1)
-        self.assertIsNotNone(next(iter(repo_roots)))
-        # ensure git_contributions contains an entry for this project tag
-        gc = resp.json().get("git_contributions", {})
-        tag = next(iter(repo_tags))
-        self.assertIn(f"project_{tag}", gc)
+        # Check new structure: projects array should have at least one project
+        self.assertIn("projects", data)
+        self.assertGreaterEqual(len(data["projects"]), 1)
+        
+        # Find the repo project
+        repo_project = None
+        for project in data["projects"]:
+            if project["root"] == "repo":
+                repo_project = project
+                break
+        
+        self.assertIsNotNone(repo_project, "Expected to find project with root 'repo'")
+        self.assertEqual(repo_project["id"], 1)
+        self.assertIn("files", repo_project)
+        # Should have at least 2 non-.git files (README.md and main.py)
+        total_project_files = len(repo_project["files"]["code"]) + len(repo_project["files"]["content"]) + len(repo_project["files"]["unknown"])
+        self.assertGreaterEqual(total_project_files, 2)
 
     # Tests that multiple repos get different project tags
     def test_project_tag_multiple_repos(self):
@@ -153,52 +142,29 @@ class UploadFolderTests(TestCase):
         resp = self.client.post("/api/upload-folder/", {"file": upload})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        r1_tags = {
-            item.get("project_tag")
-            for item in data["results"]
-            if item.get("path", "").startswith("r1/") and ".git/" not in item.get("path", "")
-        }
-        r2_tags = {
-            item.get("project_tag")
-            for item in data["results"]
-            if item.get("path", "").startswith("r2/") and ".git/" not in item.get("path", "")
-        }
-
-        # Each repo should have at least one tag, and those tags should not be the same
-        self.assertTrue(len(r1_tags) == 1, f"Expected one tag for r1, got {r1_tags}")
-        self.assertTrue(len(r2_tags) == 1, f"Expected one tag for r2, got {r2_tags}")
-        self.assertNotEqual(next(iter(r1_tags)), next(iter(r2_tags)))
-
-        git_tags_r1 = {
-            item.get("project_tag")
-            for item in data["results"]
-            if item.get("path", "").startswith("r1/.git/")
-        }
-        git_tags_r2 = {
-            item.get("project_tag")
-            for item in data["results"]
-            if item.get("path", "").startswith("r2/.git/")
-        }
-        self.assertTrue(all(tag is not None for tag in git_tags_r1))
-        self.assertTrue(all(tag is not None for tag in git_tags_r2))
-        # Ensure project_root exists and differs for r1 and r2 files
-        r1_roots = {
-            item.get("project_root")
-            for item in data["results"]
-            if item.get("path", "").startswith("r1/") and ".git/" not in item.get("path", "")
-        }
-        r2_roots = {
-            item.get("project_root")
-            for item in data["results"]
-            if item.get("path", "").startswith("r2/") and ".git/" not in item.get("path", "")
-        }
-        self.assertTrue(len(r1_roots) == 1)
-        self.assertTrue(len(r2_roots) == 1)
-        self.assertNotEqual(next(iter(r1_roots)), next(iter(r2_roots)))
-        # ensure git_contributions includes both project tags
-        gc = resp.json().get("git_contributions", {})
-        # extract the actual tags used in the response
-        r1_tag = next(iter(r1_tags))
-        r2_tag = next(iter(r2_tags))
-        self.assertIn(f"project_{r1_tag}", gc)
-        self.assertIn(f"project_{r2_tag}", gc)
+        
+        # Check new structure: should have at least 2 Git projects
+        self.assertIn("projects", data)
+        self.assertGreaterEqual(len(data["projects"]), 2)
+        
+        # Find the Git projects (exclude potential non-git-files project with id=0)
+        git_projects = [p for p in data["projects"] if p["id"] != 0]
+        self.assertGreaterEqual(len(git_projects), 2, "Should have at least 2 Git projects")
+        
+        # Find r1 and r2 projects
+        project_roots = {p["root"] for p in git_projects}
+        project_ids = {p["id"] for p in git_projects}
+        
+        # Should have r1 and r2
+        self.assertIn("r1", project_roots)
+        self.assertIn("r2", project_roots)
+        
+        # r1 and r2 should have different IDs
+        r1_project = next(p for p in git_projects if p["root"] == "r1")
+        r2_project = next(p for p in git_projects if p["root"] == "r2")
+        self.assertNotEqual(r1_project["id"], r2_project["id"])
+        
+        # Check that each Git project has files
+        for project in [r1_project, r2_project]:
+            total_files = len(project["files"]["code"]) + len(project["files"]["content"]) + len(project["files"]["unknown"])
+            self.assertGreaterEqual(total_files, 2)

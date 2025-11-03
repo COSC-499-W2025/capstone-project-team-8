@@ -188,6 +188,30 @@ def discover_git_projects(root: Path) -> Dict[Path, int]:
     return projects
 
 
+def discover_all_projects(root: Path) -> Dict[Path, int]:
+    """
+    Discover project boundaries (not types/frameworks - that's project_classifier.py).
+    
+    Currently: Git repositories via .git folders
+    Future: Folder structure patterns, organizational signals
+    
+    Returns: Dict mapping project root paths to sequential tag IDs (1, 2, 3...)
+    
+    """
+    projects: Dict[Path, int] = {}
+    
+    # Strategy 1: Git repository detection
+    git_projects = discover_git_projects(root)
+    projects.update(git_projects)
+    
+    # Future: Add folder structure analysis here
+    # - Look for organized directories (src/, docs/, tests/)
+    # - Only in areas NOT covered by Git
+    # - Use next_tag = max(projects.values()) + 1 if projects else 1
+    
+    return projects
+
+
 def find_project_tag_for_path(path: Path, projects: Dict[Path, int]) -> Optional[int]:
     """Given a file `path` and a dict of project roots -> tag, return the tag for the nearest ancestor project.
 
