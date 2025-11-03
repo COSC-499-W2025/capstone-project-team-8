@@ -15,9 +15,12 @@
 Our goal for this week was:
   - Setup LLM cloud server #70 #83 
   - Implement JWT based auth #92
-  - Refactor login view to return JSON #73
-  - Refactor JSON output for queries #76
-  - Find user contributions in .git files #62
+  - Refactor login view to return JSON #73 
+  - Refactor JSON output for queries #76 
+  - Find user contributions in .git files #62 
+  - Fix UploadFolderView file #88
+  - Create Milestone 1 progress report #90
+  - Implement feature to detect projects without a repository #72
 
 ### Burn Up Chart
 
@@ -25,16 +28,19 @@ Our goal for this week was:
 
 | Task | Assigned To | Issue # |
 |------|-------------|---------|
-|      |             |         |
-|      |             |         |
-|      |             |         |
+| Host LLM layer on cloud | kylemcleod | [COSC-499-W2025/capstone-project-team-8#70](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/70) |
+| Implement JWT based Auth | matin0014 | [COSC-499-W2025/capstone-project-team-8#92](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/92) |
+| Refactor login view to return JSON | matin0014 | [COSC-499-W2025/capstone-project-team-8#73](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/73) |
+| Refactor JSON output for queries | cschwebi | [COSC-499-W2025/capstone-project-team-8#76](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/76) |
+| Find user contributions in .git files | jordany78 | [COSC-499-W2025/capstone-project-team-8#62](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/62) |
+| Fix UploadFolderView file | harperkerstens | [COSC-499-W2025/capstone-project-team-8#88](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/88) |
 
 ### In Progress Tasks
 
 | Task | Assigned To | Issue # |
 |------|-------------|---------|
-|      |             |         |
-|      |             |         |
+| Create Milestone 1 progress report | matin0014 | [COSC-499-W2025/capstone-project-team-8#90](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/90) |
+| Implement feature to detect projects without a repository (Under review) | Porter-K | [COSC-499-W2025/capstone-project-team-8#72](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/72) |
 |      |             |         |
 
 ### Test Report
