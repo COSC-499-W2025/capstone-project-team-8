@@ -40,3 +40,11 @@
 - This week I worked on the feature: finding Git contributions
 - Researched ways to scan the .git directory
 - Next week I plan on finishing this PR for review
+
+## Week 9 October 27th - October 31st:
+<img width="1075" height="628" alt="image" src="https://github.com/user-attachments/assets/4f8408e9-1959-4d88-9aa2-8f40b8e03683" /></br>
+### Recap:
+- Finished up the PR to scan .git folders for their contributions
+- Started on a PR to ask users for their GitHub name and compare it to the contributions so it only returns their works
+- Researched on how to find works in collaborative projects
+- Next week I plan on finishing the PR and start a new PR on the above note
