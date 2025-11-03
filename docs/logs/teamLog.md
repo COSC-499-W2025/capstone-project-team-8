@@ -22,6 +22,19 @@ Our goal for this week was:
   - Create Milestone 1 progress report #90
   - Implement feature to detect projects without a repository #72
 
+  ### Reflection:
+  This week was our first encounter with system breaking bugs. Expecting development to continue as it has this threw a curve ball into our plans for the week. However, the team came together to resolve these issues and use the opportunity to refactor and modularize our code. Overall, we are still happy with our progress being able to make significant developments despite the setbacks.
+
+  ### What went well:
+  - Successfully set up the LLM cloud server
+  - JWT based authentication successfully protects all our routes
+  - Refactored lots of code to ensure future development is smoother and more modular
+
+  ### What didn't go well:
+  - Some team members had trouble setting up the cloud server locally
+  - Unexpected bugs and errors forced us to refactor code multiple times
+  - Some tasks took longer than expected, leading to minor delays
+
 ### Burn Up Chart
 
 <img width="1044" height="541" alt="image" src="https://github.com/user-attachments/assets/be94c3bf-eb6a-450e-8c12-9f979c6b7e2d" />
@@ -60,7 +73,17 @@ Our goal for this week was:
 - Reviewed PR's and provided feedback
 - Wrote tests for our new analysis functions
 
+### Reflection:
 Our team has made a lot of progress on our extraction and analysis process. Our extraction layer is close to being complete and we will be forwarding the data to our analysis engine. Our team collaboration has been great and we have been answering eachothers questions in our group Discord channel. So far, we have had no problems as a team, and we have our tasks set for next week.
+
+  ### What went well:
+- Successful implementation of the file analyzer
+- Effective team collaboration and communication
+- Progress on the AI host plan
+
+  ### What didn't go well:
+- Some delays in the implementation timeline
+- Minor issues with the database setup
 
 Our Week 8 Milestone:
 <img width="1070" height="812" alt="image" src="https://github.com/user-attachments/assets/2c749fe1-3957-42b4-9571-53a00dec52b6" />
