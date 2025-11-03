@@ -48,6 +48,7 @@ Oct 13 - Oct 19
   experience from Cosc 304 coming in handy
 
 - Next I want to work on creating a User model to store users
+  
 Oct 20 - Oct 26
 <img width="1247" height="649" alt="image" src="https://github.com/user-attachments/assets/8b20c376-7e95-44fd-9e21-f3f4984cb17c" />
 
