@@ -38,3 +38,13 @@
 - Researched Ollama and other local LLM models (How good are they for what we need, etc.)
 - Troubleshot local machine issues (issues connecting to mySQL in Docker, issues with Next.js packages)
   
+## Week 9 (October 27 - Nov 2)
+<img width="1880" height="1094" alt="image" src="https://github.com/user-attachments/assets/88a7d061-f04c-4693-9055-397b1ee2ec3c" />
+
+- Recfactored JSON output from file uploads to be more readable and usable for processing
+- Refactored small protion of analyzers.py to be more adaptable to coming features (Non-git project detection)
+- Refactored tests to accomodate JSON changes
+- Updated documentation 
+- Planned some backend pre-AI analysis (Coding Language and Framework Detection)
+
+NEXT WEEK: Implement Coding Language and Framework Detection

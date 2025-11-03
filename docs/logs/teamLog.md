@@ -8,6 +8,47 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 9: Oct 25 - 29
+
+### Our Goals for this week:
+
+Our goal for this week was:
+  - Setup LLM cloud server #70 #83 
+  - Implement JWT based auth #92
+  - Refactor login view to return JSON #73 
+  - Refactor JSON output for queries #76 
+  - Find user contributions in .git files #62 
+  - Fix UploadFolderView file #88
+  - Create Milestone 1 progress report #90
+  - Implement feature to detect projects without a repository #72
+
+### Burn Up Chart
+
+<img width="1044" height="541" alt="image" src="https://github.com/user-attachments/assets/be94c3bf-eb6a-450e-8c12-9f979c6b7e2d" />
+
+
+### Completed Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+| Host LLM layer on cloud | kylemcleod | [COSC-499-W2025/capstone-project-team-8#70](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/70) |
+| Implement JWT based Auth | matin0014 | [COSC-499-W2025/capstone-project-team-8#92](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/92) |
+| Refactor login view to return JSON | matin0014 | [COSC-499-W2025/capstone-project-team-8#73](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/73) |
+| Refactor JSON output for queries | cschwebi | [COSC-499-W2025/capstone-project-team-8#76](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/76) |
+| Find user contributions in .git files | jordany78 | [COSC-499-W2025/capstone-project-team-8#62](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/62) |
+| Fix UploadFolderView file | harperkerstens | [COSC-499-W2025/capstone-project-team-8#88](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/88) |
+
+### In Progress Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+| Create Milestone 1 progress report | matin0014 | [COSC-499-W2025/capstone-project-team-8#90](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/90) |
+| Implement feature to detect projects without a repository (Under review) | Porter-K | [COSC-499-W2025/capstone-project-team-8#72](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/72) |
+|      |             |         |
+
+### Test Report
+<img width="794" height="383" alt="image" src="https://github.com/user-attachments/assets/dd645cf4-ee22-488b-8e80-b1d9dd9e0155" />
+
 ## Week 8: Oct 20 - 24
 
 #### This week we:
