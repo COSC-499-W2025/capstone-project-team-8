@@ -54,5 +54,15 @@ Oct 20 - Oct 26
 - Created several tests
 - Pull requested and documented my work
 
+Oct 27 - Nov 2
+<img width="1089" height="625" alt="image" src="https://github.com/user-attachments/assets/1fb05ffc-b8e5-4757-9a1e-2e73b95770b7" />
+
+- I worked on a progress report for milestone 1
+- Tested my own code
+- Tested teammates code
+- Implemented JWT authentication for our backend to protect API routes
+- Refactored login to output JSON instead of HTML
+- Reviewed Pull Requests
+
 
 
