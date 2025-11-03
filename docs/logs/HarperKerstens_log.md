@@ -58,6 +58,7 @@
 
 ## October 27-November 2
 
+<img width="1078" height="627" alt="October27-Nov2" src="https://github.com/user-attachments/assets/49d4a664-01cc-48e9-9558-a7335e73462a" />
 
 - Fixed broken file analyzer functionality due to recent backend changes
 - Refactored file analyzer to avoid excessively large files
