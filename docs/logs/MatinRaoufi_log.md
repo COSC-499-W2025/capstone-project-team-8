@@ -38,11 +38,16 @@ Oct 6 - Oct 12
 Oct 13 - Oct 19
 <img width="1091" height="644" alt="image" src="https://github.com/user-attachments/assets/7edc2495-59ae-495a-896e-c1226016aedb" />
 
-- Setup a local MySQL database and dockerized it
+- Setup a local MySQL database and dockerized it (issue #40 & #39)
 - Reviewed pull requests
 - Tested my own and teammates code
 - Documented database setup and pull requested for peer review
+- Things that didn't go well was trying to figure out if we want our database to be hosted locally or not and deciding on relational or non-relational ultimately I tried to stay patient so
+  I can have have input from everyone before pulling the trigger on a local MySQL setup
+- Things that went well were testing teammate code and reviewing PR's the PR template makes it very easy to review and teammates provide thorough instructions. Setting up the database also went smoothly due to prior
+  experience from Cosc 304 coming in handy
 
+- Next I want to work on creating a User model to store users
 Oct 20 - Oct 26
 <img width="1247" height="649" alt="image" src="https://github.com/user-attachments/assets/8b20c376-7e95-44fd-9e21-f3f4984cb17c" />
 
@@ -50,9 +55,16 @@ Oct 20 - Oct 26
 - Reviewed pull requests
 - Tested teammates code
 - Tested my own code
-- Setup user model for database
+- Setup user model for database (issue #61)
 - Created several tests
 - Pull requested and documented my work
+
+- Things that were difficult were figuring out what type of data for the user we want to store, I imagine we will end up revisiting this in the future
+- Things that went well was reviewing PR's and working with the current auth that Kyle Porter had setup to create the user model
+- I want to step away from the database a little bit next and work on using web tokens for auth next and see where we are at regarding the milestone
+
+
+
 
 Oct 27 - Nov 2
 <img width="1089" height="625" alt="image" src="https://github.com/user-attachments/assets/1fb05ffc-b8e5-4757-9a1e-2e73b95770b7" />
@@ -60,9 +72,16 @@ Oct 27 - Nov 2
 - I worked on a progress report for milestone 1
 - Tested my own code
 - Tested teammates code
-- Implemented JWT authentication for our backend to protect API routes
-- Refactored login to output JSON instead of HTML
+- Implemented JWT authentication for our backend to protect API routes (issue #92)
+- Refactored login to output JSON instead of HTML (issue #73)
 - Reviewed Pull Requests
+
+- Things that were difficult was implementing the token system broke some tests we had so we need refactor those because the api routes those tests access cant be accessed with out proper authentication now.
+  Setting up Ollama on my computer was also difficult to work with Kyle's LLM setup to test his PR
+- Things that went well was testing the authentication I implemented with postman, my teammates also said my PR contained thorough instructions to test the features
+- Next I want to move more towards data extraction from an input and order the projects in a chornological list from an input
+
+  
 
 
 
