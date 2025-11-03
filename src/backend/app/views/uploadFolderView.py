@@ -316,9 +316,8 @@ class UploadFolderView(APIView):
             with zipfile.ZipFile(archive_path, "r") as z:
                 z.extractall(tmpdir)
 
-            # Discover all projects under the extracted tree so files can be tagged
-            # Currently detects Git repositories; future versions will detect other project types
-            projects = analyzers.discover_all_projects(tmpdir_path)
+            # Discover projects under the extracted tree so files can be tagged
+            projects = analyzers.discover_projects(tmpdir_path)
 
             for root, _, files in os.walk(tmpdir):
                 for fname in files:
