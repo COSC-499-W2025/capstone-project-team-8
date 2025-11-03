@@ -8,6 +8,43 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 9: 
+
+### Our Goals for this week:
+
+Our goal for this week was:
+  - Setup LLM cloud server #70 #83 
+  - Implement JWT based auth #92
+  - Refactor login view to return JSON #73
+  - Refactor JSON output for queries #76
+  - Find user contributions in .git files #62
+
+### Burn Up Chart
+
+### Completed Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+|      |             |         |
+|      |             |         |
+|      |             |         |
+
+### In Progress Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+|      |             |         |
+|      |             |         |
+|      |             |         |
+
+### Test Report
+
+| Test File | Total Tests | Passing | Failing | Notes |
+|-----------|-------------|---------|---------|-------|
+|           |             |         |         |       |
+|           |             |         |         |       |
+|           |             |         |         |       |
+
 ## Week 8: Oct 20 - 24
 
 #### This week we:
