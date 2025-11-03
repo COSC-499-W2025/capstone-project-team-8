@@ -55,3 +55,11 @@
 - Assigns tags to files based on file type and repository (repository root and assigned tag)
 - Testing and debugging new features
 - Reviewed team members code and provided feedback
+
+## October 27-November 2
+
+
+- Fixed broken file analyzer functionality due to recent backend changes
+- Refactored file analyzer to avoid excessively large files
+- Reviewed others code and provided feedback
+- Assited team members in their development
