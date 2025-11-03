@@ -54,3 +54,18 @@
 - reviewed harpers pull request on file classification
 - reviewed matins pull request on database configuration
 - populated kanban board with more tasks for next week
+
+## October 27-31
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/6ae665ff-98b2-41e9-8bec-fb3b6c31b9c0" />
+
+- hosted the AI model on a Oracle cloud VM
+- allocated CPU, Ram & memory
+- tested the AI model
+- protected endpoints from any attacks since this API is public facing
+- added rate limiting
+- added API key protection to endpoint
+- VM networking
+- reviewed teammates PR's
+- tested teammates code
+- collaborated with teammates to discuss JWT token implementation
+- picked up issues on Kanaban dashboard
