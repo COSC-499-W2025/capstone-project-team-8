@@ -69,3 +69,12 @@
 - tested teammates code
 - collaborated with teammates to discuss JWT token implementation
 - picked up issues on Kanaban dashboard
+
+
+
+
+It was difficult to find a cloud hosting provider that offers GPU’s while on a free trial or student account. For now, our AI layer is hosted on a 8 core CPU, 64GB ram and 200GB machine. This should be fine for testing purposes, but if we ever deployed this application, scaling would be required. Since our AI layer is modular, it can be easily ported to a different powerful machine.
+
+What went well this week was testing how flexible the AI layer is that I built. This model can be tailored for almost any use case. I found a bunch of open source prompts that will help with code analysis and we can utilize this on the model if the user agrees to AI processing.
+
+Next week I’m going to work on file specific analysis and starting the foundation of a resume builder.
