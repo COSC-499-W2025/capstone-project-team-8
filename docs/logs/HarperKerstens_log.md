@@ -45,6 +45,14 @@
 - Refactored file upload code and backend to improve modular code structure
 - Reviewed team members code and provided feedback
 
+### What went well
+ Made good progress on file upload helping to get the ball rolling on handling user uploads. Beginning to understand the Django framework and how to utilize it.
+
+### What didn't go well
+ Some confusion on how to best structure the backend for future features. Took more time than expected to implement file upload functionality due to unfamiliarty.
+### What's next
+Continue working on handling uploaded files and detecting repositories within uploaded files. Start segregating files based off found projects.
+
 
 ## October 20-26
 
@@ -56,6 +64,13 @@
 - Testing and debugging new features
 - Reviewed team members code and provided feedback
 
+### What went well
+ Detecting repositories in uploaded files is a big step forward for the project. The analyzer is starting to take shape and we can begin thinking about analysis features. 
+### What didn't go well
+ Some issues with accurately detecting repository structures within uploaded files. Further refinement is needed to improve detection accuracy.
+### What's next
+ Continue working on refining repository detection and improving file tagging. Begin implementing analysis features based on detected repositories.
+
 ## October 27-November 2
 
 <img width="1078" height="627" alt="October27-Nov2" src="https://github.com/user-attachments/assets/49d4a664-01cc-48e9-9558-a7335e73462a" />
@@ -64,3 +79,10 @@
 - Refactored file analyzer to avoid excessively large files
 - Reviewed others code and provided feedback
 - Assited team members in their development
+
+### What went well
+ Was able to take some time to refactor the file analyzer when looking into issues. Improved modularity of code which should help with future development.
+### What didn't go well
+ This issues was unexpected which caused some delays in progress that was expected for this week. Timeline will have to be shifted slightly to accomodate for this.
+### What's next
+ Begin working on understanding files content. Reading text files and extracting useful information to better understand projects. Implement user consent features as well.
