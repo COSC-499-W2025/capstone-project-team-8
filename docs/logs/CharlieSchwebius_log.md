@@ -30,21 +30,47 @@
 
 - Continued research into our selected framework (Django)
 - Researched solutions to some of our core problems (File input, data scraping, finding file contributors, attributing contributions, external AI analysis tools)
+
+#### WHAT WENT WELL: 
+- Gathered lots of helpful information to benefit our project
+#### WHAT DIDN'T:
+- Failed to produce a PR
+
+
 ## Week 8 (October 20 - 26)
 <img width="1910" height="1117" alt="image" src="https://github.com/user-attachments/assets/f1170f39-a6af-4abe-856a-c7b504bce476" />
+
+#### PR : #74
 
 - Created heuristic project classifier based on file names, file types, and folder names
 - Created tests and documentation for this classifier
 - Researched Ollama and other local LLM models (How good are they for what we need, etc.)
 - Troubleshot local machine issues (issues connecting to mySQL in Docker, issues with Next.js packages)
+
+#### WHAT WENT WELL: 
+- Successfully created a heuristic classifier to categorize projects.
+- Sorted out local machine setup
+
+#### WHAT DIDN'T
+- Wasted a LOT of time troubleshooting machine issues, leading to my PR going up later than I hoped
   
 ## Week 9 (October 27 - Nov 2)
 <img width="1880" height="1094" alt="image" src="https://github.com/user-attachments/assets/88a7d061-f04c-4693-9055-397b1ee2ec3c" />
+
+#### PR : #96
 
 - Recfactored JSON output from file uploads to be more readable and usable for processing
 - Refactored small protion of analyzers.py to be more adaptable to coming features (Non-git project detection)
 - Refactored tests to accomodate JSON changes
 - Updated documentation 
 - Planned some backend pre-AI analysis (Coding Language and Framework Detection)
+
+#### WHAT WENT WELL: 
+- Successfully refactored JSON output and tests
+- Got a clearer understanding of what we are doing in the coming weeks
+
+#### WHAT DIDN'T
+- Wasted EVEN MORE TIME troubleshooting machine issues
+- Time management in general (difficult with a full course load)
 
 NEXT WEEK: Implement Coding Language and Framework Detection
