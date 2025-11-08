@@ -1,76 +1,15 @@
 import express from "express";
 import axios from "axios";
 import cors from "cors";
-import multer from "multer";
 import dotenv from "dotenv";
 import { rateLimiter } from "./middleware/rateLimiter.js";
 import { requireApiKey } from "./middleware/auth.js";
+import { upload, extractFileContent } from "./utils/fileHandler.js";
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-
-// File upload configuration
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024,
-    files: 1
-  },
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = [
-      'text/plain',
-      'text/csv',
-      'application/json',
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'text/markdown',
-      'text/x-python',
-      'text/javascript',
-      'application/javascript',
-      'text/html',
-      'text/css',
-      'text/x-php',
-      'application/x-php',
-      'application/php'
-    ];
-
-    const allowedExtensions = [
-      '.txt', '.md', '.py', '.js', '.html', '.css', '.json', '.csv',
-      '.php', '.java', '.cpp', '.c', '.h', '.hpp', '.cs', '.rb', 
-      '.go', '.rs', '.swift', '.kt', '.tsx', '.jsx', '.ts', '.vue',
-      '.xml', '.yaml', '.yml', '.ini', '.conf', '.cfg', '.log',
-      '.sql', '.sh', '.bat', '.ps1', '.r', '.scala', '.pl', '.lua'
-    ];
-    const fileExtension = '.' + file.originalname.split('.').pop().toLowerCase();
-    
-    if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExtension)) {
-      cb(null, true);
-    } else {
-      cb(new Error(`Unsupported file type: ${file.originalname}. Supported types: text files, code files (.php, .py, .js, .java, .cpp, etc.), JSON, CSV, PDF, Word documents`));
-    }
-  }
-});
-
-// File content extraction utility
-const extractFileContent = (file) => {
-  if (!file) return null;
-  
-  try {
-    const content = file.buffer.toString('utf-8');
-    return {
-      filename: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-      content: content
-    };
-  } catch (error) {
-    throw new Error('Failed to extract file content: ' + error.message);
-  }
-};
 
 // Make sure to add API key in your .env file
 const LLM_API_KEY = process.env.LLM_API_KEY;
@@ -80,6 +19,7 @@ console.log('Loaded API Key:', LLM_API_KEY ? 'Present' : 'Missing');
 if (!LLM_API_KEY) {
   console.error('WARNING: LLM_API_KEY not found in environment variables');
 }
+
 // Apply middleware
 app.set('trust proxy', true);
 app.use(express.json({ limit: '1mb' }));
