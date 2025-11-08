@@ -196,6 +196,8 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
 
 ```json
 {
+  "send_to_llm": true,
+  "scan_performed": true,
   "source": "zip_file",
   "projects": [
     {
@@ -316,6 +318,8 @@ When uploading a folder without any `.git` directories, files are listed under a
 
 ```json
 {
+  "send_to_llm": true,
+  "scan_performed": true,
   "source": "zip_file",
   "projects": [
     {
