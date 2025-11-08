@@ -1,10 +1,3 @@
-"""
-Streamlined test suite for project metadata detection (languages and frameworks).
-
-This consolidated test file reduces redundancy while maintaining comprehensive coverage.
-Combines unit tests with representative edge cases.
-"""
-
 import os
 import sys
 import tempfile
