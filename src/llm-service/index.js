@@ -4,6 +4,7 @@ import cors from "cors";
 import multer from "multer";
 import dotenv from "dotenv";
 import { rateLimiter } from "./middleware/rateLimiter.js";
+import { requireApiKey } from "./middleware/auth.js";
 
 // Load environment variables
 dotenv.config();
@@ -79,24 +80,6 @@ console.log('Loaded API Key:', LLM_API_KEY ? 'Present' : 'Missing');
 if (!LLM_API_KEY) {
   console.error('WARNING: LLM_API_KEY not found in environment variables');
 }
-
-const requireApiKey = (req, res, next) => {
-  const apiKey = req.headers['x-api-key'] || 
-                 req.headers['X-API-KEY'] ||
-                 req.headers['X-Api-Key'] ||
-                 req.query.apikey;
-  
-  if (!apiKey || apiKey !== LLM_API_KEY) {
-    return res.status(401).json({ 
-      error: "Invalid or missing API key. Include 'x-api-key' header or 'apikey' query parameter.",
-      receivedKey: apiKey ? "Key received but doesn't match" : "No key received",
-      expectedFormat: "x-api-key header"
-    });
-  }
-  
-  next();
-};
-
 // Apply middleware
 app.set('trust proxy', true);
 app.use(express.json({ limit: '1mb' }));
