@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 
 import importlib
 from app.services.file_types import EXT_IMAGE, EXT_CODE, EXT_CONTENT
+from app.services.wordDocReader import read_docx
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -119,6 +120,11 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
                 file_info = {"path": filename}
                 if length is not None:
                     file_info["length"] = length
+                # Attach inline text preview if available (from earlier read)
+                if "text" in r:
+                    file_info["text"] = r.get("text")
+                    if r.get("truncated"):
+                        file_info["truncated"] = True
                 project_data[project_tag]["files"]["content"].append(file_info)
             elif file_type == "image":
                 size = r.get("size")
@@ -350,7 +356,12 @@ class UploadFolderView(APIView):
                     if res.get("type") == "content":
                         try:
                             real_path = tmpdir_path / Path(res.get("path"))
-                            text = real_path.read_text(errors="ignore")
+                            # If the file is a .docx, use the specialized reader
+                            if real_path.suffix.lower() == ".docx":
+                                text = read_docx(real_path)
+                            else:
+                                text = real_path.read_text(errors="ignore")
+
                             # Cap size to avoid returning enormous files in the response
                             MAX_TEXT = 20000
                             if len(text) > MAX_TEXT:
