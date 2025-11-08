@@ -301,9 +301,9 @@ class UploadFolderView(APIView):
             return str(v).lower() in ("1", "true", "yes", "on")
 
         # If the frontend includes a checkbox named 'consent_scan' and user did NOT
-        # check it, we will skip the scan. By default (no field), preserve previous behavior
-        # and perform the scan so existing clients are unaffected.
-        scan_consent = _parse_bool(request.data.get("consent_scan"), default=True)
+        # check it, we will skip the scan. Default is now False (unchecked) to
+        # require explicit consent.
+        scan_consent = _parse_bool(request.data.get("consent_scan"), default=False)
         # Consent to send scanned results to LLM (default: False)
         send_to_llm = _parse_bool(request.data.get("consent_send_llm"), default=False)
 
@@ -478,11 +478,14 @@ class UploadFolderView(APIView):
                 project_classifications, 
                 git_contrib_data
             )
-            # Attach consent metadata at top-level
-            response_payload["send_to_llm"] = bool(send_to_llm)
-            response_payload["scan_performed"] = True
+            # Build an ordered payload with consent metadata first
+            ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
+            for k, v in response_payload.items():
+                if k in ("send_to_llm", "scan_performed"):
+                    continue
+                ordered_payload[k] = v
 
-            return JsonResponse(response_payload)
+            return JsonResponse(ordered_payload)
 
     def get(self, request, format=None):
         """Return usage or HTML form."""
@@ -501,12 +504,12 @@ class UploadFolderView(APIView):
                 <h1>Upload Folder</h1>
                 <form method="post" enctype="multipart/form-data">
                   <input type="file" name="file" accept=".zip" />
-                                    <div>
-                                        <label>
-                                            <input type="checkbox" name="consent_scan" value="1" checked />
-                                            Allow server to scan my uploaded files
-                                        </label>
-                                    </div>
+                                                        <div>
+                                                            <label>
+                                                                <input type="checkbox" name="consent_scan" value="1" />
+                                                                Allow server to scan my uploaded files
+                                                            </label>
+                                                        </div>
                                     <div>
                                         <label>
                                             <input type="checkbox" name="consent_send_llm" value="1" />
