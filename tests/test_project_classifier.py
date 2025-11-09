@@ -173,3 +173,112 @@ class ProjectClassifierTests(TestCase):
         self.assertEqual(result['classification'], 'coding')
         self.assertGreater(result['confidence'], 0)
 
+
+class ClassifierMetadataIntegrationTests(TestCase):
+    """
+    Integration tests for language and framework detection with project classification.
+    
+    Note: Detailed language and framework detection tests are in test_project_metadata.py.
+    These tests only verify proper integration with the classify_project() function.
+    """
+
+    def setUp(self):
+        """Set up test fixtures"""
+        self.temp_dir = None
+
+    def tearDown(self):
+        """Clean up test fixtures"""
+        if self.temp_dir and os.path.exists(self.temp_dir):
+            import shutil
+            shutil.rmtree(self.temp_dir)
+
+    def create_test_project(self, files_dict, folders=None):
+        """Helper to create a temporary project structure for testing"""
+        self.temp_dir = tempfile.mkdtemp()
+        root_path = Path(self.temp_dir)
+        
+        # Create folders if specified
+        if folders:
+            for folder in folders:
+                (root_path / folder).mkdir(parents=True, exist_ok=True)
+        
+        # Create files
+        for file_path, content in files_dict.items():
+            full_path = root_path / file_path
+            full_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            if isinstance(content, str):
+                full_path.write_text(content)
+            else:
+                full_path.write_bytes(content)
+        
+        return root_path
+
+    def test_classify_project_includes_languages(self):
+        """Test that classify_project includes languages for coding projects"""
+        files = {
+            "main.py": "print('hello')",
+            "utils.py": "def helper(): pass",
+            "requirements.txt": "Django==4.0.0"
+        }
+        project_path = self.create_test_project(files)
+        
+        result = classify_project(project_path)
+        
+        self.assertIn('languages', result)
+        self.assertIsInstance(result['languages'], list)
+        self.assertIn('Python', result['languages'])
+
+    def test_classify_project_includes_frameworks(self):
+        """Test that classify_project includes frameworks for coding projects"""
+        files = {
+            "main.py": "print('hello')",
+            "manage.py": "#!/usr/bin/env python",
+            "requirements.txt": "Django==4.0.0"
+        }
+        project_path = self.create_test_project(files)
+        
+        result = classify_project(project_path)
+        
+        self.assertIn('frameworks', result)
+        self.assertIsInstance(result['frameworks'], list)
+        self.assertIn('Django', result['frameworks'])
+
+    def test_classify_non_coding_project_no_languages(self):
+        """Test that non-coding projects don't include languages/frameworks"""
+        files = {
+            "document.txt": "Some text",
+            "paper.pdf": b"fake_pdf_data",
+            "essay.doc": b"fake_doc_data"
+        }
+        project_path = self.create_test_project(files)
+        
+        result = classify_project(project_path)
+        
+        # Should not have languages/frameworks or they should be empty
+        if 'languages' in result:
+            self.assertEqual(len(result['languages']), 0)
+        if 'frameworks' in result:
+            self.assertEqual(len(result['frameworks']), 0)
+
+    def test_classify_fullstack_project(self):
+        """Test classification of a full-stack project with multiple languages and frameworks"""
+        files = {
+            "backend/main.py": "print('hello')",
+            "backend/requirements.txt": "Django==4.0.0\ndjango-rest-framework==3.13.0",
+            "backend/manage.py": "#!/usr/bin/env python",
+            "frontend/src/App.jsx": "import React from 'react';",
+            "frontend/package.json": '{"dependencies": {"react": "^18.0.0", "next": "^12.0.0"}}'
+        }
+        folders = ["backend", "frontend", "frontend/src"]
+        project_path = self.create_test_project(files, folders)
+        
+        result = classify_project(project_path)
+        
+        self.assertEqual(result['classification'], 'coding')
+        self.assertIn('languages', result)
+        self.assertIn('frameworks', result)
+        self.assertIn('Python', result['languages'])
+        self.assertIn('JavaScript', result['languages'])
+        self.assertIn('Django', result['frameworks'])
+        self.assertIn('React', result['frameworks'])

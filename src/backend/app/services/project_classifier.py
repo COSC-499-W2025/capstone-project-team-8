@@ -5,6 +5,8 @@ from pathlib import Path
 from collections import Counter
 from typing import Dict, Any, Union, Tuple
 
+from .project_metadata import detect_languages, detect_frameworks
+
 
 # Extension sets for different file types
 CODE_EXTS = {
@@ -291,12 +293,22 @@ def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
             file_boost = min(features['total_files'] * 0.1, 0.3)
             confidence = min(base_confidence + file_boost, 1.0)
             
-            return {
+            result = {
                 'classification': classification,
                 'confidence': confidence,
                 'features': features,
                 'source': 'zip_file'
             }
+            
+            # Detect languages and frameworks for coding projects
+            if classification == 'coding' or (classification.startswith('mixed:') and 'coding' in classification):
+                result['languages'] = detect_languages(root_dir)
+                result['frameworks'] = detect_frameworks(root_dir)
+            else:
+                result['languages'] = []
+                result['frameworks'] = []
+            
+            return result
     
     # Handle directory
     else:
@@ -315,12 +327,22 @@ def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
         file_boost = min(features['total_files'] * 0.1, 0.3)
         confidence = min(base_confidence + file_boost, 1.0)
         
-        return {
+        result = {
             'classification': classification,
             'confidence': confidence,
             'features': features,
             'source': 'directory'
         }
+        
+        # Detect languages and frameworks for coding projects
+        if classification == 'coding' or (classification.startswith('mixed:') and 'coding' in classification):
+            result['languages'] = detect_languages(project_path)
+            result['frameworks'] = detect_frameworks(project_path)
+        else:
+            result['languages'] = []
+            result['frameworks'] = []
+        
+        return result
 
 
 def get_classification_explanation(classification_result: Dict[str, Any]) -> str:

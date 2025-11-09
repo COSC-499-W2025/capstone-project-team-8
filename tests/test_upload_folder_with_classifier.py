@@ -166,3 +166,105 @@ class UploadFolderWithClassifierTests(TestCase):
         # Each project should have files
         self.assertGreater(len(project1["files"]["code"]) + len(project1["files"]["content"]), 0)
         self.assertGreater(len(project2["files"]["code"]) + len(project2["files"]["content"]), 0)
+
+    def test_api_response_includes_languages_and_frameworks(self):
+        """Test that the API response includes languages and frameworks for coding projects"""
+        files = {
+            "main.py": "from django.http import HttpResponse",
+            "app.py": "from flask import Flask",
+            "requirements.txt": "django==4.0\nflask==2.0\npandas==1.5.0",
+            "package.json": '{"dependencies": {"react": "^18.0.0", "express": "^4.17.0"}}',
+            "src/App.jsx": "import React from 'react';",
+            "server.js": "const express = require('express');"
+        }
+        zip_bytes = self.make_zip_bytes(files)
+        upload = SimpleUploadedFile("fullstack_project.zip", zip_bytes, content_type="application/zip")
+        
+        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        self.assertEqual(resp.status_code, 200)
+        
+        data = resp.json()
+        overall = data["overall"]
+        
+        # Check that overall includes languages
+        self.assertIn("languages", overall, "Overall should include languages field")
+        self.assertIsInstance(overall["languages"], list)
+        self.assertIn("Python", overall["languages"])
+        self.assertIn("JavaScript", overall["languages"])
+        
+        # Check that overall includes frameworks
+        self.assertIn("frameworks", overall, "Overall should include frameworks field")
+        self.assertIsInstance(overall["frameworks"], list)
+        # Should detect frameworks from both requirements.txt and package.json
+        self.assertIn("Django", overall["frameworks"])
+        self.assertIn("Flask", overall["frameworks"])
+        self.assertIn("React", overall["frameworks"])
+        self.assertIn("Express", overall["frameworks"])
+
+    def test_non_coding_project_no_languages_frameworks(self):
+        """Test that non-coding projects don't have languages/frameworks or they're empty"""
+        files = {
+            "document.txt": "This is a text document",
+            "paper.pdf": b"%PDF-1.4 fake pdf content",
+            "image.png": b"\x89PNG\r\n\x1a\n\x00\x00"
+        }
+        zip_bytes = self.make_zip_bytes(files)
+        upload = SimpleUploadedFile("documents.zip", zip_bytes, content_type="application/zip")
+        
+        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        self.assertEqual(resp.status_code, 200)
+        
+        data = resp.json()
+        overall = data["overall"]
+        
+        # Non-coding projects should either not have languages/frameworks or they should be empty
+        if "languages" in overall:
+            self.assertEqual(len(overall["languages"]), 0)
+        if "frameworks" in overall:
+            self.assertEqual(len(overall["frameworks"]), 0)
+
+    def test_git_project_languages_and_frameworks(self):
+        """Test that individual Git projects include their own languages and frameworks"""
+        files = {
+            # Python project with Django
+            "backend/.git/HEAD": "ref: refs/heads/main",
+            "backend/.git/config": "[core]\n\trepositoryformatversion = 0",
+            "backend/main.py": "from django.http import HttpResponse",
+            "backend/requirements.txt": "django==4.0\ndjango-rest-framework==3.13.0",
+            
+            # JavaScript project with React
+            "frontend/.git/HEAD": "ref: refs/heads/main",
+            "frontend/.git/config": "[core]\n\trepositoryformatversion = 0",
+            "frontend/src/App.jsx": "import React from 'react';",
+            "frontend/package.json": '{"dependencies": {"react": "^18.0.0", "next": "^12.0.0"}}'
+        }
+        zip_bytes = self.make_zip_bytes(files)
+        upload = SimpleUploadedFile("monorepo.zip", zip_bytes, content_type="application/zip")
+        
+        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        self.assertEqual(resp.status_code, 200)
+        
+        data = resp.json()
+        projects = data["projects"]
+        
+        # Find backend and frontend projects
+        backend_project = next((p for p in projects if "backend" in p["root"]), None)
+        frontend_project = next((p for p in projects if "frontend" in p["root"]), None)
+        
+        self.assertIsNotNone(backend_project)
+        self.assertIsNotNone(frontend_project)
+        
+        # Backend should have Python and Django
+        backend_class = backend_project["classification"]
+        self.assertIn("languages", backend_class)
+        self.assertIn("Python", backend_class["languages"])
+        self.assertIn("frameworks", backend_class)
+        self.assertIn("Django", backend_class["frameworks"])
+        
+        # Frontend should have JavaScript and React/Next.js
+        frontend_class = frontend_project["classification"]
+        self.assertIn("languages", frontend_class)
+        self.assertIn("JavaScript", frontend_class["languages"])
+        self.assertIn("frameworks", frontend_class)
+        self.assertIn("React", frontend_class["frameworks"])
+        self.assertIn("Next.js", frontend_class["frameworks"])

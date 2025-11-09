@@ -209,7 +209,11 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
           "code": 1,
           "text": 1,
           "image": 1
-        }
+        },
+        "languages": [
+          "Python"
+        ],
+        "frameworks": []
       },
       "files": {
         "code": [
@@ -261,7 +265,11 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
       "code_files": 1,
       "text_files": 1,
       "image_files": 1
-    }
+    },
+    "languages": [
+      "Python"
+    ],
+    "frameworks": []
   }
 }
 ```
@@ -281,6 +289,8 @@ Each project contains:
   - **`type`**: One of `"coding"`, `"writing"`, `"art"`, `"mixed:type1+type2"`, or `"unknown"`
   - **`confidence`**: Classification confidence score (0.0 to 1.0)
   - **`features`** (optional): File count breakdown
+  - **`languages`** (array, coding projects only): Detected programming languages, sorted by prevalence
+  - **`frameworks`** (array, coding projects only): Detected frameworks and libraries
 - **`files`** (object): Files organized by type
   - **`code`**: Array of code files with `path` and `lines`
   - **`content`**: Array of text/document files with `path` and `length` (characters)
@@ -297,6 +307,8 @@ Each project contains:
   - **`code_files`**: Total code files
   - **`text_files`**: Total text/document files
   - **`image_files`**: Total image files
+- **`languages`** (array, optional): Aggregated programming languages across all projects
+- **`frameworks`** (array, optional): Aggregated frameworks across all projects
 
 ## Example: No Git Projects Detected
 
@@ -317,7 +329,13 @@ When uploading a folder without any `.git` directories, files are listed under a
           "code": 3,
           "text": 1,
           "image": 1
-        }
+        },
+        "languages": [
+          "Python",
+          "JavaScript",
+          "HTML"
+        ],
+        "frameworks": []
       },
       "files": {
         "code": [
@@ -360,7 +378,13 @@ When uploading a folder without any `.git` directories, files are listed under a
       "code_files": 3,
       "text_files": 1,
       "image_files": 1
-    }
+    },
+    "languages": [
+      "Python",
+      "JavaScript",
+      "HTML"
+    ],
+    "frameworks": []
   }
 }
 ```
