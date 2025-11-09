@@ -88,7 +88,8 @@ Continue working on handling uploaded files and detecting repositories within up
  Begin working on understanding files content. Reading text files and extracting useful information to better understand projects. Implement user consent features as well.
 
  ## Novermber 3-9
-
+ 
+<img width="1078" height="632" alt="November3-9" src="https://github.com/user-attachments/assets/0f5c1d46-7d4e-4e2c-bac8-f81140c0f1c3" />
 
 - Impemented user consent features for file analysis
 - Enhanced file analyzer to read and extract text content from files
