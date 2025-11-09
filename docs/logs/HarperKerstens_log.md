@@ -98,9 +98,12 @@ Continue working on handling uploaded files and detecting repositories within up
 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/122  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/113, https://github.com/COSC-499-W2025/capstone-project-team-8/issues/114  |
 
 ### What went well
+    Was able to successfully implement all tasks planned for this week. Stregthened the file analyzers content reading capabilities  which will be a big step towrads building a useful project analyzer. User consent features were also implemented to ensure the user has control over their data. 
 
 ### What didn't go well
+    Some unexpected challanges were implementing what happens the when the user doesn't give consent to have their files analyzed. I couldn't determine on if it made more sense to just return an error to the user or take in their input but not analyze it. After discussing with the team we decided to recieve their input but not analyze it to keep the system in an active useable state instead of returning the user with a road block.
 
 ### What's next
-
+     The plan for me for the next wee is to begin with a non AI understanding of analyzed files. I want to be able to return a useful analysis of the files to help make a more efficient AI analysis in the future. This will also be helpful for if the user does not want their data sent to an LLM.
 ### Reflection:
+    This weeks development went surprisingly well. After last week where I spent the majority of my time fixing issues I was prepared to have more delays in my development this week. However I didn't run into any major issues and was able to complete all my tasks for the week. I'm happy with the progress I made and I'm looking forward to continuing development next week.
