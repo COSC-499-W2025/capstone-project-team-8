@@ -86,3 +86,17 @@ Continue working on handling uploaded files and detecting repositories within up
  This issues was unexpected which caused some delays in progress that was expected for this week. Timeline will have to be shifted slightly to accomodate for this.
 ### What's next
  Begin working on understanding files content. Reading text files and extracting useful information to better understand projects. Implement user consent features as well.
+
+ ## Novermber 3-9
+
+
+
+### Completed PR's
+
+### What went well
+
+### What didn't go well
+
+### What's next
+
+### Reflection:
