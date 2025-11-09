@@ -90,6 +90,10 @@ Continue working on handling uploaded files and detecting repositories within up
  ## Novermber 3-9
 
 
+- Impemented user consent features for file analysis
+- Enhanced file analyzer to read and extract text content from files
+- Modularized file analyzer's extension checking to reduce file size.
+- Reviewed team members code and provided feedback
 
 ### Completed PRs
 | Pull Request | Issues addressed |
