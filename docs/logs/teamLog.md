@@ -11,6 +11,7 @@
 ## Week 10: Nov 2 - 9
 
 ### Our Goals for this week:
+Our goal for this week was to deepen our analysis of uploaded files and progress towards AI integration. For uploaded files, we aimed to enhance our file analyzer to read text from uploaded content documents as well as discover tech stacks and languages used in coding projects. This work being done is pivotal to both a non AI and AI based analysis of user projects. The more information we can extract from uploaded files, the better our analysis engine will perform. Another goal for this week was to analyze deeper the .git file in a detected repository, trying to distinguish user contributions is a key step towards milestone 1.
 
 
   ### Reflection:
