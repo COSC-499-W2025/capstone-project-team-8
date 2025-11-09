@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  llm-service:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - LLM_API_KEY=${LLM_API_KEY}
+    restart: unless-stopped
+    networks:
+      - llm-network
+
+networks:
+  llm-network:
+    driver: bridge
