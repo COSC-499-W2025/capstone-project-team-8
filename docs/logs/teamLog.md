@@ -14,13 +14,16 @@
 Our goal for this week was to deepen our analysis of uploaded files and progress towards AI integration. For uploaded files, we aimed to enhance our file analyzer to read text from uploaded content documents as well as discover tech stacks and languages used in coding projects. This work being done is pivotal to both a non AI and AI based analysis of user projects. The more information we can extract from uploaded files, the better our analysis engine will perform. Another goal for this week was to analyze deeper the .git file in a detected repository, trying to distinguish user contributions is a key step towards milestone 1.
 
 
-  ### Reflection:
+### Reflection:
+This weeks development went smoothly with minimal hitches. The team collaborated well to implement new features and make decisions for our projects direcetion. As we dive deepper into content analysis the project is starting to take shape and we are excited to see progress. The teams focus shifting forward is to better understand the read content of uploaded files this week was focused on accessing the files now we have to take it a step further and understand what is in those files. AI will help with this but determining a non AI approach is also important for our project.
 
 
-  ### What went well:
+### What went well:
+Development was smooth this week with minimal blockers. We were able to stay on track with our goals and each make strong team and individual contributions. Our implemented features are being strengthened as well being able to deeper understand user's uploaded files.
 
 
-  ### What didn't go well:
+### What didn't go well:
+As we work in our file uploader component the file is begining to grow in size and complexity. We must begin to make decisions on how to modularize and structure our code to ensure further development is smooth and efficient. Small refactoring was done this week but it should become a larger focus moving forward.
 
 
 ### Burn Up Chart
