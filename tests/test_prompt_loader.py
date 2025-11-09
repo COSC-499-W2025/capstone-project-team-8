@@ -1,6 +1,4 @@
 """
-Test suite for the prompt template utility system.
-
 Tests the prompt_loader utility functions to ensure they work correctly
 for loading, parsing, and building prompts from markdown templates.
 
@@ -14,7 +12,7 @@ import unittest
 from pathlib import Path
 
 # Add the correct path to find the app module
-project_root = Path(__file__).parent.parent  # Go up to project root
+project_root = Path(__file__).parent.parent
 backend_path = project_root / "src" / "backend"
 sys.path.insert(0, str(backend_path))
 
