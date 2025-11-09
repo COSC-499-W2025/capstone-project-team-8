@@ -8,6 +8,48 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 10: Nov 2 - 9
+
+### Our Goals for this week:
+
+
+  ### Reflection:
+
+
+  ### What went well:
+
+
+  ### What didn't go well:
+
+
+### Burn Up Chart
+
+
+
+### Completed Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+|      |             |         |
+|      |              |       |
+|       |             |       |
+|       |             |       |
+|       |             |       |
+|       |             |       |
+
+### In Progress Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+|      |             |         |
+|      |             |         |
+|      |             |         |
+
+### Plan Towards Milestone 1 
+
+### Test Report
+
+
 ## Week 9: Oct 25 - 29
 
 ### Our Goals for this week:
