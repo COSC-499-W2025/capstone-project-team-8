@@ -35,7 +35,41 @@ Quick Rundown:
 - npm (or yarn)
 - Ollama installed on the host machine. See https://ollama.com/ for installation instructions.
 
-## Install
+## Installation Options
+
+### Option 1: Docker Deployment (Recommended for Production)
+
+The easiest way to deploy this microservice is using Docker. See [DEPLOYMENT.md](DEPLOYMENT.md) for comprehensive deployment instructions.
+
+**Quick Docker Setup:**
+```bash
+# Copy environment template
+cp .env.example .env
+# Edit .env to set your API key
+nano .env
+
+# Deploy with Docker Compose
+docker-compose up -d
+
+# Check health
+curl http://localhost:3001/health
+```
+
+**Windows PowerShell:**
+```powershell
+# Copy environment template  
+Copy-Item .env.example .env
+# Edit .env to set your API key
+notepad .env
+
+# Deploy using the script
+.\deploy.ps1 deploy
+
+# Check health
+Invoke-WebRequest http://localhost:3001/health
+```
+
+### Option 2: Local Development Install
 
 From the `src/llm-service` folder:
 
@@ -66,16 +100,25 @@ Notes
 
 This Express app is a thin API that forwards requests to the Ollama server. By default it listens on port 3000.
 
+### Docker Deployment (Production)
+```bash
+# Quick deployment with Docker Compose
+docker-compose up -d
+```
+
+### Local Development
 From `src/llm-service`:
 
 ```powershell
-node index.js
+npm start
+# or for development with auto-restart
+npm run dev
 ```
 
 On bash / macOS / Linux:
 
 ```bash
-PORT=3001 node index.js
+PORT=3001 npm start
 ```
 
 ## Cloud Based API Usage
