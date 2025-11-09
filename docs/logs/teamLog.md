@@ -50,6 +50,11 @@ As we work in our file uploader component the file is begining to grow in size a
 |      |             |         |
 
 ### Plan Towards Milestone 1 
+Looking forwards towards Milestone 1 our key objectives are content analysis based, specifically:, 
+9. Extrapolate individual contributions for a given collaboration project 
+10. Extract key contribution metrics in a project, displaying information about the duration of the project and activity type contribution frequency (e.g., code vs test vs design vs document), and other important information 
+11. Extract key skills from a given project 
+
 
 ### Test Report
 
