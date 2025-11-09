@@ -94,8 +94,8 @@ Continue working on handling uploaded files and detecting repositories within up
 ### Completed PRs
 | Pull Request | Issues addressed |
 |---|---|
-| [#123] https://github.com/COSC-499-W2025/capstone-project-team-8/pull/123  | [#105] https://github.com/COSC-499-W2025/capstone-project-team-8/issues/105 |
-| [#122] https://github.com/COSC-499-W2025/capstone-project-team-8/pull/122  | [#113] https://github.com/COSC-499-W2025/capstone-project-team-8/issues/113, [#114] https://github.com/COSC-499-W2025/capstone-project-team-8/issues/114  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/123  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/105 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/122  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/113, https://github.com/COSC-499-W2025/capstone-project-team-8/issues/114  |
 
 ### What went well
 
