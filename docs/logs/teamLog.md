@@ -8,6 +8,61 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 10: Nov 2 - 9
+
+### Our Goals for this week:
+Our goal for this week was to deepen our analysis of uploaded files and progress towards AI integration. For uploaded files, we aimed to enhance our file analyzer to read text from uploaded content documents as well as discover tech stacks and languages used in coding projects. This work being done is pivotal to both a non AI and AI based analysis of user projects. The more information we can extract from uploaded files, the better our analysis engine will perform. Another goal for this week was to analyze deeper the .git file in a detected repository, trying to distinguish user contributions is a key step towards milestone 1.
+
+
+### Reflection:
+This weeks development went smoothly with minimal hitches. The team collaborated well to implement new features and make decisions for our projects direcetion. As we dive deepper into content analysis the project is starting to take shape and we are excited to see progress. The teams focus shifting forward is to better understand the read content of uploaded files this week was focused on accessing the files now we have to take it a step further and understand what is in those files. AI will help with this but determining a non AI approach is also important for our project.
+
+
+### What went well:
+Development was smooth this week with minimal blockers. We were able to stay on track with our goals and each make strong team and individual contributions. Our implemented features are being strengthened as well being able to deeper understand user's uploaded files.
+
+
+### What didn't go well:
+As we work in our file uploader component the file is begining to grow in size and complexity. We must begin to make decisions on how to modularize and structure our code to ensure further development is smooth and efficient. Small refactoring was done this week but it should become a larger focus moving forward.
+
+
+### Burn Up Chart
+
+<img width="1821" height="1039" alt="image" src="https://github.com/user-attachments/assets/19bce1df-2f9f-4327-8bb4-43fb518b4d85" />
+
+
+
+### Completed Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+|detect coding languages and frameworks|cschwebi| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/77 |
+|User Consent Features | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/113,    https://github.com/COSC-499-W2025/capstone-project-team-8/issues/114   |
+| Reading Text from uploaded Documents |harperkerstens| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/105      |
+| LLM File Upload | kylemcleod |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/124  |
+| Dockerize LLM and Updated VM  | kylemcdleod  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/126     |
+| Filter project by user contributions | jordany78  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/60     |
+| Chronological git project list   | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/72 |
+
+### In Progress Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+|      |             |         |
+|      |             |         |
+|      |             |         |
+
+### Next Weeks Plan Towards Milestone 1 
+Looking forwards towards Milestone 1 our key objectives are content analysis based, specifically:,
+5. Have alternative analyses in place if sending data to an external service is not permitted
+9. Extrapolate individual contributions for a given collaboration project 
+10. Extract key contribution metrics in a project, displaying information about the duration of the project and activity type contribution frequency (e.g., code vs test vs design vs document), and other important information 
+11. Extract key skills from a given project 
+
+
+### Test Report
+
+
 ## Week 9: Oct 25 - 29
 
 ### Our Goals for this week:
