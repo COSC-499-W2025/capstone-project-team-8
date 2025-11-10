@@ -80,7 +80,7 @@ def classify_file(path: Path):
     return "unknown"
 
 
-def _transform_to_new_structure(results, projects, projects_rel, project_classifications, git_contrib_data):
+def _transform_to_new_structure(results, projects, projects_rel, project_classifications, git_contrib_data, project_timestamps=None):
     """
     Transform the collected data into the new JSON structure.
     
@@ -90,10 +90,13 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
         projects_rel: Dict mapping numeric tags to relative root paths
         project_classifications: Dict of project classifications
         git_contrib_data: Dict of git contribution data per project
+        project_timestamps: Dict mapping project tags to Unix timestamps (optional)
         
     Returns:
         Dict with the new structure: {source, projects, overall}
     """
+    if project_timestamps is None:
+        project_timestamps = {}
     # Initialize project data structure
     project_data = {}
     for tag, root_str in projects_rel.items():
@@ -285,11 +288,26 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
         overall["frameworks"] = overall_classification["frameworks"]
     
     # Convert project_data dict to sorted list
-    # Sort by tag, but put unorganized files project (id=0) at the end
-    sorted_tags = sorted([tag for tag in project_data.keys() if tag != 0])
+    # Sort by timestamp (chronologically, oldest first), then by tag as fallback
+    # Put unorganized files project (id=0) at the end
+    regular_projects = [tag for tag in project_data.keys() if tag != 0]
+    
+    # Sort by timestamp if available, otherwise by tag
+    sorted_tags = sorted(
+        regular_projects,
+        key=lambda tag: (project_timestamps.get(tag, float('inf')), tag)
+    )
+    
     if 0 in project_data:
         sorted_tags.append(0)
-    projects_list = [project_data[tag] for tag in sorted_tags]
+    
+    # Add timestamp to project data if available
+    projects_list = []
+    for tag in sorted_tags:
+        project = project_data[tag]
+        if tag in project_timestamps and project_timestamps[tag] > 0:
+            project["created_at"] = project_timestamps[tag]
+        projects_list.append(project)
     
     return {
         "source": "zip_file",
@@ -476,6 +494,7 @@ class UploadFolderView(APIView):
                 git_finder = None
 
             git_contrib_data = {}
+            project_timestamps = {}
             if git_finder and projects:
                 for root_path, tag in projects.items():
                     try:
@@ -483,6 +502,13 @@ class UploadFolderView(APIView):
                         git_contrib_data[f"project_{tag}"] = contrib_result
                     except Exception as e:
                         git_contrib_data[f"project_{tag}"] = {"error": str(e)}
+                    
+                    # Get timestamp for chronological sorting
+                    try:
+                        timestamp = git_finder.get_project_timestamp(root_path)
+                        project_timestamps[tag] = timestamp
+                    except Exception:
+                        project_timestamps[tag] = 0
 
             # Transform the data into the new structure
             response_payload = _transform_to_new_structure(
@@ -490,7 +516,8 @@ class UploadFolderView(APIView):
                 projects, 
                 projects_rel,
                 project_classifications, 
-                git_contrib_data
+                git_contrib_data,
+                project_timestamps
             )
             # Build an ordered payload with consent metadata first
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}

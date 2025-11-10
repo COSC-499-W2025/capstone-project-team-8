@@ -124,3 +124,132 @@ class ChronologicalOrderingTests(TestCase):
         
         # Should return 0 for empty git repos
         self.assertEqual(result, 0)
+
+
+class ProjectSortingIntegrationTests(TestCase):
+    """Integration tests for chronological sorting in upload endpoint"""
+
+    def setUp(self):
+        """Set up test fixtures"""
+        self.temp_dirs = []
+
+    def tearDown(self):
+        """Clean up test fixtures"""
+        import shutil
+        import stat
+        
+        def handle_remove_readonly(func, path, exc):
+            """Error handler for Windows readonly files"""
+            os.chmod(path, stat.S_IWRITE)
+            func(path)
+        
+        for temp_dir in self.temp_dirs:
+            if temp_dir and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir, onerror=handle_remove_readonly)
+
+    def create_zip_with_multiple_git_projects(self):
+        """Create a zip file containing multiple git projects with different timestamps"""
+        import zipfile
+        import time
+        
+        # Create temp directory for projects
+        projects_root = tempfile.mkdtemp()
+        self.temp_dirs.append(projects_root)
+        root_path = Path(projects_root)
+        
+        # Project 1: Oldest project (created first)
+        project1 = root_path / "old-project"
+        project1.mkdir()
+        subprocess.run(["git", "init"], cwd=project1, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=project1, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.name", "Test User"], cwd=project1, check=True, capture_output=True)
+        (project1 / "old.txt").write_text("Old project")
+        subprocess.run(["git", "add", "."], cwd=project1, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "Old commit"], cwd=project1, check=True, capture_output=True)
+        
+        time.sleep(2)  # Ensure different timestamps
+        
+        # Project 2: Newest project (created last)
+        project2 = root_path / "new-project"
+        project2.mkdir()
+        subprocess.run(["git", "init"], cwd=project2, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=project2, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.name", "Test User"], cwd=project2, check=True, capture_output=True)
+        (project2 / "new.txt").write_text("New project")
+        subprocess.run(["git", "add", "."], cwd=project2, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "New commit"], cwd=project2, check=True, capture_output=True)
+        
+        time.sleep(1)
+        
+        # Project 3: Middle project
+        project3 = root_path / "middle-project"
+        project3.mkdir()
+        subprocess.run(["git", "init"], cwd=project3, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=project3, check=True, capture_output=True)
+        subprocess.run(["git", "config", "user.name", "Test User"], cwd=project3, check=True, capture_output=True)
+        (project3 / "middle.txt").write_text("Middle project")
+        subprocess.run(["git", "add", "."], cwd=project3, check=True, capture_output=True)
+        subprocess.run(["git", "commit", "-m", "Middle commit"], cwd=project3, check=True, capture_output=True)
+        
+        # Create zip file
+        zip_path = Path(tempfile.mkdtemp()) / "projects.zip"
+        self.temp_dirs.append(zip_path.parent)
+        
+        with zipfile.ZipFile(zip_path, 'w') as zipf:
+            for project_dir in [project1, project2, project3]:
+                for root, dirs, files in os.walk(project_dir):
+                    for file in files:
+                        file_path = Path(root) / file
+                        arcname = file_path.relative_to(projects_root)
+                        zipf.write(file_path, arcname)
+        
+        return zip_path
+
+    def test_projects_ordered_chronologically_oldest_first(self):
+        """Test that projects in the response are ordered chronologically (oldest first)"""
+        from django.test import Client
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        
+        zip_path = self.create_zip_with_multiple_git_projects()
+        
+        with open(zip_path, 'rb') as f:
+            zip_content = f.read()
+        
+        uploaded_file = SimpleUploadedFile(
+            "projects.zip",
+            zip_content,
+            content_type="application/zip"
+        )
+        
+        client = Client()
+        response = client.post(
+            "/api/upload-folder/",
+            {"file": uploaded_file, "consent_scan": "1"},
+            format="multipart"
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        
+        # Should have 3 git projects (excluding unorganized files project if present)
+        self.assertIn("projects", data)
+        projects = data["projects"]
+        
+        # Filter out unorganized files project (id=0)
+        git_projects = [p for p in projects if p.get("id") != 0]
+        self.assertEqual(len(git_projects), 3)
+        
+        # Projects should be ordered: old-project, new-project, middle-project
+        # (based on chronological order of first commits)
+        project_roots = [p["root"] for p in git_projects]
+        
+        # First project should be old-project (oldest)
+        self.assertIn("old-project", project_roots[0])
+        
+        # Last project should be middle-project (newest)
+        self.assertIn("middle-project", project_roots[-1])
+        
+        # Verify timestamps are in ascending order if included
+        if "created_at" in git_projects[0]:
+            timestamps = [p.get("created_at", 0) for p in git_projects]
+            self.assertEqual(timestamps, sorted(timestamps))
