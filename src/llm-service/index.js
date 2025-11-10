@@ -9,7 +9,7 @@ import { upload, extractFileContent } from "./utils/fileHandler.js";
 dotenv.config();
 const app = express();
 const LLM_API_KEY = process.env.LLM_API_KEY;
-const OLLAMA_API = "http://127.0.0.1:11434/api/generate";
+const OLLAMA_API = process.env.OLLAMA_API || "http://localhost:11434/api/generate";
 
 // Console log check to verify if api key was added
 console.log('Loaded API Key:', LLM_API_KEY ? 'Present' : 'Missing');

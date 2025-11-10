@@ -1,0 +1,35 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - llm-network
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+
+  llm-service:
+    build: .
+    container_name: llm-service
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - LLM_API_KEY=${LLM_API_KEY}
+      - OLLAMA_API=http://ollama:11434/api/generate
+    restart: unless-stopped
+    networks:
+      - llm-network
+    depends_on:
+      - ollama
+
+networks:
+  llm-network:
+    driver: bridge
+
+volumes:
+  ollama_data:

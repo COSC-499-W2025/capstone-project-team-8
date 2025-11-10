@@ -1,10 +1,26 @@
 {
+  "name": "llm-service",
+  "version": "1.0.0",
+  "description": "LLM microservice with Express and Ollama integration",
+  "main": "index.js",
   "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "docker:build": "docker build -t llm-service .",
+    "docker:run": "docker run -p 3001:3001 --env-file .env llm-service",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f"
+  },
   "dependencies": {
     "axios": "^1.12.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "multer": "^2.0.2"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }
