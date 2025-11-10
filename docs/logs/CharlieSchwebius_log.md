@@ -92,13 +92,13 @@ NEXT WEEK: Implement Coding Language and Framework Detection
 #121
 
 #### WHAT WENT WELL: 
-- Successfully implemented both of these with minimal issue
-- Completed my work and PR a lot earlier than previous weeks
+- Successfully implemented both of these with minimal issues
+- Completed my work and PR a lot earlier than past weeks
 
 #### WHAT DIDN'T
 - Everything went pretty smoothly
 
 #### Reflection
-Overall I think our team made pretty good progress. With us now having frmework detection, and with our LLM service gaining file-upload capabilities, we are getting very close to a finished product. Right now we have a lot of momentum, and I think with my knowledge of the current preprocessing, I can do a very good job of implementing the non-AI analysis fucntionality.
+Overall, I think our team made pretty good progress. With us now having framework detection and with our LLM service gaining file-upload capabilities, we are getting very close to a finished product. Right now we have a lot of momentum, and I think with my knowledge of the current preprocessing, I can do a very good job of implementing the non-AI analysis functionality.
 
 NEXT WEEK: Non-AI Analysis functionality (Resume Items++)
