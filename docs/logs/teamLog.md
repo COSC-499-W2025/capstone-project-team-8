@@ -37,8 +37,8 @@ As we work in our file uploader component the file is begining to grow in size a
 | Task | Assigned To | Issue # |
 |------|-------------|---------|
 |detect coding languages and frameworks|cschwebi|#77|
-|      |              |       |
-|       |             |       |
+|User Consent Features | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/113,    https://github.com/COSC-499-W2025/capstone-project-team-8/issues/114   |
+| Reading Text from uploaded Documents |harperkerstens| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/105      |
 |       |             |       |
 |       |             |       |
 |       |             |       |
