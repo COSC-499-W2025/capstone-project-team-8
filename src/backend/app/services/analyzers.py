@@ -213,34 +213,16 @@ def discover_projects(root: Path) -> Dict[Path, int]:
     ]
     projects: Dict[Path, int] = {}
     tag = 1
-    for dirpath, dirnames, filenames in os.walk(root):
-        # Look for a `.git` subdirectory
+    for dirpath, dirnames, filenames in os.walk(root, topdown=True):
         if any(item in ROOT_MARKERS_DIRECTORIES for item in dirnames) or any(
             item in ROOT_MARKERS_FILES for item in filenames
         ):
             project_root = Path(dirpath)
-            # Normalize path for consistent comparisons
-            project_root = project_root.resolve()
+            project_root = project_root.resolve() # Normalize path for consistent comparisons
             if project_root not in projects:
                 projects[project_root] = tag
                 tag += 1
-            # avoid descending into `.git` or other version control folders
-            try:
-                dirnames.remove(".git")
-            except ValueError:
-                pass
-            try:
-                dirnames.remove(".svn")
-            except ValueError:
-                pass
-            try:
-                dirnames.remove(".hg")
-            except ValueError:
-                pass
-            try:
-                dirnames.remove(".bzr")
-            except ValueError:
-                pass
+            dirnames.clear() # If this folder is a project do not descend any further
     return projects
 
 
