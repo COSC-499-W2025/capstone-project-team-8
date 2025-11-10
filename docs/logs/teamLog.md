@@ -39,8 +39,8 @@ As we work in our file uploader component the file is begining to grow in size a
 |detect coding languages and frameworks|cschwebi| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/77 |
 |User Consent Features | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/113,    https://github.com/COSC-499-W2025/capstone-project-team-8/issues/114   |
 | Reading Text from uploaded Documents |harperkerstens| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/105      |
-| LLM File Upload | kylemcleod |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/124  |
-| Dockerize LLM and Updated VM  | kylemcdleod  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/126     |
+| LLM File Upload | kylekmcleod |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/124  |
+| Dockerize LLM and Updated VM  | kylekmcleod  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/126     |
 | Filter project by user contributions | jordany78  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/60     |
 | Chronological git project list   | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/72 |
 
