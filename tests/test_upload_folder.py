@@ -2,11 +2,24 @@ import io
 import zipfile
 from django.test import TestCase, Client
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.contrib.auth import get_user_model
 
 
 class UploadFolderTests(TestCase):
     def setUp(self):
         self.client = Client()
+        # create and authenticate user (some UserManagers require email)
+        User = get_user_model()
+        self.user = User.objects.create_user(username="testuser", email="test@example.com", password="pass")
+        self.client.force_login(self.user)
+        # ensure upload-folder posts include consent_scan unless explicitly testing opt-out
+        original_post = self.client.post
+        def _post(path, data=None, *args, **kwargs):
+            data = data or {}
+            if path == "/api/upload-folder/" and "consent_scan" not in data:
+                data = {**data, "consent_scan": "1"}
+            return original_post(path, data, *args, **kwargs)
+        self.client.post = _post
 
     # creates an in-memory zip archive to test
     def make_zip_bytes(self, files: dict) -> bytes:
