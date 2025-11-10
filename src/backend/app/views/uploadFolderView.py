@@ -320,6 +320,8 @@ class UploadFolderView(APIView):
         scan_consent = _parse_bool(request.data.get("consent_scan"), default=False)
         # Consent to send scanned results to LLM (default: False)
         send_to_llm = _parse_bool(request.data.get("consent_send_llm"), default=False)
+        # Option to include non-AI analysis (resume items, summary, statistics)
+        include_non_ai_analysis = _parse_bool(request.data.get("include_non_ai_analysis"), default=False)
 
         # Verify zip
         if not zipfile.is_zipfile(upload):
@@ -492,6 +494,25 @@ class UploadFolderView(APIView):
                 project_classifications, 
                 git_contrib_data
             )
+            
+            # Generate non-AI analysis if requested
+            if include_non_ai_analysis:
+                try:
+                    non_ai_analyzer = importlib.import_module("app.services.non_ai_analyzer")
+                    non_ai_analysis = non_ai_analyzer.generate_non_ai_analysis(response_payload)
+                    response_payload["non_ai_analysis"] = non_ai_analysis
+                except Exception as e:
+                    # If non-AI analysis fails, log but don't fail the entire request
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"Failed to generate non-AI analysis: {str(e)}")
+                    response_payload["non_ai_analysis"] = {
+                        "error": "Failed to generate non-AI analysis",
+                        "resume_items": [],
+                        "summary": "",
+                        "statistics": {}
+                    }
+            
             # Build an ordered payload with consent metadata first
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
             for k, v in response_payload.items():
