@@ -89,7 +89,7 @@ NEXT WEEK: Implement Coding Language and Framework Detection
 
 #### My PR's: 
 
-#121
+#121: Coding language and framework detection enhancement
 
 #### WHAT WENT WELL: 
 - Successfully implemented both of these with minimal issues
@@ -98,7 +98,7 @@ NEXT WEEK: Implement Coding Language and Framework Detection
 #### WHAT DIDN'T
 - Everything went pretty smoothly
 
-#### Reflection
+  #### REFLECTION
 Overall, I think our team made pretty good progress. With us now having framework detection and with our LLM service gaining file-upload capabilities, we are getting very close to a finished product. Right now we have a lot of momentum, and I think with my knowledge of the current preprocessing, I can do a very good job of implementing the non-AI analysis functionality.
 
 NEXT WEEK: Non-AI Analysis functionality (Resume Items++)
