@@ -45,7 +45,7 @@ class UploadFolderTests(TestCase):
         }
         zip_bytes = self.make_zip_bytes(files)
         upload = SimpleUploadedFile("upload.zip", zip_bytes, content_type="application/zip")
-        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        resp = self.client.post("/api/upload-folder/", {"file": upload, "consent_scan": "1"})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         # New structure validation
@@ -80,7 +80,7 @@ class UploadFolderTests(TestCase):
         }
         zip_bytes = self.make_zip_bytes(files)
         upload = SimpleUploadedFile("nested.zip", zip_bytes, content_type="application/zip")
-        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        resp = self.client.post("/api/upload-folder/", {"file": upload, "consent_scan": "1"})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         # Check that files are in the overall totals
@@ -98,8 +98,8 @@ class UploadFolderTests(TestCase):
             "main.py": "print('hello')",
         }
         zip_bytes = self.make_zip_bytes(files)
-        upload = SimpleUploadedFile("git-repo.zip", zip_bytes, content_type="application/zip")
-        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        upload = SimpleUploadedFile("single_repo.zip", zip_bytes, content_type="application/zip")
+        resp = self.client.post("/api/upload-folder/", {"file": upload, "consent_scan": "1"})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         # Check new structure
@@ -118,7 +118,7 @@ class UploadFolderTests(TestCase):
         }
         zip_bytes = self.make_zip_bytes(files)
         upload = SimpleUploadedFile("repo.zip", zip_bytes, content_type="application/zip")
-        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        resp = self.client.post("/api/upload-folder/", {"file": upload, "consent_scan": "1"})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         
@@ -151,8 +151,8 @@ class UploadFolderTests(TestCase):
             "r2/sub/d.py": "print(2)",
         }
         zip_bytes = self.make_zip_bytes(files)
-        upload = SimpleUploadedFile("multi.zip", zip_bytes, content_type="application/zip")
-        resp = self.client.post("/api/upload-folder/", {"file": upload})
+        upload = SimpleUploadedFile("multi_repo.zip", zip_bytes, content_type="application/zip")
+        resp = self.client.post("/api/upload-folder/", {"file": upload, "consent_scan": "1"})
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
         
