@@ -28,13 +28,15 @@ As we work in our file uploader component the file is begining to grow in size a
 
 ### Burn Up Chart
 
+<img width="1821" height="1039" alt="image" src="https://github.com/user-attachments/assets/19bce1df-2f9f-4327-8bb4-43fb518b4d85" />
+
 
 
 ### Completed Tasks
 
 | Task | Assigned To | Issue # |
 |------|-------------|---------|
-|      |             |         |
+|detect coding languages and frameworks|cschwebi|#77|
 |      |              |       |
 |       |             |       |
 |       |             |       |
@@ -50,7 +52,8 @@ As we work in our file uploader component the file is begining to grow in size a
 |      |             |         |
 
 ### Next Weeks Plan Towards Milestone 1 
-Looking forwards towards Milestone 1 our key objectives are content analysis based, specifically:, 
+Looking forwards towards Milestone 1 our key objectives are content analysis based, specifically:,
+5. Have alternative analyses in place if sending data to an external service is not permitted
 9. Extrapolate individual contributions for a given collaboration project 
 10. Extract key contribution metrics in a project, displaying information about the duration of the project and activity type contribution frequency (e.g., code vs test vs design vs document), and other important information 
 11. Extract key skills from a given project 
