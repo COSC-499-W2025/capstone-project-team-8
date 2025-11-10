@@ -10,6 +10,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
 import importlib
+from app.services.file_types import EXT_IMAGE, EXT_CODE, EXT_CONTENT
+from app.services.wordDocReader import read_docx
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -24,50 +26,6 @@ import importlib
 # Currently anything outside of a git folder is given a project id = 0
 # In the future we will implement alternative project detection methods.
 
-EXT_IMAGE = {
-    '.png', '.jpg', '.jpeg', '.svg', '.psd', '.gif', '.tiff', '.tif',
-    '.bmp', '.webp', '.ico', '.raw', '.cr2', '.nef', '.arw',
-    '.ai', '.eps', '.sketch', '.fig'
-}
-EXT_CODE = {
-    '.py', '.pyw', '.pyi',
-    '.js', '.jsx', '.mjs', '.cjs',
-    '.ts', '.tsx',
-    '.java', '.jsp',
-    '.c', '.h', '.cpp', '.cc', '.cxx', '.hpp', '.hh',
-    '.cs',
-    '.go',
-    '.rs',
-    '.php', '.php3', '.php4', '.php5', '.phtml',
-    '.rb',
-    '.swift',
-    '.kt', '.kts',
-    '.scala', '.sc',
-    '.sh', '.bash', '.zsh',
-    '.ps1', '.psm1', '.bat', '.cmd',
-    '.pl', '.pm',
-    '.r',
-    '.jl',
-    '.hs', '.lhs',
-    '.erl', '.ex', '.exs',
-    '.fs', '.fsi',
-    '.vb',
-    '.sql',
-    '.asm', '.s',
-    '.groovy',
-    '.dart',
-    '.lua',
-    '.html', '.htm', '.css',
-    '.json', '.xml',
-    '.ipynb',  # Jupyter notebooks
-    '.yaml', '.yml',  # Configuration files
-    '.toml', '.ini', '.cfg', '.conf'
-}
-EXT_CONTENT = {    
-    '.txt', '.md', '.doc', '.docx', '.pdf', '.tex', '.bib',
-    '.rtf', '.odt', '.pages',  # Additional document formats
-    '.log'  # Log files
-    }
 
 
 def classify_file(path: Path):
@@ -170,6 +128,11 @@ def _transform_to_new_structure(
                 file_info = {"path": filename}
                 if length is not None:
                     file_info["length"] = length
+                # Attach inline text preview if available (from earlier read)
+                if "text" in r:
+                    file_info["text"] = r.get("text")
+                    if r.get("truncated"):
+                        file_info["truncated"] = True
                 project_data[project_tag]["files"]["content"].append(file_info)
             elif file_type == "image":
                 size = r.get("size")
@@ -453,6 +416,28 @@ class UploadFolderView(APIView):
                     except Exception:
                         # Fallback: use the filename only
                         res.setdefault("path", fname)
+
+                    # If this is a content file, also read its text and attach it
+                    # to the result so clients can display the file contents directly.
+                    if res.get("type") == "content":
+                        try:
+                            real_path = tmpdir_path / Path(res.get("path"))
+                            # If the file is a .docx, use the specialized reader
+                            if real_path.suffix.lower() == ".docx":
+                                text = read_docx(real_path)
+                            else:
+                                text = real_path.read_text(errors="ignore")
+
+                            # Cap size to avoid returning enormous files in the response
+                            MAX_TEXT = 20000
+                            if len(text) > MAX_TEXT:
+                                res["text"] = text[:MAX_TEXT]
+                                res["truncated"] = True
+                            else:
+                                res["text"] = text
+                        except Exception:
+                            # If reading fails, just skip attaching text
+                            pass
 
                     results.append(res)
 
