@@ -601,6 +601,12 @@ class UploadFolderView(APIView):
                                             Allow sending scanned results to LLM (consent required)
                                         </label>
                                     </div>
+        <div>
+            <label>
+                Your Full Name or GitHub Username (optional):
+                <input type="text" name="github_username" placeholder="e.g., Bronny James" />
+            </label>
+        </div>
                   <button type="submit">Upload</button>
                 </form>
                 <p>Note: Use POST with form field 'file' containing a zip archive. The system will analyze individual files, discover Git repositories, and classify project types.</p>

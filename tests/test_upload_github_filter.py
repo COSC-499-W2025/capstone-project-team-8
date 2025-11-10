@@ -20,15 +20,25 @@ class UploadGithubFilterTests(TestCase):
     def _upload(self, files, username=None):
         data = make_zip(files)
         upload = SimpleUploadedFile("u.zip", data, content_type="application/zip")
-        form = {"file": upload}
+        form = {
+            "file": upload,
+            "consent_scan": "1",
+        }
         if username:
             form["github_username"] = username
         return self.client.post("/api/upload-folder/", form)
 
     def test_filter_existing_user(self):
         # Fake analyzers (minimal)
+        def fake_discover_projects(p):
+            # Return a dict mapping the repo path to project tag 1
+            repo_path = p / "repo"
+            if repo_path.exists():
+                return {repo_path: 1}
+            return {}
+
         analyzers = SimpleNamespace(
-            discover_projects=lambda p: {},  # no real git detection
+            discover_projects=fake_discover_projects,
             analyze_image=lambda p: {"type": "image", "path": str(p), "size": 0},
             analyze_content=lambda p: {"type": "content", "path": str(p), "length": 1},
             analyze_code=lambda p: {"type": "code", "path": str(p), "lines": 1},
@@ -84,8 +94,15 @@ class UploadGithubFilterTests(TestCase):
                 self.assertIn("Jordan", c["name"])
 
     def test_filter_missing_user(self):
+        def fake_discover_projects(p):
+            # Return a dict mapping the repo path to project tag 1
+            repo_path = p / "r"
+            if repo_path.exists():
+                return {repo_path: 1}
+            return {}
+
         analyzers = SimpleNamespace(
-            discover_projects=lambda p: {},
+            discover_projects=fake_discover_projects,
             analyze_image=lambda p: {"type": "image", "path": str(p), "size": 0},
             analyze_content=lambda p: {"type": "content", "path": str(p), "length": 1},
             analyze_code=lambda p: {"type": "code", "path": str(p), "lines": 1},
