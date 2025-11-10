@@ -1,3 +1,4 @@
+from urllib import request
 import zipfile
 import tempfile
 import os
@@ -80,7 +81,15 @@ def classify_file(path: Path):
     return "unknown"
 
 
-def _transform_to_new_structure(results, projects, projects_rel, project_classifications, git_contrib_data, project_timestamps=None):
+def _transform_to_new_structure(
+        results, 
+        projects, 
+        projects_rel, 
+        project_classifications, 
+        git_contrib_data,
+        project_timestamps=None,
+        filter_username: str | None = None,
+        ):
     """
     Transform the collected data into the new JSON structure.
     
@@ -91,6 +100,7 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
         project_classifications: Dict of project classifications
         git_contrib_data: Dict of git contribution data per project
         project_timestamps: Dict mapping project tags to Unix timestamps (optional)
+        filter_username: Optional GitHub username to filter contributors (optional)
         
     Returns:
         Dict with the new structure: {source, projects, overall}
@@ -242,6 +252,23 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
                 
                 # Sort by commits descending
                 contributors_list.sort(key=lambda x: x["commits"], reverse=True)
+
+                if filter_username:
+                    uname = filter_username.lower()
+
+                    def _matches(u: str, c: dict) -> bool:
+                        name = c["name"].lower()
+                        email_local = c.get("email", "").split("@")[0].lower() if c.get("email") else ""
+                        # Match full name, first token, or email local part
+                        first_token = name.split()[0]
+                        return (
+                            u == name
+                            or u == first_token
+                            or (email_local and u == email_local)
+                        )
+
+                    contributors_list = [c for c in contributors_list if _matches(uname, c)]
+
                 project_data[tag]["contributors"] = contributors_list
     
     # Build overall statistics
@@ -286,6 +313,42 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
         overall["languages"] = overall_classification["languages"]
     if "frameworks" in overall_classification:
         overall["frameworks"] = overall_classification["frameworks"]
+
+    # Summarize filtered user if requested
+    user_contrib_summary = None
+    if filter_username:
+        total_commits_user = 0
+        total_added_user = 0
+        total_deleted_user = 0
+        projects_with_user = []
+        for proj in project_data.values():
+            user_entries = proj["contributors"]
+            if user_entries:
+                # After filtering, list has either that user or is empty
+                for c in user_entries:
+                    total_commits_user += c.get("commits", 0)
+                    total_added_user += c.get("lines_added", 0)
+                    total_deleted_user += c.get("lines_deleted", 0)
+                projects_with_user.append(
+                    {
+                        "project_id": proj["id"],
+                        "root": proj["root"],
+                        "commits": sum(c.get("commits", 0) for c in user_entries),
+                        "lines_added": sum(c.get("lines_added", 0) for c in user_entries),
+                        "lines_deleted": sum(c.get("lines_deleted", 0) for c in user_entries),
+                    }
+                )
+
+        user_contrib_summary = {
+            "username": filter_username,
+            "found": len(projects_with_user) > 0,
+            "projects": projects_with_user,
+            "totals": {
+                "commits": total_commits_user,
+                "lines_added": total_added_user,
+                "lines_deleted": total_deleted_user,
+            },
+        }
     
     # Convert project_data dict to sorted list
     # Sort by timestamp (chronologically, oldest first), then by tag as fallback
@@ -309,11 +372,14 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
             project["created_at"] = project_timestamps[tag]
         projects_list.append(project)
     
-    return {
+    payload = {
         "source": "zip_file",
         "projects": projects_list,
         "overall": overall
     }
+    if user_contrib_summary:
+        payload["user_contributions"] = user_contrib_summary
+    return payload
 
 
 class UploadFolderView(APIView):
@@ -325,7 +391,9 @@ class UploadFolderView(APIView):
         upload = request.FILES.get("file")
         if not upload:
             return JsonResponse({"error": "No file provided. Use 'file' form field."}, status=400)
-
+        
+        github_username = request.data.get("github_username") or request.data.get("github_user")
+        
         # Parse user consents from the form data (defaults kept for backward compat)
         def _parse_bool(v, default=False):
             if v is None:
@@ -517,7 +585,8 @@ class UploadFolderView(APIView):
                 projects_rel,
                 project_classifications, 
                 git_contrib_data,
-                project_timestamps
+                project_timestamps,
+                filter_username=github_username,
             )
             # Build an ordered payload with consent metadata first
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
@@ -525,6 +594,10 @@ class UploadFolderView(APIView):
                 if k in ("send_to_llm", "scan_performed"):
                     continue
                 ordered_payload[k] = v
+
+            # Add explicit echo of requested username (optional convenience)
+            if github_username:
+                ordered_payload["requested_username"] = github_username
 
             return JsonResponse(ordered_payload)
 
@@ -557,6 +630,12 @@ class UploadFolderView(APIView):
                                             Allow sending scanned results to LLM (consent required)
                                         </label>
                                     </div>
+        <div>
+            <label>
+                Your Full Name or GitHub Username (optional):
+                <input type="text" name="github_username" placeholder="e.g., Bronny James" />
+            </label>
+        </div>
                   <button type="submit">Upload</button>
                 </form>
                 <p>Note: Use POST with form field 'file' containing a zip archive. The system will analyze individual files, discover Git repositories, and classify project types.</p>
