@@ -1,7 +1,7 @@
 # T8BG Team Log
 |Username|Student Name|
 |-|-|
-|kylemcleod|Kyle McLeod|
+|kylekmcleod|Kyle McLeod|
 |jordany78|Jordan Truong|
 |cschwebi|Charlie Schwebius|
 |matin0014|Matin Raoufi|
