@@ -27,3 +27,9 @@
 - Reviewed teamates code
 - Discussions with team on which technologies to use for database
 - Add authentication api in backend
+
+## Nov 3 - 9
+<img width="1594" height="934" alt="20251109_23h21m44s_grim" src="https://github.com/user-attachments/assets/40c67591-e386-455b-999d-4a43308c36a1" />
+
+- Reviewed teamates code
+- Fix bug in duplicate finding of projects
