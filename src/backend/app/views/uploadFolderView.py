@@ -263,7 +263,7 @@ def _transform_to_new_structure(results, projects, projects_rel, project_classif
 
 class UploadFolderView(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    #permission_classes = [IsAuthenticated]  # Require JWT authentication
+    permission_classes = [IsAuthenticated]  # Require JWT authentication
 
     def post(self, request, format=None):
         """Accept a ZIP file upload representing a folder. Extract and analyze files."""
