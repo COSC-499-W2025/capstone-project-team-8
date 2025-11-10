@@ -1,6 +1,27 @@
 version: '3.8'
 
 services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - llm-network
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+    # Uncomment the following lines if you have GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
   llm-service:
     build: .
     ports:
@@ -8,10 +29,21 @@ services:
     environment:
       - PORT=3001
       - LLM_API_KEY=${LLM_API_KEY}
+      - OLLAMA_API=http://ollama:11434/api/generate
     restart: unless-stopped
     networks:
       - llm-network
+    depends_on:
+      - ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 networks:
   llm-network:
     driver: bridge
+
+volumes:
+  ollama_data:

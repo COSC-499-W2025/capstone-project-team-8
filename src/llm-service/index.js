@@ -60,7 +60,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(cors());
 app.use(rateLimiter);
 
-const OLLAMA_API = "http://localhost:11434/api/generate";
+const OLLAMA_API = process.env.OLLAMA_API || "http://localhost:11434/api/generate";
 
 // START THE API ENDPOINTS
 app.get("/health", (req, res) => {
