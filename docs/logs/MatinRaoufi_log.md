@@ -82,6 +82,22 @@ Oct 27 - Nov 2
 - Things that went well was testing the authentication I implemented with postman, my teammates also said my PR contained thorough instructions to test the features
 - Next I want to move more towards data extraction from an input and order the projects in a chornological list from an input
 
+Nov 3 - Nov 9
+
+<img width="1083" height="647" alt="image" src="https://github.com/user-attachments/assets/81d7088c-092a-4bef-9ae7-ff6c71f8a98e" />
+
+- I worked on a feature that orders the list of projects in .git by chronological order based on first commit issue #72
+- I tested my teammates code
+- I tested my own code
+- I reviewed pull requests
+
+- What went well: TDD approach worked perfectly - all tests passed, chronological ordering by git timestamps implemented cleanly, and the merge conflict was straightforward to resolve.
+
+- What didn't go well: Manual testing was initially slow due to node_modules bloat, and had to add temporary directory filtering as a workaround instead of a proper solution.
+
+- Next I want to finish the need for ordering by chronological order by implementing a feature that checks non git projects, I am splitting this up into seperate issues to be easier to manage
+
+
   
 
 
