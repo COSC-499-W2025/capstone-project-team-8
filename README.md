@@ -34,6 +34,14 @@ A web application that enables users to upload, scan, and analyze their work art
 | MySQL | Latest | Development database |
 | Docker | Latest | Containerization |
 
+### LLM Microservice 📄 [LLM Documentation](./src/llm-service/README.md)
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Express.js | 5.1.0+ | Open up API route |
+| Ollama | Latest | Run AI model |
+| llama3.1:8b | Latest |AI model |
+
 ## Diagrams & Work Breakdown Structure
 
 ### Data Flow Diagram (DFD) 📄 [View DFD](./docs/design/DFD.md)

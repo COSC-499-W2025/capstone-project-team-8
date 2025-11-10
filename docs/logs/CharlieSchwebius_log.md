@@ -74,3 +74,31 @@
 - Time management in general (difficult with a full course load)
 
 NEXT WEEK: Implement Coding Language and Framework Detection
+
+
+## Week 10 (Nov 3 - Nov 9)
+
+<img width="1922" height="1124" alt="image" src="https://github.com/user-attachments/assets/3d09b849-9310-49d0-9d4b-82b3c2d2d5d1" />
+
+#### What I did:
+
+- Implemented code to detect langauges used in coding projects
+- Implemented code to detect frameworks used in coding projects
+- Tested functionality of both of these
+- Reviewed and tested teammates PR's 
+
+#### My PR's: 
+
+#121: Coding language and framework detection enhancement
+
+#### WHAT WENT WELL: 
+- Successfully implemented both of these with minimal issues
+- Completed my work and PR a lot earlier than past weeks
+
+#### WHAT DIDN'T
+- Everything went pretty smoothly
+
+  #### REFLECTION
+Overall, I think our team made pretty good progress. With us now having framework detection and with our LLM service gaining file-upload capabilities, we are getting very close to a finished product. Right now we have a lot of momentum, and I think with my knowledge of the current preprocessing, I can do a very good job of implementing the non-AI analysis functionality.
+
+NEXT WEEK: Non-AI Analysis functionality (Resume Items++)
