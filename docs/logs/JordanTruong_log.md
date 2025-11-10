@@ -48,3 +48,26 @@
 - Started on a PR to ask users for their GitHub name and compare it to the contributions so it only returns their works
 - Researched on how to find works in collaborative projects
 - Next week I plan on finishing the PR and start a new PR on the above note
+
+## Week 10 November 3rd - November 9th:
+<img width="1072" height="625" alt="image" src="https://github.com/user-attachments/assets/921b61c7-83a6-481c-8675-312e29cf0c4a" /></br>
+### Recap:
+- Implemented GitHub user filtering and returns only that users contributions
+- Started a bit on figuring out if a project is collaborative
+- Reviewed and tested Harper's PR #122
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/133  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/60 |
+
+### What went well
+I was able to finish the planned PR on schedule and got started on the next planned one. Didn't run into that many obstacles on this PR. This PR is a good step which will help in the future when we want to easily return the users contributions in their works uploaded.
+
+### What didn't go well
+Initially, I wasn't able to get the site running with Docker. Had to spend extra time figuring out what went wrong which caused delays in my PR submissions.
+
+### What's next
+Finishing up the next PR on figuring out if a project is collaborative which shouldn't take too long, then taking more time to understand the LLM structure of our project. If I have more time 
+
+### Reflection:
+I need to accomodate for delays better by start working on the PR's earlier. That way I'll have more time incase I run into any issues. In the end, I'm satisfied with the results I produced but know I can do better next week.
