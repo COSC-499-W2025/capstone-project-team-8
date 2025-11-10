@@ -78,6 +78,8 @@ NEXT WEEK: Implement Coding Language and Framework Detection
 
 ## Week 10 (Nov 3 - Nov 9)
 
+<img width="1922" height="1124" alt="image" src="https://github.com/user-attachments/assets/3d09b849-9310-49d0-9d4b-82b3c2d2d5d1" />
+
 #### What I did:
 
 - Implemented code to detect langauges used in coding projects
