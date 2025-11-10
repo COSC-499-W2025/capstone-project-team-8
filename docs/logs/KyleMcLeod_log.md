@@ -78,3 +78,16 @@ It was difficult to find a cloud hosting provider that offers GPU’s while on a
 What went well this week was testing how flexible the AI layer is that I built. This model can be tailored for almost any use case. I found a bunch of open source prompts that will help with code analysis and we can utilize this on the model if the user agrees to AI processing.
 
 Next week I’m going to work on file specific analysis and starting the foundation of a resume builder.
+
+## November 3-7
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/b1693052-b382-4e35-a5be-7e976d5f2ff8" />
+
+- added file upload capapbilities to LLM layer https://github.com/COSC-499-W2025/capstone-project-team-8/pull/125 
+- added an LLM prompt library that allows us to attach analysis specific prompts to files https://github.com/COSC-499-W2025/capstone-project-team-8/pull/127
+- dockerized the LLM for easy portability on any machine (this helps us a lot since we will be rotating cloud providers to take advantages of free credits during development) https://github.com/COSC-499-W2025/capstone-project-team-8/pull/129
+- reviewed team PR's
+- discussed plans or AI integration
+
+This week I made a lot of progress on our AI layer and it is almost ready to be connected to our extraction & analysis pipeline. I struggled deploying the updated code to our VM since it wasn't using a docker container before. Now that the docker container is set, I don't need to worry about dependencies and the struggle of outdated versions and such.
+
+I didn't get to finish the file specific analysis Issue #115, but I hope to integrate my new AI file processing layer into this feature next week.
