@@ -10,8 +10,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
 import importlib
-from app.services.file_types import EXT_IMAGE, EXT_CODE, EXT_CONTENT
 from app.services.wordDocReader import read_docx
+from app.services.file_classifier import classify_file
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -25,18 +25,6 @@ from app.services.wordDocReader import read_docx
 
 # Currently anything outside of a git folder is given a project id = 0
 # In the future we will implement alternative project detection methods.
-
-
-
-def classify_file(path: Path):
-    ext = path.suffix.lower()
-    if ext in EXT_IMAGE:
-        return "image"
-    if ext in EXT_CODE:
-        return "code"
-    if ext in EXT_CONTENT:
-        return "content"
-    return "unknown"
 
 
 def _transform_to_new_structure(
