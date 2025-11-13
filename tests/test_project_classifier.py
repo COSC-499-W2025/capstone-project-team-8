@@ -14,7 +14,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.settings')
 import django
 django.setup()
 
-from app.services.project_classifier import (
+from app.services.classifiers.project_classifier import (
     extract_project_features,
     simple_score_classify,
     classify_project,
