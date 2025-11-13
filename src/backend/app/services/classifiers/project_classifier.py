@@ -5,7 +5,7 @@ from pathlib import Path
 from collections import Counter
 from typing import Dict, Any, Union, Tuple
 
-from .project_metadata import detect_languages, detect_frameworks
+from ..project_metadata import detect_languages, detect_frameworks
 
 
 # Extension sets for different file types
