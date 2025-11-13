@@ -13,7 +13,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.settings')
 import django
 django.setup()
 
-from app.services.gitFinder import get_project_timestamp
+from app.services.analysis.analyzers import get_project_timestamp
 
 
 class ChronologicalOrderingTests(TestCase):
