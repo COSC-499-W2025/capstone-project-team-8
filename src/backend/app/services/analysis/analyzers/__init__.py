@@ -4,6 +4,7 @@ Analyzer modules for file and repository analysis.
 
 from .file_analyzers import analyze_image, analyze_content, analyze_code
 from .git_analyzers import analyze_git_repository, analyze_file_blame
+from .git_contributions import get_git_contributors, get_project_timestamp
 from .project_discovery import discover_projects, find_project_tag_for_path
 
 __all__ = [
@@ -12,6 +13,8 @@ __all__ = [
     'analyze_code',
     'analyze_git_repository',
     'analyze_file_blame',
+    'get_git_contributors',
+    'get_project_timestamp',
     'discover_projects',
     'find_project_tag_for_path'
 ]
