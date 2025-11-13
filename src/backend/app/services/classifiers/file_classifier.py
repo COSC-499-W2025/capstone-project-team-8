@@ -6,7 +6,7 @@ This module provides utilities to classify files into categories
 """
 
 from pathlib import Path
-from app.services.file_types import EXT_IMAGE, EXT_CODE, EXT_CONTENT
+from .file_types import EXT_IMAGE, EXT_CODE, EXT_CONTENT
 
 
 def classify_file(path: Path) -> str:
