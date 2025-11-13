@@ -10,9 +10,9 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
 import importlib
-from app.services.wordDocReader import read_docx
+from app.services.utils import read_docx
+from app.services.data_transformer import transform_to_new_structure
 from app.services.classifiers import classify_file
-from app.services.simple_transformer import transform_to_new_structure
 
 
 # These are the categories that a file will be classified as based off its extension
