@@ -60,9 +60,7 @@ class UploadFolderView(APIView):
             return JsonResponse({"error": "Uploaded file is not a zip archive."}, status=400)
 
         # Import analyzers and project classifier here to avoid circular import problems at module import time.
-        # The analyzers implementation now lives at app/services/analyzers.py
-        # The project classifier implementation now lives at app/services/project_classifier.py
-        analyzers = importlib.import_module("app.services.analyzers")
+        from app.services.analysis import analyzers
         project_classifier = importlib.import_module("app.services.project_classifier")
 
         results = []
