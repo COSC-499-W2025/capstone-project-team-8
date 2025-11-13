@@ -1,9 +1,8 @@
-"""Service package for app.analyzers and related helpers.
+"""Service package for organized analysis services.
 
 Keep this module minimal to avoid import-time side effects and circular
-imports. Import submodules explicitly where needed (for example,
-`from app.services import analyzers` will import the analyzers submodule
-without requiring this file to import it at package initialization).
+imports. Analyzers are now organized in analysis/analyzers/ folder.
+Import submodules explicitly where needed.
 """
 
 __all__ = []
