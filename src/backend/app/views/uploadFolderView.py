@@ -11,7 +11,7 @@ from rest_framework.permissions import IsAuthenticated
 
 import importlib
 from app.services.wordDocReader import read_docx
-from app.services.file_classifier import classify_file
+from app.services.classifiers import classify_file
 from app.services.simple_transformer import transform_to_new_structure
 
 
@@ -61,7 +61,7 @@ class UploadFolderView(APIView):
 
         # Import analyzers and project classifier here to avoid circular import problems at module import time.
         from app.services.analysis import analyzers
-        project_classifier = importlib.import_module("app.services.project_classifier")
+        project_classifier = importlib.import_module("app.services.classifiers.project_classifier")
 
         results = []
         with tempfile.TemporaryDirectory() as tmpdir:
