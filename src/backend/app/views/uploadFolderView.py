@@ -225,7 +225,7 @@ class UploadFolderView(APIView):
 
             # Also compute per-project contribution data using new service
             try:
-                git_finder = importlib.import_module("app.services.gitFinder")
+                git_finder = importlib.import_module("app.services.analysis.analyzers.git_contributions")
             except Exception:
                 git_finder = None
 
