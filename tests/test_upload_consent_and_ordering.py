@@ -80,9 +80,9 @@ class UploadConsentOrderingTests(TestCase):
         def import_side_effect(name):
             if name == "app.services.analyzers":
                 return analyzers
-            if name == "app.services.project_classifier":
+            if name == "app.services.classifiers.project_classifier":
                 return classifier
-            if name == "app.services.gitFinder":
+            if name == "app.services.analysis.analyzers.git_contributions":
                 return SimpleNamespace(get_git_contributors=lambda p: {"contributors": {}})
             return SimpleNamespace()
 
@@ -120,9 +120,9 @@ class UploadConsentOrderingTests(TestCase):
         def import_side(name):
             if name == "app.services.analyzers":
                 return analyzers
-            if name == "app.services.project_classifier":
+            if name == "app.services.classifiers.project_classifier":
                 return classifier
-            if name == "app.services.gitFinder":
+            if name == "app.services.analysis.analyzers.git_contributions":
                 return SimpleNamespace(get_git_contributors=lambda p: {"contributors": {}})
             return SimpleNamespace()
 

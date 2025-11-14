@@ -12,7 +12,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.settings')
 import django
 django.setup()
 
-from app.services.project_metadata import detect_languages, detect_frameworks
+from app.services.analysis.analyzers import detect_languages, detect_frameworks
 
 
 class MetadataDetectionTests(TestCase):

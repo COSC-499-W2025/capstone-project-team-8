@@ -74,9 +74,9 @@ class UploadGithubFilterTests(TestCase):
         def import_side(name):
             if name == "app.services.analyzers":
                 return analyzers
-            if name == "app.services.project_classifier":
+            if name == "app.services.classifiers.project_classifier":
                 return classifier
-            if name == "app.services.gitFinder":
+            if name == "app.services.analysis.analyzers.git_contributions":
                 return SimpleNamespace(get_git_contributors=fake_git_contributors)
             return SimpleNamespace()
 
@@ -128,9 +128,9 @@ class UploadGithubFilterTests(TestCase):
         def import_side(name):
             if name == "app.services.analyzers":
                 return analyzers
-            if name == "app.services.project_classifier":
+            if name == "app.services.classifiers.project_classifier":
                 return classifier
-            if name == "app.services.gitFinder":
+            if name == "app.services.analysis.analyzers.git_contributions":
                 return SimpleNamespace(get_git_contributors=fake_git_contributors)
             return SimpleNamespace()
 
