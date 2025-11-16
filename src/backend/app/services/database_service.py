@@ -141,10 +141,14 @@ class ProjectDatabaseService:
                 pass
         
         # Determine if this is a git repository
+        project_id = project_data.get('id', 0)
+        contributors = project_data.get('contributors', [])
+        root = project_data.get('root', '')
+        
         is_git_repo = (
-            project_data.get('id', 0) > 0 and  # Git projects have ID > 0
-            project_data.get('contributors', []) and  # Has contributors
-            project_data.get('root', '') != '(non-git-files)'  # Not unorganized files
+            bool(project_id) and project_id > 0 and  # Git projects have ID > 0
+            bool(contributors) and len(contributors) > 0 and  # Has contributors
+            root != '(non-git-files)'  # Not unorganized files
         )
         
         project = Project.objects.create(
@@ -221,7 +225,7 @@ class ProjectDatabaseService:
                 project=project,
                 language=language,
                 file_count=file_count,
-                is_primary=(i == 0)  # First language is primary
+                is_primary=bool(i == 0)  # First language is primary
             )
     
     def _save_project_frameworks(self, project: Project, project_data: Dict[str, Any]) -> None:
@@ -315,7 +319,8 @@ class ProjectDatabaseService:
         
         # Content preview for text files
         content_preview = file_info.get('text', '')
-        is_truncated = file_info.get('truncated', False)
+        is_truncated_raw = file_info.get('truncated', False)
+        is_truncated = bool(is_truncated_raw) if is_truncated_raw not in [None, [], ''] else False
         
         # Detect language for code files
         detected_language = None
