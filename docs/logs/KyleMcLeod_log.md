@@ -91,3 +91,29 @@ Next week I’m going to work on file specific analysis and starting the foundat
 This week I made a lot of progress on our AI layer and it is almost ready to be connected to our extraction & analysis pipeline. I struggled deploying the updated code to our VM since it wasn't using a docker container before. Now that the docker container is set, I don't need to worry about dependencies and the struggle of outdated versions and such.
 
 I didn't get to finish the file specific analysis Issue #115, but I hope to integrate my new AI file processing layer into this feature next week.
+
+## November 10-14 (BONUS WORK)
+This week:
+- refactored analysis and classifiers logic PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/143 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/142
+- a lot of our classifiers and analysis files served multiple purposes before my PR this week, this PR split up the logic into mutliple simpler files to make development easier and reduce merge conflicts we might have in the future
+- tested functionality after refactor
+- after I refactored the analysis and classifiers logic, Matin branched off my work and started the refactor on the uploadFolderView.py file, which was a file with 11 responsibilities
+- our whole codebase is now much simpler
+- also worked on structing database to save projects and information
+
+What went well:
+- worked with Matin efficiently in refactoring
+- no merge conflicts while implementing the refactor since we split up work in seprate non conflicting parts
+- make some progress on how to structure database and will propose to the team next week
+
+What went wrong:
+- after testing the AI server for this week, it just isn't quote powerful enough
+- requests take 30s - 2m depending on length
+- this might be fine for testing, but I'm going to look into configuring VM specs better or finding other hosts that offer better free plans
+
+Next week:
+- save key information to a database https://github.com/COSC-499-W2025/capstone-project-team-8/issues/145
+- based on information saved, configure a process for AI resume builder https://github.com/COSC-499-W2025/capstone-project-team-8/issues/103
+
+Reflection:
+This week I learned that it's important to keep a clean code structure from the start, since having the messy code might have delayed our progress by a little bit. Now that we have a refactored codebase, we are ready to implement some more complex features.
