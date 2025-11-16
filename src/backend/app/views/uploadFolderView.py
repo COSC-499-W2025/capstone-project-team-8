@@ -24,7 +24,7 @@ from app.services.database_service import ProjectDatabaseService
 
 class UploadFolderView(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    permission_classes = [IsAuthenticated]
+    #permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
         """
