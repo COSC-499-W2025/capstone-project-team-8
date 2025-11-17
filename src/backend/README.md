@@ -261,6 +261,9 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
   "overall": {
     "classification": "coding",
     "confidence": 0.652,
+    "collaborative": true,
+    "collaborative_projects": 1,
+    "collaboration_rate": 1.0,
     "totals": {
       "projects": 1,
       "files": 3,
@@ -287,6 +290,7 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
 Each project contains:
 - **`id`** (integer): Sequential project identifier (1, 2, 3...)
 - **`root`** (string): Project root directory path
+- **`collaborative`** (boolean): Whether the project has multiple active contributors (2+ contributors with commits > 0)
 - **`classification`** (object): Project type classification
   - **`type`**: One of `"coding"`, `"writing"`, `"art"`, `"mixed:type1+type2"`, or `"unknown"`
   - **`confidence`**: Classification confidence score (0.0 to 1.0)
@@ -303,6 +307,9 @@ Each project contains:
 ### Overall Object
 - **`classification`** (string): Overall project type
 - **`confidence`** (number): Overall classification confidence
+- **`collaborative`** (boolean): Whether any projects in the portfolio are collaborative
+- **`collaborative_projects`** (integer): Count of collaborative projects (excludes unorganized files)
+- **`collaboration_rate`** (number): Ratio of collaborative to total projects (0.0 to 1.0)
 - **`totals`** (object): Aggregate file counts
   - **`projects`**: Number of Git repositories discovered
   - **`files`**: Total files (excluding `.git` directory contents)
@@ -325,6 +332,7 @@ When uploading a folder without any `.git` directories, files are listed under a
     {
       "id": 0,
       "root": "(non-git-files)",
+      "collaborative": false,
       "classification": {
         "type": "coding",
         "confidence": 0.712,
@@ -376,6 +384,9 @@ When uploading a folder without any `.git` directories, files are listed under a
   "overall": {
     "classification": "coding",
     "confidence": 0.712,
+    "collaborative": false,
+    "collaborative_projects": 0,
+    "collaboration_rate": 0.0,
     "totals": {
       "projects": 0,
       "files": 5,
@@ -399,6 +410,7 @@ When uploading a folder without any `.git` directories, files are listed under a
 - The project uses the overall classification
 - `overall.totals.projects` remains `0` (since this isn't a real Git repository)
 - No contributors are listed (since there's no Git history)
+- collaborative is false (no Git history means no collaboration data)
 
 ## Notes
 
