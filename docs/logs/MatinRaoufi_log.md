@@ -97,7 +97,27 @@ Nov 3 - Nov 9
 
 - Next I want to finish the need for ordering by chronological order by implementing a feature that checks non git projects, I am splitting this up into seperate issues to be easier to manage
 
+Nov 10 - 16 (Reading Week Bonus)
 
+- refactored UploadFolderView as is it was taking on too many responsibilities and make UploadFolderView only handle HTTP concers, and created new FolderUploadService to orchestrate the logic
+PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/144 Issue: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/134
+- I tested that functionality remained the same and wrote new tests individual to each service
+- I worked with Kyle Mcleod on this he refactored the classifiers and analyzers so I branched off his work
+
+What went well: 
+- This helps our codebase become simpler and helps maintain a single responsibility principle
+- Communicating with Kyle during this was good and trying to maintain a no merge conflict implementation
+
+What didn't go well:
+- I had a hard time trying to understand our uploadFolderView as the component had over 700 lines of code and trying to figure out how to simplify the component without breaking functionality
+- Some parts of refactor took longer because I ran into some logic errors once I moved the logic to somewhere else
+
+Next Week: 
+- I want to work on doing on order output of projects by chronological order for non git projects https://github.com/COSC-499-W2025/capstone-project-team-8/issues/147
+- Discuss where we at with group next class (Monday)
+  
+Reflection: I learned the importance of a single responsibility princple and how it makes implementing new features a lot easier and makes components easy to understand
+I also learnt the importance of slowing down on implementation and reviewing what you currently have and the importance of refactoring before continuing. 
   
 
 

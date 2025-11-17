@@ -1,5 +1,5 @@
 # Kyle McLeod's Weekly Logs
-## September 15-21
+## Week 3 September 15-21
 <img width="624" height="358" alt="Screenshot 2025-09-21 144528" src="https://github.com/user-attachments/assets/abef3302-eb64-4093-b540-9c8f9dc87dd8" />
 
 - Created list of functional and non-functional requirements with team
@@ -7,7 +7,7 @@
 - Discussed possible tech stack with team
 - File structure organizationin GitHub repository
 
-## September 22-28
+## Week 4 September 22-28
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/a6999f11-c3db-4aa2-9b07-e669e74e2122" />
 
 - Put together the project proposal template
@@ -15,7 +15,7 @@
 - Revised the diagram based on other teams suggestions
 - Helped plan the stack we will use
 
-## September 29 - October 5
+## Week 5 September 29 - October 5
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/239e9fcd-13e5-4555-b5e4-a13b394b003d" />
 
 - Helped create level 0 and level 1 diagrams
@@ -23,7 +23,7 @@
 - Created and organized a Kanban board so we can keep track of the issues we create
 - Researched on other companies that provide a solution on the project task (this can be used to understand the system requirements more and allow us to areas where our project could offer a more effective or innovative approach)
 
-## October 6-10
+## Week 6 October 6-10
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/7fca0375-5f18-4cc4-b697-c69d39765a72" />
 
 - Installed Next.js to a front end folder (we probably won't be using this until miletsone 2 but it is good to see the whole project folder setup)
@@ -33,7 +33,7 @@
 - Suggested revisions on the backend folder structure
 - Read Django docs to learn how to create API routes
 
-## October 13-17
+## Week 7 October 13-17
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/023f0d28-72e4-4251-8409-b422113aea29" />
 
 - created a document proposing a plan for our AI analysis layer
@@ -44,7 +44,7 @@
 - reviewed matins pull request
 - updated main readme file
 
-## October 20-24
+## Week 8 October 20-24
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/d7c0fedd-f40c-41e3-85f2-eca0af9093c7" />
 
 - designed and created an AI layer that will play a crucial role in getting insights on files
@@ -55,7 +55,7 @@
 - reviewed matins pull request on database configuration
 - populated kanban board with more tasks for next week
 
-## October 27-31
+## Week 9 October 27-31
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/6ae665ff-98b2-41e9-8bec-fb3b6c31b9c0" />
 
 - hosted the AI model on a Oracle cloud VM
@@ -70,16 +70,13 @@
 - collaborated with teammates to discuss JWT token implementation
 - picked up issues on Kanaban dashboard
 
-
-
-
 It was difficult to find a cloud hosting provider that offers GPU’s while on a free trial or student account. For now, our AI layer is hosted on a 8 core CPU, 64GB ram and 200GB machine. This should be fine for testing purposes, but if we ever deployed this application, scaling would be required. Since our AI layer is modular, it can be easily ported to a different powerful machine.
 
 What went well this week was testing how flexible the AI layer is that I built. This model can be tailored for almost any use case. I found a bunch of open source prompts that will help with code analysis and we can utilize this on the model if the user agrees to AI processing.
 
 Next week I’m going to work on file specific analysis and starting the foundation of a resume builder.
 
-## November 3-7
+## Week 10 November 3-7
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/b1693052-b382-4e35-a5be-7e976d5f2ff8" />
 
 - added file upload capapbilities to LLM layer https://github.com/COSC-499-W2025/capstone-project-team-8/pull/125 
@@ -91,3 +88,29 @@ Next week I’m going to work on file specific analysis and starting the foundat
 This week I made a lot of progress on our AI layer and it is almost ready to be connected to our extraction & analysis pipeline. I struggled deploying the updated code to our VM since it wasn't using a docker container before. Now that the docker container is set, I don't need to worry about dependencies and the struggle of outdated versions and such.
 
 I didn't get to finish the file specific analysis Issue #115, but I hope to integrate my new AI file processing layer into this feature next week.
+
+## Week 11 November 10-14 (BONUS WORK)
+This week:
+- refactored analysis and classifiers logic PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/143 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/142
+- a lot of our classifiers and analysis files served multiple purposes before my PR this week, this PR split up the logic into mutliple simpler files to make development easier and reduce merge conflicts we might have in the future
+- tested functionality after refactor
+- after I refactored the analysis and classifiers logic, Matin branched off my work and started the refactor on the uploadFolderView.py file, which was a file with 11 responsibilities
+- our whole codebase is now much simpler
+- also worked on structing database to save projects and information
+
+What went well:
+- worked with Matin efficiently in refactoring
+- no merge conflicts while implementing the refactor since we split up work in seprate non conflicting parts
+- make some progress on how to structure database and will propose to the team next week
+
+What went wrong:
+- after testing the AI server for this week, it just isn't quote powerful enough
+- requests take 30s - 2m depending on length
+- this might be fine for testing, but I'm going to look into configuring VM specs better or finding other hosts that offer better free plans
+
+Next week:
+- save key information to a database https://github.com/COSC-499-W2025/capstone-project-team-8/issues/145
+- based on information saved, configure a process for AI resume builder https://github.com/COSC-499-W2025/capstone-project-team-8/issues/103
+
+Reflection:
+This week I learned that it's important to keep a clean code structure from the start, since having the messy code might have delayed our progress by a little bit. Now that we have a refactored codebase, we are ready to implement some more complex features.
