@@ -1,18 +1,9 @@
-from urllib import request
-import zipfile
-import tempfile
-import os
-from pathlib import Path
-
 from django.http import JsonResponse, HttpResponse
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
-import importlib
-from app.services.utils import read_docx
-from app.services.data_transformer import transform_to_new_structure
-from app.services.classifiers import classify_file
+from app.services.folder_upload import FolderUploadService
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -35,239 +26,64 @@ class UploadFolderView(APIView):
     #permission_classes = [IsAuthenticated]  # Require JWT authentication
 
     def post(self, request, format=None):
-        """Accept a ZIP file upload representing a folder. Extract and analyze files."""
+        """
+        Accept a ZIP file upload representing a folder. Extract and analyze files.
+        
+        Refactored to use FolderUploadService for business logic.
+        View only handles HTTP concerns (request parsing, response building).
+        """
+        # Extract request data
         upload = request.FILES.get("file")
         if not upload:
             return JsonResponse({"error": "No file provided. Use 'file' form field."}, status=400)
         
         github_username = request.data.get("github_username") or request.data.get("github_user")
         
-        # Parse user consents from the form data (defaults kept for backward compat)
+        # Parse user consents
         def _parse_bool(v, default=False):
             if v is None:
                 return default
             return str(v).lower() in ("1", "true", "yes", "on")
 
-        # If the frontend includes a checkbox named 'consent_scan' and user did NOT
-        # check it, we will skip the scan. Default is now False (unchecked) to
-        # require explicit consent.
         scan_consent = _parse_bool(request.data.get("consent_scan"), default=False)
-        # Consent to send scanned results to LLM (default: False)
         send_to_llm = _parse_bool(request.data.get("consent_send_llm"), default=False)
 
-        # Verify zip
-        if not zipfile.is_zipfile(upload):
-            return JsonResponse({"error": "Uploaded file is not a zip archive."}, status=400)
+        # Handle no-consent case (return minimal response without processing)
+        if not scan_consent:
+            minimal_payload = {
+                "send_to_llm": send_to_llm,
+                "scan_performed": False,
+                "source": "zip_file",
+                "projects": [],
+                "overall": {"classification": "skipped", "confidence": 0.0, "reason": "user_declined_scan"},
+                "results": [],
+                "git_contributions": {}
+            }
+            return JsonResponse(minimal_payload)
 
-        # Import analyzers and project classifier here to avoid circular import problems at module import time.
-        from app.services.analysis import analyzers
-        project_classifier = importlib.import_module("app.services.classifiers.project_classifier")
-
-        results = []
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmpdir_path = Path(tmpdir)
-            # write uploaded file to disk first
-            archive_path = tmpdir_path / "upload.zip"
-            with open(archive_path, "wb") as f:
-                for chunk in upload.chunks():
-                    f.write(chunk)
-
-            # If the user withheld consent for scanning, skip extraction and analysis.
-            if not scan_consent:
-                minimal_payload = {
-                    "send_to_llm": send_to_llm,
-                    "scan_performed": False,
-                    "source": "zip_file",
-                    "projects": [],
-                    "overall": {"classification": "skipped", "confidence": 0.0, "reason": "user_declined_scan"},
-                    "results": [],
-                    "git_contributions": {}
-                }
-                return JsonResponse(minimal_payload)
-
-            with zipfile.ZipFile(archive_path, "r") as z:
-                z.extractall(tmpdir)
-
-            # Discover projects under the extracted tree so files can be tagged
-            projects = analyzers.discover_projects(tmpdir_path)
-
-            for root, _, files in os.walk(tmpdir):
-                for fname in files:
-                    fpath = Path(root) / fname
-                    # Use classifier to determine category and call analyzer
-                    kind = classify_file(fpath)
-                    if kind == "image":
-                        res = analyzers.analyze_image(fpath)
-                    elif kind == "code":
-                        res = analyzers.analyze_code(fpath)
-                    elif kind == "content":
-                        res = analyzers.analyze_content(fpath)
-                    else:
-                        res = {"type": "unknown", "path": str(fpath)}
-
-                    # Guarantee a 'type' field exists (some analyzers may omit it)
-                    if not isinstance(res, dict):
-                        # Ensure we always append a dict
-                        res = {"type": kind if kind else "unknown", "path": str(fpath)}
-                    res.setdefault("type", kind if kind else "unknown")
-
-                    # Normalize path to be relative to the extracted tmpdir so we don't leak absolute temp paths
-                    try:
-                        rel = fpath.relative_to(tmpdir_path)
-                        # Normalize to POSIX-style path (forward slashes) for consistent matching
-                        res["path"] = Path(rel).as_posix()
-                    except Exception:
-                        # Fallback: use the filename only
-                        res.setdefault("path", fname)
-
-                    # If this is a content file, also read its text and attach it
-                    # to the result so clients can display the file contents directly.
-                    if res.get("type") == "content":
-                        try:
-                            real_path = tmpdir_path / Path(res.get("path"))
-                            # If the file is a .docx, use the specialized reader
-                            if real_path.suffix.lower() == ".docx":
-                                text = read_docx(real_path)
-                            else:
-                                text = real_path.read_text(errors="ignore")
-
-                            # Cap size to avoid returning enormous files in the response
-                            MAX_TEXT = 20000
-                            if len(text) > MAX_TEXT:
-                                res["text"] = text[:MAX_TEXT]
-                                res["truncated"] = True
-                            else:
-                                res["text"] = text
-                        except Exception:
-                            # If reading fails, just skip attaching text
-                            pass
-
-                    results.append(res)
-
-            # Post-process results to assign project tags.
-            # Prefer using the authoritative `projects` mapping discovered earlier
-            # (project_root Path -> numeric tag). Build a tag->relative-root mapping
-            # and use it to assign both numeric `project_tag` and human-readable
-            # `project_root` to results. If `projects` is empty, fall back to the
-            # previous heuristic that parsed '/.git/' from result paths.
-            projects_rel = {}
-            if projects:
-                for root_path, tag in projects.items():
-                    try:
-                        rel_root = root_path.relative_to(tmpdir_path)
-                        root_str = Path(rel_root).as_posix()
-                    except Exception:
-                        # If relative conversion fails, fall back to the resolved path string
-                        root_str = str(root_path)
-                    projects_rel[tag] = root_str
-
-                # assign tags using projects_rel
-                for r in results:
-                    p = r.get("path", "")
-                    for tag, root_str in projects_rel.items():
-                        if p == root_str or p.startswith(root_str + "/"):
-                            r["project_tag"] = tag
-                            r["project_root"] = root_str
-                            break
-            else:
-                # Fallback heuristic: detect '.git' mentions in paths and assign root string as tag
-                project_roots = []
-                for r in results:
-                    p = r.get("path", "")
-                    if "/.git/" in p or p.endswith("/.git") or p.endswith("/.git/HEAD"):
-                        root = p.split("/.git/")[0] if "/.git/" in p else p.rsplit("/", 1)[0]
-                        if root not in project_roots:
-                            project_roots.append(root)
-
-                for r in results:
-                    p = r.get("path", "")
-                    for root in project_roots:
-                        if p == root or p.startswith(root + "/"):
-                            # for fallback we only have root string; set both fields to it
-                            r["project_tag"] = root
-                            r["project_root"] = root
-                            break
-
-            # Perform project-level classification
-            project_classifications = {}
-            try:
-                # Classify the overall zip file
-                overall_classification = project_classifier.classify_project(archive_path)
-                project_classifications["overall"] = overall_classification
-                
-                # If we found Git projects, classify each one individually
-                if projects:
-                    for root_path, tag in projects.items():
-                        try:
-                            project_class = project_classifier.classify_project(root_path)
-                            project_classifications[f"project_{tag}"] = {
-                                **project_class,
-                                "project_root": str(root_path.relative_to(tmpdir_path)) if root_path.is_relative_to(tmpdir_path) else str(root_path),
-                                "project_tag": tag
-                            }
-                        except Exception as e:
-                            project_classifications[f"project_{tag}"] = {
-                                "classification": "unknown",
-                                "confidence": 0.0,
-                                "error": str(e),
-                                "project_root": str(root_path.relative_to(tmpdir_path)) if root_path.is_relative_to(tmpdir_path) else str(root_path),
-                                "project_tag": tag
-                            }
-            except Exception as e:
-                # If project classification fails, continue without it
-                project_classifications = {
-                    "overall": {
-                        "classification": "unknown",
-                        "confidence": 0.0,
-                        "error": str(e)
-                    }
-                }
-
-            # Also compute per-project contribution data using new service
-            try:
-                git_finder = importlib.import_module("app.services.analysis.analyzers.git_contributions")
-            except Exception:
-                git_finder = None
-
-            git_contrib_data = {}
-            project_timestamps = {}
-            if git_finder and projects:
-                for root_path, tag in projects.items():
-                    try:
-                        contrib_result = git_finder.get_git_contributors(root_path)
-                        git_contrib_data[f"project_{tag}"] = contrib_result
-                    except Exception as e:
-                        git_contrib_data[f"project_{tag}"] = {"error": str(e)}
-                    
-                    # Get timestamp for chronological sorting
-                    try:
-                        timestamp = git_finder.get_project_timestamp(root_path)
-                        project_timestamps[tag] = timestamp
-                    except Exception:
-                        project_timestamps[tag] = 0
-
-            # Transform the data into the new structure
-            response_payload = transform_to_new_structure(
-                results, 
-                projects, 
-                projects_rel,
-                project_classifications, 
-                git_contrib_data,
-                project_timestamps,
-                filter_username=github_username,
-            )
-            # Build an ordered payload with consent metadata first
+        # Delegate to service layer for business logic
+        try:
+            service = FolderUploadService()
+            response_payload = service.process_zip(upload, github_username)
+            
+            # Build ordered payload with consent metadata
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
             for k, v in response_payload.items():
-                if k in ("send_to_llm", "scan_performed"):
-                    continue
-                ordered_payload[k] = v
+                if k not in ("send_to_llm", "scan_performed"):
+                    ordered_payload[k] = v
 
-            # Add explicit echo of requested username (optional convenience)
+            # Add requested username echo
             if github_username:
                 ordered_payload["requested_username"] = github_username
 
             return JsonResponse(ordered_payload)
+            
+        except ValueError as e:
+            # Handle validation errors from service
+            return JsonResponse({"error": str(e)}, status=400)
+        except Exception as e:
+            # Handle unexpected errors
+            return JsonResponse({"error": f"Processing failed: {str(e)}"}, status=500)
 
     def get(self, request, format=None):
         """Return usage or HTML form."""
