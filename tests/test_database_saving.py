@@ -111,11 +111,11 @@ class DatabaseSavingTests(TestCase):
         
         # Check if there's a database warning
         if "database_warning" in data:
-            print(f"⚠️  Database warning: {data['database_warning']}")
+            print(f"Database warning: {data['database_warning']}")
             # Test should handle this gracefully - the API worked but DB save failed
             self.assertIn("scan_performed", data)
             self.assertTrue(data["scan_performed"])
-            print("✅ Analysis completed successfully despite database save issue")
+            print("Analysis completed successfully despite database save issue")
             return
         
         # Verify the response contains saved project information (if no warning)
@@ -129,7 +129,7 @@ class DatabaseSavingTests(TestCase):
             # If no saved_projects field, check if analysis was still performed
             self.assertIn("projects", data)
             self.assertGreater(len(data["projects"]), 0)
-            print("⚠️  Analysis completed but no database saving occurred")
+            print("Analysis completed but no database saving occurred")
         
             # Verify the saved project belongs to the authenticated user
             user_projects = Project.objects.filter(user=self.user)
@@ -149,7 +149,7 @@ class DatabaseSavingTests(TestCase):
             python_language = project_languages.filter(name__icontains="python").first()
             self.assertIsNotNone(python_language, "Python language should be detected")
             
-            print(f"✅ Database saving test passed!")
+            print(f"Database saving test passed!")
             print(f"   - Projects saved: {final_project_count - initial_project_count}")
             print(f"   - Project name: {saved_project.name}")
             print(f"   - Languages detected: {[lang.name for lang in project_languages]}")
@@ -195,7 +195,7 @@ class DatabaseSavingTests(TestCase):
         self.assertTrue(any("react" in name for name in framework_names), 
                        f"React should be detected. Found: {framework_names}")
         
-        print(f"✅ Metadata test passed!")
+        print(f"Metadata test passed!")
         print(f"   - Frameworks detected: {[f.name for f in project_frameworks]}")
         print(f"   - Classification: {saved_project.classification_type}")
 
@@ -236,7 +236,7 @@ class DatabaseSavingTests(TestCase):
         # Should fail without authentication
         self.assertEqual(unauthenticated_response.status_code, 401)
         
-        print("✅ Authentication test passed!")
+        print("Authentication test passed!")
         print(f"   - Authenticated request: {response.status_code} (success)")
         print(f"   - Unauthenticated request: {unauthenticated_response.status_code} (blocked)")
         print(f"   - Analysis performed: {data.get('scan_performed', False)}")
