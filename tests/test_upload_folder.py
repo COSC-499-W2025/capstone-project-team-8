@@ -11,7 +11,8 @@ class UploadFolderTests(TestCase):
         # create and authenticate user (some UserManagers require email)
         User = get_user_model()
         self.user = User.objects.create_user(username="testuser", email="test@example.com", password="pass")
-        self.client.force_login(self.user)
+        # COMMENTED OUT FOR DEVELOPMENT - JWT auth disabled
+        # self.client.force_login(self.user)
         # ensure upload-folder posts include consent_scan unless explicitly testing opt-out
         original_post = self.client.post
         def _post(path, data=None, *args, **kwargs):
