@@ -134,10 +134,8 @@ class ProjectDatabaseService:
         first_commit_date = None
         if created_at_timestamp:
             try:
-                # Use timezone.UTC for Django 5.x compatibility
                 first_commit_date = dt.datetime.fromtimestamp(created_at_timestamp, tz=timezone.UTC)
             except (ValueError, TypeError, AttributeError):
-                # Fallback to None if there's any issue with timestamp parsing
                 pass
         
         # Determine if this is a git repository
@@ -146,9 +144,9 @@ class ProjectDatabaseService:
         root = project_data.get('root', '')
         
         is_git_repo = (
-            bool(project_id) and project_id > 0 and  # Git projects have ID > 0
-            bool(contributors) and len(contributors) > 0 and  # Has contributors
-            root != '(non-git-files)'  # Not unorganized files
+            bool(project_id) and project_id > 0 and
+            bool(contributors) and len(contributors) > 0 and
+            root != '(non-git-files)'
         )
         
         project = Project.objects.create(
@@ -225,7 +223,7 @@ class ProjectDatabaseService:
                 project=project,
                 language=language,
                 file_count=file_count,
-                is_primary=bool(i == 0)  # First language is primary
+                is_primary=bool(i == 0)
             )
     
     def _save_project_frameworks(self, project: Project, project_data: Dict[str, Any]) -> None:
