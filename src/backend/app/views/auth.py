@@ -17,10 +17,10 @@ class SignupView(APIView):
     def post(self, request: Request):
         # Check if request is JSON or form data
         is_json = request.content_type == 'application/json'
-        
+
         # Get data from appropriate source
         data = request.data if is_json else request.POST
-        
+
         try:
             username = data['username']
             email = data['email']
@@ -36,20 +36,41 @@ class SignupView(APIView):
                 b"<html><h1>Missing required field</h1></html>",
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
-        
+
         if password == confirm_password:
             try:
                 user = User.objects.create_user(username, email, password)
             except IntegrityError:
-                if is_json:
-                    return JsonResponse(
-                        {"error": "Username already taken"},
-                        status=http_status.HTTP_400_BAD_REQUEST
+                if User.objects.filter(username=username).exists():
+                    if is_json:
+                        return JsonResponse(
+                            {"error": "Username already taken"},
+                            status=http_status.HTTP_400_BAD_REQUEST
+                        )
+                    return HttpResponse(
+                        b"<html><h1>Username Taken</h1></html>",
+                        status=http_status.HTTP_400_BAD_REQUEST,
                     )
-                return HttpResponse(
-                    b"<html><h1>Username Taken</h1></html>",
-                    status=http_status.HTTP_400_BAD_REQUEST,
-                )
+                elif User.objects.filter(email=email).exists():
+                    if is_json:
+                        return JsonResponse(
+                            {"error": "Account with this email already exists"},
+                            status=http_status.HTTP_400_BAD_REQUEST
+                        )
+                    return HttpResponse(
+                        b"<html><h1>Account with this email already exists</h1></html>",
+                        status=http_status.HTTP_400_BAD_REQUEST,
+                    )
+                else:
+                    if is_json:
+                        return JsonResponse(
+                            {"error": "Server error"},
+                            status=http_status.HTTP_500_INTERNAL_SERVER_ERROR
+                        )
+                    return HttpResponse(
+                        b"<html><h1>Server error</h1></html>",
+                        status=http_status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
 
             # For JSON requests, return JWT tokens
             if is_json:
@@ -62,7 +83,7 @@ class SignupView(APIView):
                     },
                     status=http_status.HTTP_201_CREATED
                 )
-            
+
             # For form requests, use session (backward compatible)
             request.session['username'] = username
             return HttpResponse(
@@ -118,7 +139,6 @@ class SignupView(APIView):
             rendered_html = template.render({}, request)
             return HttpResponse(rendered_html)
 
-
         return JsonResponse({"usage": usage})
 
 
@@ -128,10 +148,10 @@ class LoginView(APIView):
     def post(self, request: Request):
         # Check if request is JSON or form data
         is_json = request.content_type == 'application/json'
-        
+
         # Get data from appropriate source
         data = request.data if is_json else request.POST
-        
+
         try:
             username = data['username']
             password = data['password']
@@ -145,7 +165,7 @@ class LoginView(APIView):
                 b"<html><h1>Missing required field</h1></html>",
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
-        
+
         user = authenticate(request=request, username=username, password=password)
         if user is not None:
             # For JSON requests, return JWT tokens
@@ -159,7 +179,7 @@ class LoginView(APIView):
                     },
                     status=http_status.HTTP_200_OK
                 )
-            
+
             # For form requests, use session (backward compatible)
             request.session['username'] = username
             return HttpResponse(
@@ -176,7 +196,6 @@ class LoginView(APIView):
                 bytes("<html><h1>Wrong username or password.</h1></html>", encoding="utf-8"),
                 status=http_status.HTTP_401_UNAUTHORIZED,
             )
-
 
     def get(self, request):
         """Return signupusage or HTML form."""
@@ -211,7 +230,6 @@ class LoginView(APIView):
             template = django_engine.from_string(html)
             rendered_html = template.render({}, request)   # empty context, request needed for csrf/url tags
             return HttpResponse(rendered_html)
-
 
         return JsonResponse({"usage": usage})
 
