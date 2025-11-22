@@ -154,6 +154,10 @@ def transform_to_new_structure(
             if "frameworks" in classification:
                 class_obj["frameworks"] = classification["frameworks"]
             
+            # Add skills if available (for coding projects)
+            if "skills" in classification:
+                class_obj["skills"] = classification["skills"]
+            
             project_data[tag]["classification"] = class_obj
     
     # Add contributors to each project
@@ -239,11 +243,13 @@ def transform_to_new_structure(
         }
     }
     
-    # Add languages and frameworks to overall if available
+    # Add languages, frameworks, and skills to overall if available
     if "languages" in overall_classification:
         overall["languages"] = overall_classification["languages"]
     if "frameworks" in overall_classification:
         overall["frameworks"] = overall_classification["frameworks"]
+    if "skills" in overall_classification:
+        overall["skills"] = overall_classification["skills"]
 
     # Summarize filtered user if requested
     user_contrib_summary = None

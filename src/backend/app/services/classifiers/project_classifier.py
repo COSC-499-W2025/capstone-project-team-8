@@ -5,7 +5,7 @@ from pathlib import Path
 from collections import Counter
 from typing import Dict, Any, Union, Tuple
 
-from ..analysis.analyzers import detect_languages, detect_frameworks
+from ..analysis.analyzers import detect_languages, detect_frameworks, extract_skills
 
 
 # Extension sets for different file types
@@ -304,9 +304,12 @@ def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
             if classification == 'coding' or (classification.startswith('mixed:') and 'coding' in classification):
                 result['languages'] = detect_languages(root_dir)
                 result['frameworks'] = detect_frameworks(root_dir)
+                # Extract skills based on detected languages and frameworks
+                result['skills'] = extract_skills(root_dir, result['languages'], result['frameworks'])
             else:
                 result['languages'] = []
                 result['frameworks'] = []
+                result['skills'] = []
             
             return result
     
@@ -338,9 +341,12 @@ def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
         if classification == 'coding' or (classification.startswith('mixed:') and 'coding' in classification):
             result['languages'] = detect_languages(project_path)
             result['frameworks'] = detect_frameworks(project_path)
+            # Extract skills based on detected languages and frameworks
+            result['skills'] = extract_skills(project_path, result['languages'], result['frameworks'])
         else:
             result['languages'] = []
             result['frameworks'] = []
+            result['skills'] = []
         
         return result
 
