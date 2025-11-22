@@ -71,6 +71,10 @@ def analyze_content(path: Path) -> Dict[str, Any]:
     try:
         text = path.read_text(errors="ignore")
         length = len(text)
+        # small-file heuristic: skip empty or very short text files (<5 lines)
+        lines = text.count("\n") + 1 if text else 0
+        if lines > 0 and lines < 5:
+            return {"type": "content", "path": str(path), "length": length, "skipped": True, "reason": "too_few_lines"}
     except Exception:
         length = None
     return {"type": "content", "path": str(path), "length": length}
@@ -84,6 +88,9 @@ def analyze_code(path: Path) -> Dict[str, Any]:
     try:
         text = path.read_text(errors="ignore")
         lines = text.count("\n") + 1
+        # skip empty or very small code files (<5 lines)
+        if lines == 0 or lines < 5:
+            return {"type": "code", "path": str(path), "lines": lines, "skipped": True, "reason": "too_few_lines"}
     except Exception:
         lines = None
     return {"type": "code", "path": str(path), "lines": lines}
