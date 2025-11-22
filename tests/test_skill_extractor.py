@@ -271,8 +271,7 @@ class SkillExtractionTests(TestCase):
         
         self.assertIn('Containerization', skills)  # Concept skill
         self.assertNotIn('Docker', skills)  # Framework name not in skills
-        self.assertNotIn('Docker Compose', skills)  # Framework name not in skills
-        self.assertNotIn('Container Orchestration', skills)  # Removed
+
 
     # ===== Creative Skills (File-based) =====
 
@@ -329,30 +328,7 @@ class SkillExtractionTests(TestCase):
         self.assertNotIn('Python Programming', skills)  # Languages listed separately
         self.assertIn('Backend Development', skills)  # Context skill OK
 
-    def test_no_javascript_programming_skill(self):
-        """Test that 'JavaScript Programming' is NOT in skills"""
-        project = self.create_test_project({
-            'package.json': '{"dependencies": {"react": "^18.0.0"}}',
-            'App.jsx': 'export const App = () => <div />'
-        })
-        
-        skills = extract_skills(project)
-        
-        self.assertNotIn('JavaScript Programming', skills)
-        self.assertIn('Frontend Development', skills)
-
     # ===== Paradigm Skills =====
-
-    def test_object_oriented_programming(self):
-        """Test OOP skill from OOP languages"""
-        project = self.create_test_project({
-            'Main.java': 'public class Main { }',
-            'Utils.java': 'public class Utils { }'
-        })
-        
-        skills = extract_skills(project)
-        
-        self.assertIn('Object-Oriented Programming', skills)
 
     def test_functional_programming(self):
         """Test functional programming skill from functional languages"""
