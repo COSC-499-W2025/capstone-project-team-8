@@ -153,6 +153,49 @@ EXTENSION_TO_LANGUAGE = {
 }
 
 
+DEFAULT_IGNORES = {
+    # common directories to skip scanning
+    "node_modules",
+    "venv",
+    ".venv",
+    "env",
+    "site-packages",
+    "__pycache__",
+    ".git",
+    "dist",
+    "build",
+    ".sass-cache",
+    ".next",
+    ".expo",
+    "target",
+    "vendor",
+}
+
+def detect_ignores(root_dir: Union[str, Path]) -> List[str]:
+    """
+    Detect ignore patterns for a project rooted at root_dir.
+    Looks for a .gitignore file and merges with DEFAULT_IGNORES.
+    Returns a list of patterns (strings). Patterns from .gitignore are
+    returned verbatim (they will be interpreted by callers, e.g. using fnmatch).
+    """
+    root_path = Path(root_dir)
+    patterns = set(DEFAULT_IGNORES)
+    gitignore = root_path / ".gitignore"
+    try:
+        if gitignore.exists():
+            raw = gitignore.read_text(errors="ignore")
+            for line in raw.splitlines():
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                patterns.add(line)
+    except Exception:
+        # If reading fails, just return defaults
+        pass
+
+    return sorted(list(patterns))
+
+
 def detect_languages(root_dir: Union[str, Path]) -> List[str]:
     """
     Detect programming languages used in a project.
