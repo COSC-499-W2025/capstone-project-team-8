@@ -4,6 +4,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
 from app.services.folder_upload import FolderUploadService
+from app.services.analysis.analyzers.skill_analyzer import analyze_and_tag
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -65,7 +66,21 @@ class UploadFolderView(APIView):
         try:
             service = FolderUploadService()
             response_payload = service.process_zip(upload, github_username)
-            
+            # Ensure skill analysis output is attached (if results present)
+            try:
+                results = []
+                if isinstance(response_payload, dict):
+                    # prefer explicit "results" key, otherwise empty
+                    results = response_payload.get("results", []) or []
+                skills_info = analyze_and_tag(results)
+                response_payload.setdefault("skill_summary", skills_info.get("summary", {}))
+                response_payload.setdefault("skill_tags", skills_info.get("tags", []))
+            except Exception:
+                # Don't fail the request if skill analysis errors; attach empty placeholders
+                if isinstance(response_payload, dict):
+                    response_payload.setdefault("skill_summary", {})
+                    response_payload.setdefault("skill_tags", [])
+
             # Build ordered payload with consent metadata
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
             for k, v in response_payload.items():
