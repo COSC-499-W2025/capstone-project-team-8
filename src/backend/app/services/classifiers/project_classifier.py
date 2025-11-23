@@ -304,12 +304,13 @@ def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
             if classification == 'coding' or (classification.startswith('mixed:') and 'coding' in classification):
                 result['languages'] = detect_languages(root_dir)
                 result['frameworks'] = detect_frameworks(root_dir)
-                # Extract resume_skills based on detected languages and frameworks
-                result['resume_skills'] = extract_resume_skills(root_dir, result['languages'], result['frameworks'])
             else:
                 result['languages'] = []
                 result['frameworks'] = []
-                result['resume_skills'] = []
+            
+            # Extract resume_skills for ALL project types (coding, art, writing, mixed)
+            # This includes creative skills like Photography, Adobe Photoshop, Video Editing, etc.
+            result['resume_skills'] = extract_resume_skills(root_dir, result['languages'], result['frameworks'])
             
             return result
     
@@ -341,12 +342,13 @@ def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
         if classification == 'coding' or (classification.startswith('mixed:') and 'coding' in classification):
             result['languages'] = detect_languages(project_path)
             result['frameworks'] = detect_frameworks(project_path)
-            # Extract resume_skills based on detected languages and frameworks
-            result['resume_skills'] = extract_resume_skills(project_path, result['languages'], result['frameworks'])
         else:
             result['languages'] = []
             result['frameworks'] = []
-            result['resume_skills'] = []
+        
+        # Extract resume_skills for ALL project types (coding, art, writing, mixed)
+        # This includes creative skills like Photography, Adobe Photoshop, Video Editing, etc.
+        result['resume_skills'] = extract_resume_skills(project_path, result['languages'], result['frameworks'])
         
         return result
 
