@@ -89,7 +89,9 @@ This week I made a lot of progress on our AI layer and it is almost ready to be 
 
 I didn't get to finish the file specific analysis Issue #115, but I hope to integrate my new AI file processing layer into this feature next week.
 
-## Week 11 November 10-14 (BONUS WORK)
+## Week 11 & 12 November 10-21
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/6112f39d-b5b9-41e9-93ba-2310e143e01e" />
+
 This week:
 - refactored analysis and classifiers logic PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/143 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/142
 - a lot of our classifiers and analysis files served multiple purposes before my PR this week, this PR split up the logic into mutliple simpler files to make development easier and reduce merge conflicts we might have in the future
@@ -97,6 +99,7 @@ This week:
 - after I refactored the analysis and classifiers logic, Matin branched off my work and started the refactor on the uploadFolderView.py file, which was a file with 11 responsibilities
 - our whole codebase is now much simpler
 - also worked on structing database to save projects and information
+- savedkey information to a database PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/156 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/145
 
 What went well:
 - worked with Matin efficiently in refactoring
@@ -104,12 +107,11 @@ What went well:
 - make some progress on how to structure database and will propose to the team next week
 
 What went wrong:
-- after testing the AI server for this week, it just isn't quote powerful enough
+- after testing the AI server for this week, it just isn't quite powerful enough
 - requests take 30s - 2m depending on length
 - this might be fine for testing, but I'm going to look into configuring VM specs better or finding other hosts that offer better free plans
 
 Next week:
-- save key information to a database https://github.com/COSC-499-W2025/capstone-project-team-8/issues/145
 - based on information saved, configure a process for AI resume builder https://github.com/COSC-499-W2025/capstone-project-team-8/issues/103
 
 Reflection:
