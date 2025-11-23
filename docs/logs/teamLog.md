@@ -49,9 +49,10 @@
 
 | Task | Assigned To | Issue # |
 |------|-------------|---------|
-|      |             |         |
-|      |             |         |
-|      |             |         |
+| NA   |     NA      |    NA   |
+
+There are no remaining tasks in progress for this week.
+
 
 ### Next Weeks Plan Towards Milestone 1 
 
