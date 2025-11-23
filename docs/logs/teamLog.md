@@ -11,15 +11,19 @@
 ## Week 12: Nov 16 - 22
 
 ### Our Goals for this week:
+  Our goals for this week were to make progress towards finalizing things for Milestone 1. This included more database integration with uploaded projects, improving our analysis engine, and finishing off any unfinished areas of development for the analyzer. Alongside some minor bug fixes our focus was mainly poloshing off some rough edges that needed attention before the submission. The database is the last major step for the project in regards to this milestone so this was also of key focus for us this week.
 
 
 ### Reflection:
+  This week development went very smoothly with little to no blockers. The team worked well and collaborated nicely to assist each other in areas where needed. The database now saving projects was massive for us this week as well, now we are able to store results from the analysis and we will be able to hopefully have massive performance increases as a result from this. We are feeling good about our progress towards Milestone 1 and are excited to see the final product come together.
 
 
 ### What went well:
+  Development was definitely the highlight for our group this week. Each of us made solid progress this week and we were able to get a lot done. Our analyzer is nearly complete which allows us to focus on the final steps for the project in this last week.
 
 
 ### What didn't go well:
+  There were minimal issues this week, however we did run into some small bugs with saving into the database and the data models. These have been resolved for the most part but will need some final polishing before Milestone 1.
 
 
 ### Burn Up Chart
