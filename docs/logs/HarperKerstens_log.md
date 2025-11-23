@@ -115,6 +115,8 @@ This weeks development went surprisingly well. After last week where I spent the
 
  ## Novermber 16-22
  
+ <img width="1071" height="634" alt="November16-22" src="https://github.com/user-attachments/assets/f0cc3694-320a-46d6-af0d-a36992cd1267" />
+ 
 - Increased file analyzer's performance by reducing redundant scans for dependencies and modules
 - Implemented file size limits so sub 5 line files are skipped during analysis
 - Implemented skill extraction from analyzed files that produces a percentage breakdown based on frequeny of skils found in files
