@@ -1,216 +1,262 @@
-"""
-Skill Analyzer Module (reworked)
-
-Determines skills based on key code files only. Dependency/lock/doc files are
-conservatively classified as "other" and do not influence skill percentages.
-
-Output:
-  {
-    "total_files": <number considered>,
-    "matched_total": <files matched to known skills>,
-    "skills": [
-      {
-        "skill": "data_processing",
-        "count": 3,
-        "percent": 60.0,              # percent of matched_total (excludes "other")
-        "languages": [
-           {"language": "Python", "count": 2, "percent": 66.7},
-           {"language": "JavaScript", "count": 1, "percent": 33.3}
-        ],
-        "examples": [...]
-      },
-      ...
-    ],
-    "raw_counts": {...}
-  }
-"""
-
-from collections import Counter, defaultdict
-from typing import List, Dict, Any
+import os
+import re
 from pathlib import Path
+from collections import defaultdict, Counter
+from typing import Dict, List, Tuple, Iterable
 
-
-# Priority-ordered skill keyword mapping. The order controls which skill wins when multiple keywords match.
-_SKILL_KEYWORDS = {
-    "data_processing": [
-        "pandas", "numpy", "dataframe", "groupby", "merge(", "join(", "read_csv", "to_csv", "iloc", "loc",
-        "filter(", "dropna", "fillna", "pivot", "aggregate", "apply("
-    ],
-    "machine_learning": [
-        "tensorflow", "keras", "pytorch", "torch", "sklearn", "scikit-learn", "model.fit", "predict(", "training",
-        "nn.Module", "loss=", "optimizer", "transformer", "bert", "lstm", "randomforest"
-    ],
-    "web_backend": [
-        "django", "flask", "fastapi", "express", "koa", "routes", "app.get(", "app.post(", "@app.route", "controller",
-        "middleware"
-    ],
-    "web_frontend": [
-        "react", "vue", "angular", "svelte", "component(", "useState", "useEffect", "jsx", "tsx", "props", "ng-"
-    ],
-    "testing": ["pytest", "unittest", "mocha", "jest", "assert", "test_", "spec("],
-    "devops": ["docker", "dockerfile", "docker-compose", "kubernetes", "helm", "ci", "github actions", "gitlab-ci"],
-    "database": ["sqlalchemy", "select ", "insert ", "update ", "create table", "psycopg2", "sqlite3", "mysql", "pgsql"],
-    "visualization": ["matplotlib", "seaborn", "plotly", "bokeh", "altair", "ggplot"],
-    "scripting": ["bash", "sh ", "argparse", "click", "sys.argv"],
-    "mobile": ["react-native", "expo", "android", "ios", "swift", "kotlin"],
+# Heuristics maps and helpers
+EXT_TO_LANG = {
+	".py": "Python",
+	".js": "JavaScript",
+	".jsx": "JavaScript",
+	".ts": "TypeScript",
+	".tsx": "TypeScript",
+	".java": "Java",
+	".kt": "Kotlin",
+	".kts": "Kotlin",
+	".swift": "Swift",
+	".cs": "C#",
+	".cpp": "C++",
+	".c": "C",
+	".h": "C/C++ Header",
+	".html": "HTML",
+	".htm": "HTML",
+	".css": "CSS",
+	".scss": "CSS",
+	".sass": "CSS",
+	".less": "CSS",
+	".json": "JSON",
+	".xml": "XML",
+	".yaml": "YAML",
+	".yml": "YAML",
+	".sh": "Shell",
+	".bat": "Batch",
+	".ps1": "PowerShell",
+	".php": "PHP",
+	".rb": "Ruby",
+	".go": "Go",
+	".rs": "Rust",
+	".sql": "SQL",
+	".dockerfile": "Dockerfile",
+	".ini": "INI",
+	".gradle": "Gradle",
+	".pom": "Maven",
 }
 
-# conservative extensions and dependency filenames (treated as "other")
-_CONSERVATIVE_EXTS = {".lock", ".json", ".md", ".rst", ".txt", ".yml", ".yaml", ".ini", ".toml"}
-_DEPENDENCY_FILENAMES = {"package-lock.json", "yarn.lock", "pnpm-lock.yaml", "composer.lock", "Pipfile.lock"}
+# Basic mapping from file types/keywords to skill categories
+KEYWORD_SKILL_MAP = [
+	# frontend
+	(r"\bReact\b|\breact-dom\b|from 'react'|from \"react\"|<\s*Component\b", "Frontend Web"),
+	(r"\bVue\b|\bvue-router\b|\bvuex\b", "Frontend Web"),
+	(r"\bAngular\b|\b@NgModule\b", "Frontend Web"),
+	(r"\.(css|scss|less)\b|class=\"[^\"]+\"|<div\b", "Frontend Web"),
+	(r"\bHTML\b|<!DOCTYPE html>", "Frontend Web"),
+	# web backend
+	(r"\bFlask\b|\bfrom flask\b|\bapp = Flask\b", "Web Backend"),
+	(r"\bDjango\b|\bdjango\.(contrib|urls|models)\b", "Web Backend"),
+	(r"\bFastAPI\b|\bfrom fastapi\b", "Web Backend"),
+	(r"\bExpress\b|\brequire\('express'\)|from 'express'|from \"express\"", "Web Backend"),
+	(r"\bSpringBoot\b|\bSpringApplication\b|\b@SpringBootApplication\b|\bspringframework\b", "Web Backend"),
+	# data / ml
+	(r"\bPandas\b|\bimport pandas\b|\bpd\.", "Data Science"),
+	(r"\bNumPy\b|\bimport numpy\b|\bnp\.", "Data Science"),
+	(r"\bscikit-learn\b|\bsklearn\b", "Data Science"),
+	(r"\btensorflow\b|\bkeras\b", "Machine Learning"),
+	(r"\btorch\b|\bPyTorch\b", "Machine Learning"),
+	# mobile
+	(r"\bAndroid\b|com\.android\b|R\.layout\b|setContentView\(|Activity\b", "Mobile"),
+	(r"\bSwiftUI\b|\bUIKit\b|import SwiftUI|import UIKit", "Mobile"),
+	# devops / infra
+	(r"\bDockerfile\b|\bFROM\b.+\b", "DevOps"),
+	(r"\bkubernetes\b|\bkind: Deployment\b|\bapiVersion: apps/v1\b", "DevOps"),
+	(r"\bhelm\b|\bChart.yaml\b", "DevOps"),
+	(r"\bCI/CD\b|\btravis\b|github\.actions|gitlab-ci", "DevOps"),
+	# databases
+	(r"\bSELECT\b.+\bFROM\b|\bCREATE TABLE\b|\bINSERT INTO\b", "Databases"),
+	(r"\bSQLAlchemy\b|\bfrom sqlalchemy\b", "Databases"),
+	(r"\bmongodb\b|\bMongoClient\b", "Databases"),
+	# testing
+	(r"\bpytest\b|\bunittest\b|\bmocha\b|\bjest\b|\bdescribe\(|it\(", "Testing"),
+	# game dev
+	(r"\bUnityEngine\b|\bMonoBehaviour\b|using UnityEngine;", "Game Development"),
+	# scripting / automation
+	(r"\bimport os\b|\bsubprocess\b|\bsys\.", "Scripting"),
+]
 
-# map extensions to languages (reuse a small mapping instead of importing whole module)
-_EXTENSION_TO_LANG = {
-    ".py": "Python", ".js": "JavaScript", ".jsx": "JavaScript", ".ts": "TypeScript", ".tsx": "TypeScript",
-    ".java": "Java", ".go": "Go", ".rb": "Ruby", ".cs": "C#", ".cpp": "C++", ".c": "C", ".php": "PHP",
-    ".rs": "Rust", ".swift": "Swift", ".kt": "Kotlin", ".scala": "Scala", ".sh": "Shell", ".ps1": "PowerShell",
-    ".html": "HTML", ".htm": "HTML", ".css": "CSS", ".ipynb": "Jupyter Notebook"
+# Language-specific keywords to map more precisely (language -> list of (regex, skill))
+LANGUAGE_KEYWORDS: Dict[str, List[Tuple[str, str]]] = {
+	"Python": [
+		(r"\bflask\b", "Web Backend"),
+		(r"\bdjango\b", "Web Backend"),
+		(r"\bfastapi\b", "Web Backend"),
+		(r"\bpandas\b", "Data Science"),
+		(r"\bnumpy\b", "Data Science"),
+		(r"\bscikit-learn\b|\bsklearn\b", "Data Science"),
+		(r"\btensorflow\b|\bkeras\b", "Machine Learning"),
+		(r"\btorch\b|\bpytorch\b", "Machine Learning"),
+		(r"\bsqlalchemy\b", "Databases"),
+		(r"\bselenium\b", "Testing"),
+	],
+	"JavaScript": [
+		(r"\bReact\b|\breact-dom\b", "Frontend Web"),
+		(r"\bVue\b", "Frontend Web"),
+		(r"\bAngular\b", "Frontend Web"),
+		(r"\bexpress\b", "Web Backend"),
+		(r"\bnode\b", "Web Backend"),
+		(r"\bjest\b|\bmocha\b", "Testing"),
+	],
+	"TypeScript": [
+		(r"\bReact\b|\bAngular\b|\bVue\b", "Frontend Web"),
+		(r"\bNode\b|\bExpress\b", "Web Backend"),
+	],
+	"Java": [
+		(r"\bSpring\b|\bspringframework\b", "Web Backend"),
+		(r"\bAndroid\b", "Mobile"),
+	],
+	"C#": [
+		(r"\bASP\.NET\b|\baspnet\b|\bMicrosoft\.AspNetCore\b", "Web Backend"),
+		(r"\bUnityEngine\b", "Game Development"),
+	],
+	"Go": [
+		(r"\bgin-gonic\b|\bGin\b", "Web Backend"),
+	],
+	"YAML": [
+		(r"\bapiVersion: apps/v1\b|\bkind: Deployment\b", "DevOps"),
+	],
+	"Dockerfile": [
+		(r"\bFROM\b", "DevOps"),
+	],
+	"SQL": [
+		(r"\bSELECT\b|\bINSERT\b|\bCREATE TABLE\b", "Databases"),
+	],
 }
 
-# triggers that indicate code-like content (used for content files that include inline text)
-_CODE_ONLY_TRIGGERS = {
-    "read_csv", "to_csv", "iloc", "loc", "apply(", "groupby", "merge(", "join(", "model.fit",
-    "predict(", "import ", "def ", "class ", "tensorflow", "keras", "pytorch", "torch", "sklearn",
-    "scikit-learn", "nn.module", "loss=", "optimizer", "transformer", "bert", "lstm", "randomforest"
+SKIP_DIRS = {"node_modules", ".git", "venv", "env", "__pycache__", "dist", "build", ".next", "target"}
+
+BINARY_EXTS = {
+	".png", ".jpg", ".jpeg", ".gif", ".ico", ".exe", ".dll", ".so", ".dylib", ".class", ".jar", ".war", ".pyc"
 }
 
+def _guess_language(path: Path, content: str) -> str:
+	# extension-based
+	suffix = path.suffix.lower()
+	if suffix == "":
+		name = path.name.lower()
+		if name == "dockerfile":
+			return "Dockerfile"
+	# known extension
+	if suffix in EXT_TO_LANG:
+		return EXT_TO_LANG[suffix]
+	# heuristics from content
+	if re.search(r"\b<html\b|<!doctype html>", content, re.I):
+		return "HTML"
+	if re.search(r"\bpackage\s+com\b|\bpublic class\b", content):
+		return "Java"
+	# fallback to file suffix presented
+	return EXT_TO_LANG.get(suffix, "Unknown")
 
-def _normalize(text: str) -> str:
-    return (text or "").lower()
+def _detect_skills_from_content(language: str, content: str) -> List[str]:
+	found = set()
+	# generic keyword map
+	for pattern, skill in KEYWORD_SKILL_MAP:
+		if re.search(pattern, content, re.I | re.M):
+			found.add(skill)
+	# language-scoped keywords
+	if language in LANGUAGE_KEYWORDS:
+		for pattern, skill in LANGUAGE_KEYWORDS[language]:
+			if re.search(pattern, content, re.I | re.M):
+				found.add(skill)
+	# simple fallbacks based on language alone
+	if not found:
+		if language in ("HTML", "CSS", "JavaScript", "TypeScript"):
+			found.add("Frontend Web")
+		elif language in ("Python", "Java", "C#", "Go", "PHP", "Ruby"):
+			# could be backend, scripting or library code
+			found.add("Web Backend")
+		elif language in ("SQL",):
+			found.add("Databases")
+		elif language in ("Dockerfile", "YAML"):
+			found.add("DevOps")
+		else:
+			found.add("General Programming")
+	return list(found)
 
+def _should_skip(path: Path) -> bool:
+	parts = {p.lower() for p in path.parts}
+	if parts & SKIP_DIRS:
+		return True
+	return False
 
-def detect_skills_from_results(results: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """
-    Reworked: only consider key code files by extension (ignore dependency/docs).
-    Aggregate skills counts and per-language breakdown.
-    """
-    counts = Counter()
-    examples = defaultdict(list)
-    skill_lang_counts = defaultdict(Counter)
+def analyze_project(root_path: str, max_files: int = 10000) -> Dict:
+	"""
+	Walk the root_path and return a JSON-serializable dict describing:
+	  - total_matches: total skill detections
+	  - skills: mapping skill -> { count, percentage, languages: {lang: count} }
+	Heuristics are lightweight and file-content based.
+	"""
+	root = Path(root_path)
+	if not root.exists():
+		raise FileNotFoundError(f"Path not found: {root_path}")
 
-    # Build candidate list: only files with known code extensions and not marked skipped.
-    candidates: List[Dict[str, Any]] = []
-    for r in results:
-        if r.get("skipped"):
-            continue
-        path = r.get("path", "") or ""
-        ext = Path(path).suffix.lower()
-        filename = Path(path).name
-        # treat dependency/lock/doc files as "other" and skip as candidates
-        if filename in _DEPENDENCY_FILENAMES or ext in _CONSERVATIVE_EXTS:
-            counts["other"] += 1
-            if len(examples["other"]) < 5:
-                examples["other"].append(path)
-            continue
-        # only consider files whose extension maps to a programming language
-        if ext in _EXTENSION_TO_LANG:
-            candidates.append(r)
-        else:
-            # not a key code file -> other
-            counts["other"] += 1
-            if len(examples["other"]) < 5:
-                examples["other"].append(path)
+	skill_counts: Counter = Counter()
+	skill_lang_counts: Dict[str, Counter] = defaultdict(Counter)
+	total_matches = 0
+	seen_files = 0
 
-    total = len(candidates)
+	for dirpath, dirnames, filenames in os.walk(root):
+		# modify dirnames in-place to skip
+		dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+		for fname in filenames:
+			fp = Path(dirpath) / fname
+			if _should_skip(fp):
+				continue
+			if fp.suffix.lower() in BINARY_EXTS:
+				continue
+			try:
+				with open(fp, "r", encoding="utf-8", errors="ignore") as fh:
+					content = fh.read()
+			except Exception:
+				# skip unreadable files
+				continue
 
-    # Match skills for each candidate code file
-    for r in candidates:
-        path = r.get("path", "") or ""
-        ext = Path(path).suffix.lower()
-        lang = _EXTENSION_TO_LANG.get(ext, "unknown")
-        text_blob = _normalize(r.get("text", "")) + " " + _normalize(path)
+			seen_files += 1
+			if seen_files > max_files:
+				break
 
-        matched_skill = None
-        # For HTML files we prefer frontend unless strong code triggers present in text
-        if ext in (".html", ".htm"):
-            # if text contains code-only triggers, allow matching
-            if any(trigger in text_blob for trigger in _CODE_ONLY_TRIGGERS):
-                for skill, keywords in _SKILL_KEYWORDS.items():
-                    for kw in keywords:
-                        if kw in text_blob:
-                            matched_skill = skill
-                            break
-                    if matched_skill:
-                        break
-            else:
-                matched_skill = "web_frontend"
-        else:
-            # normal matching across keywords
-            for skill, keywords in _SKILL_KEYWORDS.items():
-                for kw in keywords:
-                    if kw in text_blob:
-                        matched_skill = skill
-                        break
-                if matched_skill:
-                    break
+			language = _guess_language(fp, content)
+			skills = _detect_skills_from_content(language, content)
 
-        if matched_skill:
-            counts[matched_skill] += 1
-            skill_lang_counts[matched_skill][lang] += 1
-            if len(examples[matched_skill]) < 5:
-                examples[matched_skill].append(path)
-        else:
-            counts["other"] += 1
-            if len(examples["other"]) < 5:
-                examples["other"].append(path)
+			for s in skills:
+				skill_counts[s] += 1
+				skill_lang_counts[s][language] += 1
+				total_matches += 1
 
-    # Build structured output; exclude "other" from percentage denominator
-    other_count = counts.get("other", 0)
-    matched_total = sum(cnt for k, cnt in counts.items() if k != "other")
+		if seen_files > max_files:
+			break
 
-    skills_list = []
-    for skill, cnt in counts.most_common():
-        if skill == "other":
-            # include other but percent 0 (per request)
-            percent = 0.0
-            langs = []
-        else:
-            percent = round((cnt / matched_total) * 100, 1) if matched_total > 0 else 0.0
-            # languages breakdown for this skill
-            lang_counts = skill_lang_counts.get(skill, {})
-            langs = []
-            for lang, lcnt in lang_counts.most_common():
-                lpercent = round((lcnt / cnt) * 100, 1) if cnt > 0 else 0.0
-                langs.append({"language": lang, "count": lcnt, "percent": lpercent})
-        skills_list.append({
-            "skill": skill,
-            "count": cnt,
-            "percent": percent,
-            "languages": langs,
-            "examples": examples.get(skill, [])
-        })
+	# Compute percentages
+	skills_out = {}
+	for skill, count in skill_counts.most_common():
+		lang_counts = dict(skill_lang_counts[skill])
+		percentage = (count / total_matches * 100.0) if total_matches > 0 else 0.0
+		skills_out[skill] = {
+			"count": count,
+			"percentage": round(percentage, 2),
+			"languages": lang_counts,
+		}
 
-    return {
-        "total_files": total,
-        "matched_total": matched_total,
-        "skills": skills_list,
-        "raw_counts": dict(counts)
-    }
+	result = {
+		"total_files_scanned": seen_files,
+		"total_skill_matches": total_matches,
+		"skills": skills_out,
+	}
+	return result
 
-
-def generate_skill_tags(skills_summary: Dict[str, Any], min_percent: float = 5.0) -> List[str]:
-    """
-    Create a compact list of skill tags from a skills_summary (as returned by detect_skills_from_results).
-
-    Args:
-        skills_summary: result of detect_skills_from_results(...)
-        min_percent: minimum percentage threshold (0-100) to include a skill as a tag
-
-    Returns:
-        List of skill names (strings) where percent >= min_percent
-    """
-    tags = []
-    for s in skills_summary.get("skills", []):
-        if s.get("percent", 0.0) >= min_percent:
-            tags.append(s.get("skill"))
-    return tags
-
-
-# Convenience wrapper
-def analyze_and_tag(results: List[Dict[str, Any]], min_percent: float = 5.0) -> Dict[str, Any]:
-    """
-    Run detection and return both the summary and generated tags.
-    """
-    summary = detect_skills_from_results(results)
-    tags = generate_skill_tags(summary, min_percent=min_percent)
-    return {"summary": summary, "tags": tags}
+# Small helper for example/debugging; in production the caller would call analyze_project directly.
+if __name__ == "__main__":
+	import json, sys
+	if len(sys.argv) < 2:
+		print("Usage: skill_analyzer.py /path/to/project")
+	else:
+		res = analyze_project(sys.argv[1])
+		print(json.dumps(res, indent=2))

@@ -4,7 +4,10 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
 from app.services.folder_upload import FolderUploadService
-from app.services.analysis.analyzers.skill_analyzer import analyze_and_tag
+import tempfile
+import zipfile
+import os
+from app.services.analysis.analyzers.skill_analyzer import analyze_project
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -62,24 +65,40 @@ class UploadFolderView(APIView):
             }
             return JsonResponse(minimal_payload)
 
+        # Try to produce skill analysis by extracting the uploaded zip to a temp dir.
+        analysis_result = None
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmp_zip_path = os.path.join(tmpdir, getattr(upload, "name", "upload.zip") or "upload.zip")
+                # Save uploaded file to disk
+                with open(tmp_zip_path, "wb") as out_f:
+                    for chunk in upload.chunks():
+                        out_f.write(chunk)
+                # Extract safely to a subfolder
+                extract_dir = os.path.join(tmpdir, "extracted")
+                os.makedirs(extract_dir, exist_ok=True)
+                try:
+                    with zipfile.ZipFile(tmp_zip_path, "r") as zf:
+                        zf.extractall(extract_dir)
+                    # Run skill analyzer on the extracted content
+                    analysis_result = analyze_project(extract_dir)
+                except zipfile.BadZipFile:
+                    # Not a zip or corrupted; leave analysis_result as None
+                    analysis_result = {"error": "uploaded file is not a valid zip or extraction failed"}
+                # tmpdir and its contents cleaned up automatically
+        except Exception as e:
+            # Non-fatal: keep going to service processing but record the analyzer error
+            analysis_result = {"error": f"analysis failure: {str(e)}"}
+
         # Delegate to service layer for business logic
         try:
             service = FolderUploadService()
             response_payload = service.process_zip(upload, github_username)
-            # Ensure skill analysis output is attached (if results present)
-            try:
-                results = []
-                if isinstance(response_payload, dict):
-                    # prefer explicit "results" key, otherwise empty
-                    results = response_payload.get("results", []) or []
-                skills_info = analyze_and_tag(results)
-                response_payload.setdefault("skill_summary", skills_info.get("summary", {}))
-                response_payload.setdefault("skill_tags", skills_info.get("tags", []))
-            except Exception:
-                # Don't fail the request if skill analysis errors; attach empty placeholders
-                if isinstance(response_payload, dict):
-                    response_payload.setdefault("skill_summary", {})
-                    response_payload.setdefault("skill_tags", [])
+            
+            # Merge in skill analysis if available
+            if analysis_result is not None:
+                # Avoid clobbering existing keys; attach under "skill_analysis"
+                response_payload["skill_analysis"] = analysis_result
 
             # Build ordered payload with consent metadata
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
