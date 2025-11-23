@@ -112,3 +112,30 @@ Some unexpected challanges were implementing what happens the when the user does
 The plan for me for the next wee is to begin with a non AI understanding of analyzed files. I want to be able to return a useful analysis of the files to help make a more efficient AI analysis in the future. This will also be helpful for if the user does not want their data sent to an LLM.
 ### Reflection:
 This weeks development went surprisingly well. After last week where I spent the majority of my time fixing issues I was prepared to have more delays in my development this week. However I didn't run into any major issues and was able to complete all my tasks for the week. I'm happy with the progress I made and I'm looking forward to continuing development next week.
+
+ ## Novermber 16-22
+ 
+- Increased file analyzer's performance by reducing redundant scans for dependencies and modules
+- Implemented file size limits so sub 5 line files are skipped during analysis
+- Implemented skill extraction from analyzed files that produces a percentage breakdown based on frequeny of skils found in files
+- Reviewed Team members code and provided feedback
+- Received help from team members in understanding new project updates
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+|  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/160 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/137 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/161 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/107 |
+
+### What went well
+    This week I was able to make significant improvements to the file analyzer's performance. This process was fairly painless and I was able to implement the changes quickly. It did take me a minute to mentally map out how I wanted to implement the skill analyzer feature but once I had a plan it was smooth sailing from there.
+
+### What didn't go well
+    Testing my teamates code changes took longer than expected this week. As the database is becoming more central to the work we are doing it takes more time to figure out if things are working and data is correctly being stored. This is something that I will get more proficient at as we continue, however, this week it was more challenging than I expected.
+
+
+### What's next
+    The next steps would be to connect the skill analyzer to the database so that the results can be stored. I didn't have enough time this week to implement that connection but it is a high priority for next week. I'd like to have projects be able to be recognized when a duplicate upload occurs and that way the skill break down can be based off the all time uploads for a user.
+
+### Reflection:
+    This week went well overall. I was a little worried about the progress I would be able to make due to requirements from other classes. However, things went smoothly during the time I spent on the project which alieviated some of my stress. Development went well which is always a good feeling. I'm looking forward to next week as we get closer to Milestone 1s due date. We are making good progress as a team and things are shaping up nicely.
