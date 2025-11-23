@@ -35,13 +35,15 @@
 
 | Task | Assigned To | Issue # | Pull Request |
 |------|-------------|---------|--------------|
-| | |  |  |
-| | |    |  |
-| | |      |  |
-|  | |  |  |
-|  |  |     |  |
-|  |   |      |  |
-|   |  | |  |
+| Reduce Redundant Scans | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/137 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/160 |
+|Determine Collaborative Projects| jordany78 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/65   |  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/150 |
+|Save Analysis to Database| kylekmcleod  |   https://github.com/COSC-499-W2025/capstone-project-team-8/issues/145   | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/156 |
+| Chronological Ordering Non Code Projects | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/147 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/155 |
+| Extract Key Skills | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/107   | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/161  |
+|Generate list of resume-ready skills (without AI)  | cschwebi  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/157    | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/162 |
+|  correct response on signing up with existing email | Porter-K | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/148| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/158 |
+| Automated Backend Tests  | Porter-K  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/149  | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/154 |  
+|Bugfix name filtering | jordann78  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/152, https://github.com/COSC-499-W2025/capstone-project-team-8/issues/151  |  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/153 |
 
 ### In Progress Tasks
 
