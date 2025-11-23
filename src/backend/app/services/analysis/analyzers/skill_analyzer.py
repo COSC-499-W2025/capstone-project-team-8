@@ -108,82 +108,81 @@ def detect_skills_from_results(results: List[Dict[str, Any]]) -> Dict[str, Any]:
         else:
             # not a key code file -> other
             counts["other"] += 1
-                        break
-                if matched_skill:
-                    break
-            if not matched_skill:
-                matched_skill = "web_frontend"
-        else:
-            # For content files: use text only (not path) and be conservative
-            if r.get("type") == "content":
-                # if no inline text, avoid matching from filename alone (README, lock files, etc.)
-                if not text_blob.strip():
-                    matched_skill = None
-                else:
-                    # If this is a dependency/lock/doc file, require a code-only trigger in text
-                    if ext in _CONSERVATIVE_EXTS or filename in _DEPENDENCY_FILENAMES:
-                        # only match if one of the code-only triggers is found in the text
-                        if any(trigger in text_blob for trigger in _CODE_ONLY_TRIGGERS):
-                            for skill, keywords in _SKILL_KEYWORDS.items():
-                                for kw in keywords:
-                                    if kw in text_blob:
-                                        matched_skill = skill
-                                        break
-                                if matched_skill:
-                                    break
-                    else:
-                        # general content files: allow keywords but prefer code-like triggers as before
-                        for skill, keywords in _SKILL_KEYWORDS.items():
-                            for kw in keywords:
-                                # accept if kw is a code-only trigger or contains code-like token
-                                if kw in _CODE_ONLY_TRIGGERS or any(ch in kw for ch in (".", "(", "import", "def", "class")):
-                                    if kw in text_blob:
-                                        matched_skill = skill
-                                        break
-                            if matched_skill:
-                                break
-            else:
-                # For code files, match using both text and path (path helps with filenames like Dockerfile, settings)
-                search_blob = " ".join([text_blob, path_blob])
+            if len(examples["other"]) < 5:
+                examples["other"].append(path)
+
+    total = len(candidates)
+
+    # Match skills for each candidate code file
+    for r in candidates:
+        path = r.get("path", "") or ""
+        ext = Path(path).suffix.lower()
+        lang = _EXTENSION_TO_LANG.get(ext, "unknown")
+        text_blob = _normalize(r.get("text", "")) + " " + _normalize(path)
+
+        matched_skill = None
+        # For HTML files we prefer frontend unless strong code triggers present in text
+        if ext in (".html", ".htm"):
+            # if text contains code-only triggers, allow matching
+            if any(trigger in text_blob for trigger in _CODE_ONLY_TRIGGERS):
                 for skill, keywords in _SKILL_KEYWORDS.items():
                     for kw in keywords:
-                        if kw in search_blob:
+                        if kw in text_blob:
                             matched_skill = skill
                             break
                     if matched_skill:
                         break
+            else:
+                matched_skill = "web_frontend"
+        else:
+            # normal matching across keywords
+            for skill, keywords in _SKILL_KEYWORDS.items():
+                for kw in keywords:
+                    if kw in text_blob:
+                        matched_skill = skill
+                        break
+                if matched_skill:
+                    break
 
         if matched_skill:
             counts[matched_skill] += 1
-            # store up to some example paths per skill
+            skill_lang_counts[matched_skill][lang] += 1
             if len(examples[matched_skill]) < 5:
                 examples[matched_skill].append(path)
         else:
-            # Count "other" to keep track of unmatched files
             counts["other"] += 1
             if len(examples["other"]) < 5:
                 examples["other"].append(path)
 
-    # Build structured output
-    skills_list = []
-    # exclude "other" from percentage denominator
+    # Build structured output; exclude "other" from percentage denominator
     other_count = counts.get("other", 0)
-    matched_total = total - other_count
+    matched_total = sum(cnt for k, cnt in counts.items() if k != "other")
+
+    skills_list = []
     for skill, cnt in counts.most_common():
-        if matched_total > 0 and skill != "other":
-            percent = round((cnt / matched_total) * 100, 1)
-        else:
-            # do not compute a meaningful percent for "other" or when no matched files exist
+        if skill == "other":
+            # include other but percent 0 (per request)
             percent = 0.0
+            langs = []
+        else:
+            percent = round((cnt / matched_total) * 100, 1) if matched_total > 0 else 0.0
+            # languages breakdown for this skill
+            lang_counts = skill_lang_counts.get(skill, {})
+            langs = []
+            for lang, lcnt in lang_counts.most_common():
+                lpercent = round((lcnt / cnt) * 100, 1) if cnt > 0 else 0.0
+                langs.append({"language": lang, "count": lcnt, "percent": lpercent})
         skills_list.append({
             "skill": skill,
             "count": cnt,
             "percent": percent,
-            "examples": examples.get(skill, [])  # sample file paths
+            "languages": langs,
+            "examples": examples.get(skill, [])
         })
 
     return {
         "total_files": total,
+        "matched_total": matched_total,
         "skills": skills_list,
         "raw_counts": dict(counts)
     }
