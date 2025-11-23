@@ -389,8 +389,14 @@ When uploading a folder without any `.git` directories, files are listed under a
       "HTML"
     ],
     "frameworks": []
+  },
+  "skill_analyzer": {
+    "skills": [],
+    "categories": [],
+    "summary": {}
   }
 }
+
 ```
 
 **Note:** When no Git projects are detected:
