@@ -65,6 +65,7 @@ There are no remaining tasks in progress for this week.
 ### Test Report
 
 
+<img width="1276" height="320" alt="Week12TestReport" src="https://github.com/user-attachments/assets/6213aa57-252c-41d9-8ab0-5223a0cd729d" />
 
 
 ## Week 10: Nov 2 - 9
