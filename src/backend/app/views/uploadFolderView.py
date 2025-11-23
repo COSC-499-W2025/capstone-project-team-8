@@ -4,6 +4,8 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
 from app.services.folder_upload import FolderUploadService
+from app.services.database_service import ProjectDatabaseService
+from app.services.analysis.analyzers import skill_analyzer
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -23,7 +25,7 @@ from app.services.folder_upload import FolderUploadService
 
 class UploadFolderView(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    #permission_classes = [IsAuthenticated]  # Require JWT authentication
+    #permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
         """
@@ -65,6 +67,58 @@ class UploadFolderView(APIView):
         try:
             service = FolderUploadService()
             response_payload = service.process_zip(upload, github_username)
+
+            # Run skill analysis on the per-file results to provide a skills breakdown/tags
+            # Prefer an explicit 'results' list from the service; if not present, try to
+            # reconstruct a lightweight results list from the project file listings.
+            results = response_payload.get("results")
+            if not results:
+                results = []
+                for proj in response_payload.get("projects", []):
+                    for ftype, flist in proj.get("files", {}).items():
+                        for entry in flist:
+                            if isinstance(entry, dict):
+                                r = {"path": entry.get("path"), "type": ftype}
+                                # preserve analyzers' numeric metrics if available
+                                if "lines" in entry:
+                                    r["lines"] = entry.get("lines")
+                                if "length" in entry:
+                                    r["length"] = entry.get("length")
+                                if "text" in entry:
+                                    r["text"] = entry.get("text")
+                                results.append(r)
+                            else:
+                                results.append({"path": entry, "type": ftype})
+
+            try:
+                skill_info = skill_analyzer.analyze_and_tag(results)
+                # Attach both structured summary and compact tags to the payload
+                response_payload["skills_summary"] = skill_info.get("summary", {})
+                response_payload["skill_tags"] = skill_info.get("tags", [])
+            except Exception:
+                # If skill analysis fails, continue without blocking the response
+                response_payload["skills_summary"] = {}
+                response_payload["skill_tags"] = []
+
+            if request.user.is_authenticated:
+                try:
+                    db_service = ProjectDatabaseService()
+                    projects = db_service.save_project_analysis(
+                        user=request.user,
+                        analysis_data=response_payload,
+                        upload_filename=upload.name or "upload.zip"
+                    )
+                    
+                    # Add database IDs to response
+                    response_payload["saved_projects"] = [
+                        {"id": project.id, "name": project.name} 
+                        for project in projects
+                    ]
+                    
+                except Exception as db_error:
+                    response_payload["database_warning"] = f"Analysis completed but failed to save to database: {str(db_error)}"
+            else:
+                response_payload["database_info"] = "Analysis completed. Sign in to save projects to your account."
             
             # Build ordered payload with consent metadata
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
