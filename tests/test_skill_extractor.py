@@ -12,7 +12,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.settings')
 import django
 django.setup()
 
-from app.services.analysis.analyzers import extract_skills
+from app.services.analysis.analyzers import extract_resume_skills
 
 
 class SkillExtractionTests(TestCase):
@@ -50,7 +50,7 @@ class SkillExtractionTests(TestCase):
             'web/style.css': 'body { color: blue; }'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Full-Stack Development', skills)
         self.assertIn('Web Design', skills)
@@ -67,7 +67,7 @@ class SkillExtractionTests(TestCase):
             'frontend/App.tsx': 'export const App = () => <div>Hello</div>'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Full-Stack Development', skills)
         self.assertIn('RESTful APIs', skills)  # Django skill
@@ -85,7 +85,7 @@ class SkillExtractionTests(TestCase):
             'models.py': 'class User: pass'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Backend Development', skills)
         self.assertIn('RESTful APIs', skills)  # Flask skill, not 'Flask' itself
@@ -101,7 +101,7 @@ class SkillExtractionTests(TestCase):
             'src/index.tsx': 'import React from "react"'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Frontend Development', skills)
         self.assertIn('Component-Based Architecture', skills)  # React skill
@@ -117,7 +117,7 @@ class SkillExtractionTests(TestCase):
             'about.html': '<html><body>About Us</body></html>'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Frontend Development', skills)
         self.assertIn('Web Design', skills)
@@ -133,7 +133,7 @@ class SkillExtractionTests(TestCase):
             'utils.py': 'def helper(): pass'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Backend Development', skills)
         self.assertNotIn('Frontend Development', skills)
@@ -146,7 +146,7 @@ class SkillExtractionTests(TestCase):
             'index.html': '<html><body>No CSS here</body></html>'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Frontend Development', skills)
         self.assertNotIn('Web Design', skills)  # Requires both HTML and CSS
@@ -157,7 +157,7 @@ class SkillExtractionTests(TestCase):
             'style.css': 'body { color: red; }'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Frontend Development', skills)
         self.assertNotIn('Web Design', skills)  # Requires both HTML and CSS
@@ -170,7 +170,7 @@ class SkillExtractionTests(TestCase):
             'app.py': 'print("Hello")'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Containerization', skills)  # Docker adds Containerization
         self.assertNotIn('Docker', skills)  # Framework name not in skills
@@ -184,7 +184,7 @@ class SkillExtractionTests(TestCase):
             'setup.sh': '#!/bin/bash\necho "Setup"'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Containerization', skills)  # Docker adds Containerization
         self.assertNotIn('Docker', skills)  # Framework name not in skills
@@ -195,7 +195,7 @@ class SkillExtractionTests(TestCase):
         """Test empty project - should return empty skills list"""
         project = self.create_test_project({})
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertEqual(skills, [])
 
@@ -206,7 +206,7 @@ class SkillExtractionTests(TestCase):
             '.gitignore': 'node_modules/'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         # Should be empty or minimal (just documentation-related)
         self.assertNotIn('Backend Development', skills)
@@ -222,7 +222,7 @@ class SkillExtractionTests(TestCase):
             'data_prep.py': 'import pandas as pd'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         # Check for ML and data science skills (framework names become skill names)
         self.assertIn('Machine Learning', skills)
@@ -239,7 +239,7 @@ class SkillExtractionTests(TestCase):
             'components/Button.tsx': 'export const Button = () => null'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Mobile Development', skills)
         self.assertIn('Cross-Platform Development', skills)  # React Native skill
@@ -252,7 +252,7 @@ class SkillExtractionTests(TestCase):
             'src/app.py': 'def main(): pass'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         # Jenkinsfile should add CI/CD skills
         self.assertIn('CI/CD', skills)
@@ -267,7 +267,7 @@ class SkillExtractionTests(TestCase):
             'docker-compose.yml': 'version: "3"'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Containerization', skills)  # Concept skill
         self.assertNotIn('Docker', skills)  # Framework name not in skills
@@ -284,7 +284,7 @@ class SkillExtractionTests(TestCase):
             'photos/img4.nef': 'fake-raw-content'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Photography', skills)
         self.assertIn('RAW Photo Processing', skills)
@@ -296,7 +296,7 @@ class SkillExtractionTests(TestCase):
             'designs/logo.ai': 'fake-ai-content'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Adobe Photoshop', skills)
         self.assertIn('Adobe Illustrator', skills)
@@ -309,7 +309,7 @@ class SkillExtractionTests(TestCase):
             'designs/wireframe.fig': 'fake-figma-content'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Figma', skills)
         self.assertIn('UI/UX Design', skills)
@@ -323,7 +323,7 @@ class SkillExtractionTests(TestCase):
             'requirements.txt': 'django==4.2.0'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertNotIn('Python Programming', skills)  # Languages listed separately
         self.assertIn('Backend Development', skills)  # Context skill OK
@@ -337,7 +337,7 @@ class SkillExtractionTests(TestCase):
             'utils.hs': 'double x = x * 2'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Functional Programming', skills)
 
@@ -352,7 +352,7 @@ class SkillExtractionTests(TestCase):
             'frontend/style.css': 'body { }'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Full-Stack Development', skills)
         self.assertNotIn('Backend Development', skills)  # Replaced by Full-Stack
@@ -365,7 +365,7 @@ class SkillExtractionTests(TestCase):
             'App.tsx': 'import React from "react"'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         # Framework skills added, not framework names
         self.assertIn('Component-Based Architecture', skills)  # React
@@ -399,7 +399,7 @@ class SkillExtractionTests(TestCase):
             'tests/test_app.py': 'import pytest'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         # Core skills
         self.assertIn('Full-Stack Development', skills)
@@ -452,7 +452,7 @@ class SkillExtractionEdgeCasesTests(TestCase):
             'index.html': '<html></html>'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         # Check that skills are sorted
         self.assertEqual(skills, sorted(skills))
@@ -465,7 +465,7 @@ class SkillExtractionEdgeCasesTests(TestCase):
             'app.py': 'print("Hello")'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         # Check no duplicates
         self.assertEqual(len(skills), len(set(skills)))
@@ -477,7 +477,7 @@ class SkillExtractionEdgeCasesTests(TestCase):
             'App.jsx': 'export const App = () => null'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         # Check skills exist and are properly capitalized
         self.assertIn('Component-Based Architecture', skills)
@@ -499,7 +499,7 @@ class SkillExtractionEdgeCasesTests(TestCase):
         project = self.create_test_project(files)
         
         # Should complete without timing out
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         self.assertIn('Backend Development', skills)
         self.assertIn('RESTful APIs', skills)  # Django skill
@@ -513,7 +513,7 @@ class SkillExtractionEdgeCasesTests(TestCase):
             'docs/api.md': '## API Reference'
         })
         
-        skills = extract_skills(project)
+        skills = extract_resume_skills(project)
         
         # May have Documentation skill or be empty
         self.assertNotIn('Backend Development', skills)

@@ -326,13 +326,13 @@ FILE_TYPE_SKILLS = {
 }
 
 
-def extract_skills(
+def extract_resume_skills(
     root_dir: Union[str, Path],
     languages: List[str] = None,
     frameworks: List[str] = None
 ) -> List[str]:
     """
-    Extract comprehensive skills from a project.
+    Extract comprehensive resume-ready skills from a project.
     
     Analyzes languages, frameworks, and file types to determine what professional
     skills are demonstrated in the project. This goes beyond simple detection to
@@ -347,8 +347,8 @@ def extract_skills(
         Sorted list of unique skills, prioritized by relevance
         
     Example:
-        >>> extract_skills('/path/to/project')
-        ['Python Programming', 'Django', 'React', 'RESTful APIs', 'Photo Editing']
+        >>> extract_resume_skills('/path/to/project')
+        ['Backend Development', 'RESTful APIs', 'Containerization', 'Photo Editing']
     """
     from .project_metadata import detect_languages, detect_frameworks
     
