@@ -55,6 +55,10 @@ There are no remaining tasks in progress for this week.
 
 
 ### Next Weeks Plan Towards Milestone 1 
+14. Retrieve previously generated portfolio information 
+16. Rank importance of each project based on user's contributions
+18. Delete previously generated insights and ensure files that are shared across multiple reports do not get affected 
+20. Produce a chronological list of skills exercised 
 
 
 
