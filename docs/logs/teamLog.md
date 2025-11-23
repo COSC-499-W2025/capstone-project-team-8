@@ -8,6 +8,54 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 12: Nov 16 - 22
+
+### Our Goals for this week:
+
+
+### Reflection:
+
+
+### What went well:
+
+
+### What didn't go well:
+
+
+### Burn Up Chart
+
+
+
+
+### Completed Tasks
+
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| | |  |  |
+| | |    |  |
+| | |      |  |
+|  | |  |  |
+|  |  |     |  |
+|  |   |      |  |
+|   |  | |  |
+
+### In Progress Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+|      |             |         |
+|      |             |         |
+|      |             |         |
+
+### Next Weeks Plan Towards Milestone 1 
+
+
+
+### Test Report
+
+
+
+
 ## Week 10: Nov 2 - 9
 
 ### Our Goals for this week:
