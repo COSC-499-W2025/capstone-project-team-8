@@ -106,7 +106,7 @@ NEXT WEEK: Non-AI Analysis functionality (Resume Items++)
 
 ## Week 12 (Nov 17 - Nov 23)
 
-<!-- Image will be added here -->
+<img width="1879" height="1089" alt="image" src="https://github.com/user-attachments/assets/bb74b283-fb9b-4628-8539-bd8b1bf4e773" />
 
 #### What I did:
 
