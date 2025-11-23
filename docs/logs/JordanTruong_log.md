@@ -75,7 +75,7 @@ I need to accomodate for delays better by start working on the PR's earlier. Tha
 ## Week 12 November 17th - November 21st:
 <img width="1075" height="629" alt="image" src="https://github.com/user-attachments/assets/aee4886b-b1a9-43f7-985f-11cfe1475269" /></br>
 ### Recap:
-- Started a PR with 2 bugfix issues. Got 1 fixed but still working on the other
+- Finished a PR with 2 bugfix issues
 - Finished a PR to add a collaborative tag if the project has >1 contributors with >0 commits
 - Reviewed and tested Matin's PR https://github.com/COSC-499-W2025/capstone-project-team-8/pull/155
 
@@ -83,20 +83,16 @@ I need to accomodate for delays better by start working on the PR's earlier. Tha
 | Pull Request | Issues addressed |
 |---|---|
 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/150  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/65 |
-
-### WIP PRs
-| Pull Request | Issues addressed |
-|---|---|
 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/153  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/152, https://github.com/COSC-499-W2025/capstone-project-team-8/issues/151 |
 
 ### What went well
-I managed my time well this week by doing my work at the start of the week rather than cramming in at the end. No big issues when working on my PR's, just one change request was made and it was simple to do. This PR helped us get closer to finishing up Mileston #1.
+I managed my time well this week by doing my work at the start of the week rather than cramming in at the end. No big issues when working on my PR's, just one change request was made and it was simple to do. This PR helped us get closer to finishing up Milestone #1.
 
 ### What didn't go well
 Although I felt better completing my work earlier in the week, it was harder to get back into it at the end of the week. Rather than working on it a lot in the beginning or end, I should try and spread out the work over the days to build consistency and work on it a little bit every day.
 
 ### What's next
-Next week I'll finish up the bugfix PR and start issue https://github.com/COSC-499-W2025/capstone-project-team-8/issues/109. Hopefully get it done by the end of the week with my new work plan.
+Next week I'll start issue https://github.com/COSC-499-W2025/capstone-project-team-8/issues/109. Hopefully get it done by the end of the week with my new work plan.
 
 ### Reflection:
 Need to spread out the work to build a better routing. I find it easy to continue to work on the issue until it's done but the hardest part is getting started. Overall I feel satisfied with my work this week and made progress from last week.
