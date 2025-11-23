@@ -102,3 +102,35 @@ NEXT WEEK: Implement Coding Language and Framework Detection
 Overall, I think our team made pretty good progress. With us now having framework detection and with our LLM service gaining file-upload capabilities, we are getting very close to a finished product. Right now we have a lot of momentum, and I think with my knowledge of the current preprocessing, I can do a very good job of implementing the non-AI analysis functionality.
 
 NEXT WEEK: Non-AI Analysis functionality (Resume Items++)
+
+
+## Week 12 (Nov 17 - Nov 23)
+
+<!-- Image will be added here -->
+
+#### What I did:
+
+- Implemented resume skills extraction module to automatically detect professional skills from projects
+- Created tests to ensure functionality
+- Updated documentation in ./src/bacckend/README.md to reflect new JSON response
+- Reviewed teammates code
+
+#### My PR's: 
+
+#162
+
+#### WHAT WENT WELL: 
+- Successfully implemented a resume skills extraction system
+- All tests pass with no errors
+- Skills are contextually inferred and resume-appropriate
+- Fixed critical gap where creative projects weren't getting skills extracted
+- Communicated with Harper Kerstens to ensure skill detetcion implementations serve unique purposes
+
+#### WHAT DIDN'T
+- Initial implementation had too many redundant/assumed skills that needed refinement
+- Took several iterations to get the framework vs. skill separation right
+
+#### REFLECTION
+This week was very productive. The resume skills extraction feature is a major addition to our project's non-AI analysis capabilities. Some of my teammates had issues with the heuristic project classifier I developed previously, so I will definitely help them with their issues in the coming week.
+
+NEXT WEEK: Generate actual resume bullet points based on new generated data + Help tune heuristic classifier
