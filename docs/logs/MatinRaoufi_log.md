@@ -118,6 +118,36 @@ Next Week:
   
 Reflection: I learned the importance of a single responsibility princple and how it makes implementing new features a lot easier and makes components easy to understand
 I also learnt the importance of slowing down on implementation and reviewing what you currently have and the importance of refactoring before continuing. 
+
+Nov 17 - 23
+
+<img width="1081" height="638" alt="image" src="https://github.com/user-attachments/assets/4523e980-03aa-47e7-aee1-7285cce9fcad" />
+
+
+- This week I Implemented chronological ordering for non-git projects by extracting file timestamps from ZIP metadata. This feature enables projects to be displayed in chronological order (oldest first) based on their actual creation dates, not just git commit history.
+PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/155 Issue: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/147
+- I worked with Kyle McLeod together while we both worked on our own features simultaneosly interacting with eachother and asking questions to see
+  if what we were doing was right
+- I reviewed 2 PRs one as first reviewer
+- Tested my own and teammates code
+
+What went well: 
+- Reviewing PRs and working with a teammate simultaneously was helpful in figuring out my implementation and to get a second opinion
+- Bonus week work came in handy as it cleaned up our unneccassry large files and componenets that had multiple functions which helped with implementation this week
+
+What didn't go well:
+- Trying to figure out how to retrieve a unix timestamp for a project that is non-git since there is no time for inital commit
+- Our heuristics model markers weren't detecting some projects when testing, so I added those.
+- We potentially need to reconfigure to something more realiable other than heuristics since it is not accurate and marking most cases as 'coding projects'
+
+Next week:
+- I want to meet with the team and delegate our tasks and bring up potential reconfiguring of our heuristics model and see if there is better alternatives to implement
+- I want to potentially start Issue https://github.com/COSC-499-W2025/capstone-project-team-8/issues/111 since Kyle implementated the projects models for our DB
+
+Reflection: I learned more about the importance of proper refractoring and slowing down on new features in a project. I also learned that the way our JSON output works
+could use a tune-up/improvement since it is missing markers for certain project, and seems to flag most things as 'coding' I also learned that work can be done quicker and more
+efficiently if you work with someone near you for feedback/review on the spot while implemeneting
+
   
 
 
