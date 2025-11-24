@@ -418,8 +418,30 @@ When uploading a folder without any `.git` directories, files are listed under a
       "Full-Stack Development",
       "Object-Oriented Programming"
     ]
+  },
+  "skill_analysis": {
+    "total_files_scanned": 5,
+    "total_skill_matches": 5,
+    "skills": {
+      "Web Backend": {
+        "count": 2,
+        "percentage": 40.0,
+        "languages": {
+          "Python": 1,
+          "JavaScript": 1
+        }
+      },
+      "Web Frontend": {
+        "count": 1,
+        "percentage": 20.0,
+        "languages": {
+          "HTML": 1
+        }
+      }
+    }
   }
 }
+
 ```
 
 **Note:** When no Git projects are detected:
