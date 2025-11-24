@@ -27,7 +27,7 @@ class FileScannerService:
     
     # Directories to exclude from scanning
     EXCLUDED_DIRS = {
-        'node_modules', '__pycache__', '.git', 'venv', 'env',
+        'node_modules', '__pycache__', 'venv', 'env',
         'dist', 'build', '.next', '.nuxt', 'vendor', 'target',
         'coverage', '.pytest_cache', '.mypy_cache', '.venv',
         '.tox', '.eggs', '*.egg-info', '.gradle', 'out',
