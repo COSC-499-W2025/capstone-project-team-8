@@ -25,6 +25,15 @@ class FileScannerService:
         - Assign project tags to files
     """
     
+    # Directories to exclude from scanning
+    EXCLUDED_DIRS = {
+        'node_modules', '__pycache__', '.git', 'venv', 'env',
+        'dist', 'build', '.next', '.nuxt', 'vendor', 'target',
+        'coverage', '.pytest_cache', '.mypy_cache', '.venv',
+        '.tox', '.eggs', '*.egg-info', '.gradle', 'out',
+        'bin', 'obj', '.vs', '.idea', '.vscode',
+    }
+    
     def __init__(self):
         """Initialize with required analyzers."""
         from app.services.analysis import analyzers
@@ -49,7 +58,10 @@ class FileScannerService:
         """
         results = []
         
-        for root, _, files in os.walk(tmpdir_path):
+        for root, dirs, files in os.walk(tmpdir_path):
+            # Filter out excluded directories IN-PLACE (prevents descending into them)
+            dirs[:] = [d for d in dirs if d not in self.EXCLUDED_DIRS]
+            
             for fname in files:
                 fpath = Path(root) / fname
                 
