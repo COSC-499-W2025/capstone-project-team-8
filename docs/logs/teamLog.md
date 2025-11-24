@@ -29,6 +29,7 @@
 ### Burn Up Chart
 
 
+<img width="1780" height="1056" alt="image" src="https://github.com/user-attachments/assets/a83a4806-775e-4bbf-a71b-364522173ad2" />
 
 
 ### Completed Tasks
