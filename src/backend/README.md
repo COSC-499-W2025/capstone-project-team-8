@@ -215,7 +215,11 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
         "languages": [
           "Python"
         ],
-        "frameworks": []
+        "frameworks": [],
+        "resume_skills": [
+          "Backend Development",
+          "Object-Oriented Programming"
+        ]
       },
       "files": {
         "code": [
@@ -274,7 +278,11 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
     "languages": [
       "Python"
     ],
-    "frameworks": []
+    "frameworks": [],
+    "resume_skills": [
+      "Backend Development",
+      "Object-Oriented Programming"
+    ]
   }
 }
 ```
@@ -297,6 +305,7 @@ Each project contains:
   - **`features`** (optional): File count breakdown
   - **`languages`** (array, coding projects only): Detected programming languages, sorted by prevalence
   - **`frameworks`** (array, coding projects only): Detected frameworks and libraries
+  - **`resume_skills`** (array, coding and art projects only): Inferred professional skills and capabilities (e.g., "Backend Development", "RESTful APIs", "Containerization"). These are resume-appropriate skill concepts, NOT framework names.
 - **`files`** (object): Files organized by type
   - **`code`**: Array of code files with `path` and `lines`
   - **`content`**: Array of text/document files with `path` and `length` (characters)
@@ -318,6 +327,7 @@ Each project contains:
   - **`image_files`**: Total image files
 - **`languages`** (array, optional): Aggregated programming languages across all projects
 - **`frameworks`** (array, optional): Aggregated frameworks across all projects
+- **`resume_skills`** (array, optional): Aggregated professional skills across all projects
 
 ## Example: No Git Projects Detected
 
@@ -347,7 +357,11 @@ When uploading a folder without any `.git` directories, files are listed under a
           "JavaScript",
           "HTML"
         ],
-        "frameworks": []
+        "frameworks": [],
+        "resume_skills": [
+          "Full-Stack Development",
+          "Object-Oriented Programming"
+        ]
       },
       "files": {
         "code": [
@@ -399,12 +413,32 @@ When uploading a folder without any `.git` directories, files are listed under a
       "JavaScript",
       "HTML"
     ],
-    "frameworks": []
+    "frameworks": [],
+    "resume_skills": [
+      "Full-Stack Development",
+      "Object-Oriented Programming"
+    ]
   },
-  "skill_analyzer": {
-    "skills": [],
-    "categories": [],
-    "summary": {}
+  "skill_analysis": {
+    "total_files_scanned": 5,
+    "total_skill_matches": 5,
+    "skills": {
+      "Web Backend": {
+        "count": 2,
+        "percentage": 40.0,
+        "languages": {
+          "Python": 1,
+          "JavaScript": 1
+        }
+      },
+      "Web Frontend": {
+        "count": 1,
+        "percentage": 20.0,
+        "languages": {
+          "HTML": 1
+        }
+      }
+    }
   }
 }
 
@@ -426,4 +460,5 @@ When uploading a folder without any `.git` directories, files are listed under a
 - **Project Detection:** Currently only Git repositories (via `.git` folders) are detected. Future versions will support detection of other project types
 - Files not belonging to any detected project are grouped under `id: 0` with `root: "(non-git-files)"`
 - The `overall.totals.projects` count excludes the unorganized files project (id=0)
+- **Skills Detection:** Skills are automatically inferred from detected languages, frameworks, and file types. Framework names appear in `frameworks` array, while their associated capabilities appear in `resume_skills`
 

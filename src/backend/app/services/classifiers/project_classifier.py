@@ -5,7 +5,7 @@ from pathlib import Path
 from collections import Counter
 from typing import Dict, Any, Union, Tuple
 
-from ..analysis.analyzers import detect_languages, detect_frameworks
+from ..analysis.analyzers import detect_languages, detect_frameworks, extract_resume_skills
 
 
 # Extension sets for different file types
@@ -308,6 +308,10 @@ def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
                 result['languages'] = []
                 result['frameworks'] = []
             
+            # Extract resume_skills for ALL project types (coding, art, writing, mixed)
+            # This includes creative skills like Photography, Adobe Photoshop, Video Editing, etc.
+            result['resume_skills'] = extract_resume_skills(root_dir, result['languages'], result['frameworks'])
+            
             return result
     
     # Handle directory
@@ -341,6 +345,10 @@ def classify_project(project_path: Union[str, Path]) -> Dict[str, Any]:
         else:
             result['languages'] = []
             result['frameworks'] = []
+        
+        # Extract resume_skills for ALL project types (coding, art, writing, mixed)
+        # This includes creative skills like Photography, Adobe Photoshop, Video Editing, etc.
+        result['resume_skills'] = extract_resume_skills(project_path, result['languages'], result['frameworks'])
         
         return result
 
