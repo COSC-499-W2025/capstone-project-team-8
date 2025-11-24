@@ -4,6 +4,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
 from app.services.folder_upload import FolderUploadService
+from app.services.database_service import ProjectDatabaseService
 import tempfile
 import zipfile
 import os
@@ -27,7 +28,7 @@ from app.services.analysis.analyzers.skill_analyzer import analyze_project
 
 class UploadFolderView(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    #permission_classes = [IsAuthenticated]  # Require JWT authentication
+    #permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
         """
@@ -94,6 +95,25 @@ class UploadFolderView(APIView):
         try:
             service = FolderUploadService()
             response_payload = service.process_zip(upload, github_username)
+            if request.user.is_authenticated:
+                try:
+                    db_service = ProjectDatabaseService()
+                    projects = db_service.save_project_analysis(
+                        user=request.user,
+                        analysis_data=response_payload,
+                        upload_filename=upload.name or "upload.zip"
+                    )
+                    
+                    # Add database IDs to response
+                    response_payload["saved_projects"] = [
+                        {"id": project.id, "name": project.name} 
+                        for project in projects
+                    ]
+                    
+                except Exception as db_error:
+                    response_payload["database_warning"] = f"Analysis completed but failed to save to database: {str(db_error)}"
+            else:
+                response_payload["database_info"] = "Analysis completed. Sign in to save projects to your account."
             
             # Merge in skill analysis if available
             if analysis_result is not None:

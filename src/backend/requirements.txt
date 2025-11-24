@@ -5,3 +5,4 @@ mysqlclient
 python-decouple
 python-dotenv
 GitPython
+requests
