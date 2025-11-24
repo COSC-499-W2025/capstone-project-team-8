@@ -83,6 +83,7 @@ class FolderUploadService:
             tmpdir_path = Path(tmpdir)
             
             # Step 2: Extract
+            archive_path = tmpdir_path / "upload.zip"
             self.extractor.extract(upload, tmpdir_path)
             
             # Step 3: Discover projects
@@ -95,17 +96,23 @@ class FolderUploadService:
             results = self.file_scanner.scan(tmpdir_path, projects, projects_rel)
             
             # Step 5: Classify projects
-            archive_path = tmpdir_path / "upload.zip"
             project_classifications = self._classify_projects(
                 archive_path, 
                 projects, 
                 tmpdir_path
             )
             
-            # Step 6: Get Git contributors
+            # Step 6: Get Git contributors and timestamps
             git_contrib_data, project_timestamps = self._get_git_contributors(projects)
             
-            # Step 7: Transform results
+            # Step 7: Get timestamps for non-git projects from ZIP metadata
+            zip_timestamps = self._get_zip_file_timestamps(archive_path, projects, tmpdir_path)
+            # Merge with git timestamps (git timestamps take priority)
+            for tag, timestamp in zip_timestamps.items():
+                if tag not in project_timestamps or project_timestamps[tag] == 0:
+                    project_timestamps[tag] = timestamp
+            
+            # Step 8: Transform results
             response_data = transform_to_new_structure(
                 results,
                 projects,
@@ -229,3 +236,74 @@ class FolderUploadService:
                     project_timestamps[tag] = 0
         
         return git_contrib_data, project_timestamps
+    
+    def _get_zip_file_timestamps(
+        self,
+        zip_path: Path,
+        projects: Dict[Path, int],
+        tmpdir_path: Path
+    ) -> Dict[int, int]:
+        """
+        Extract timestamps from ZIP file metadata for non-git projects.
+        Finds the oldest file in each project directory based on ZIP metadata.
+        
+        Args:
+            zip_path: Path to the ZIP file
+            projects: Dict mapping project root paths to tag IDs
+            tmpdir_path: Path to the temporary extraction directory
+            
+        Returns:
+            Dict mapping project tag to Unix timestamp (oldest file in that project)
+        """
+        import zipfile
+        from datetime import datetime
+        
+        project_timestamps = {}
+        
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                # Group by project tag
+                for root_path, tag in projects.items():
+                    # Skip tag 0 (unorganized non-git files)
+                    if tag == 0:
+                        continue
+                    
+                    # Calculate relative path from tmpdir
+                    try:
+                        rel_root = root_path.relative_to(tmpdir_path)
+                        project_prefix = str(rel_root).replace('\\', '/')
+                    except ValueError:
+                        continue
+                    
+                    oldest_time = None
+                    
+                    # Find oldest file in this project
+                    for zip_info in zf.infolist():
+                        if zip_info.is_dir():
+                            continue
+                        
+                        # Normalize path separators
+                        file_path = zip_info.filename.replace('\\', '/')
+                        
+                        # Check if file belongs to this project
+                        if file_path.startswith(project_prefix + '/') or file_path == project_prefix:
+                            try:
+                                # Convert date_time tuple to Unix timestamp
+                                # date_time is (year, month, day, hour, minute, second)
+                                dt = datetime(*zip_info.date_time)
+                                timestamp = int(dt.timestamp())
+                                
+                                if oldest_time is None or timestamp < oldest_time:
+                                    oldest_time = timestamp
+                            except (ValueError, OSError):
+                                # Skip files with invalid timestamps
+                                continue
+                    
+                    if oldest_time is not None:
+                        project_timestamps[tag] = oldest_time
+                        
+        except Exception:
+            # If anything fails, just return empty dict
+            pass
+        
+        return project_timestamps
