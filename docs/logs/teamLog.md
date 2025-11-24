@@ -8,7 +8,7 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
-## Week 12: Nov 16 - 22
+## Week 11 (Reading Week) & 12: Nov 10 - 22
 
 ### Our Goals for this week:
   Our goals for this week were to make progress towards finalizing things for Milestone 1. This included more database integration with uploaded projects, improving our analysis engine, and finishing off any unfinished areas of development for the analyzer. Alongside some minor bug fixes our focus was mainly poloshing off some rough edges that needed attention before the submission. The database is the last major step for the project in regards to this milestone so this was also of key focus for us this week.
@@ -39,7 +39,9 @@
 | Reduce Redundant Scans | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/137 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/160 |
 |Determine Collaborative Projects| jordany78 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/65   |  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/150 |
 |Save Analysis to Database| kylekmcleod  |   https://github.com/COSC-499-W2025/capstone-project-team-8/issues/145   | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/156 |
+| Refactor Analysis and Classifiers | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/142 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/143 |
 | Chronological Ordering Non Code Projects | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/147 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/155 |
+| Refactor UploadFolderView Service Layer | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/134 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/144 |
 | Extract Key Skills | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/107   | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/161  |
 |Generate list of resume-ready skills (without AI)  | cschwebi  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/157    | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/162 |
 |  correct response on signing up with existing email | Porter-K | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/148| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/158 |
