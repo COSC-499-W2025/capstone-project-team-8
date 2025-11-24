@@ -97,56 +97,38 @@ Nov 3 - Nov 9
 
 - Next I want to finish the need for ordering by chronological order by implementing a feature that checks non git projects, I am splitting this up into seperate issues to be easier to manage
 
-Nov 10 - 16 (Reading Week Bonus)
+Nov 10 - 23 Reading week bonus Week 11 & 12
 
-- refactored UploadFolderView as is it was taking on too many responsibilities and make UploadFolderView only handle HTTP concers, and created new FolderUploadService to orchestrate the logic
+<img width="1081" height="638" alt="image" src="https://github.com/user-attachments/assets/4523e980-03aa-47e7-aee1-7285cce9fcad" />
+
+- Refactored UploadFolderView as it was taking on too many responsibilities and made UploadFolderView only handle HTTP concerns, and created new FolderUploadService to orchestrate the logic
 PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/144 Issue: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/134
-- I tested that functionality remained the same and wrote new tests individual to each service
-- I worked with Kyle Mcleod on this he refactored the classifiers and analyzers so I branched off his work
+- Implemented chronological ordering for non-git projects by extracting file timestamps from ZIP metadata. This feature enables projects to be displayed in chronological order (oldest first) based on their actual creation dates, not just git commit history
+PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/155 Issue: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/147
+- Tested that functionality remained the same and wrote new tests individual to each service
+- Worked with Kyle McLeod on both features - he refactored the classifiers and analyzers so I branched off his work, and we worked simultaneously on our features interacting with each other and asking questions to see if what we were doing was right
+- Reviewed multiple PRs
+- Tested teammates code
+- Tested my own and teammates code
 
 What went well: 
-- This helps our codebase become simpler and helps maintain a single responsibility principle
+- The refactoring helps our codebase become simpler and helps maintain a single responsibility principle
 - Communicating with Kyle during this was good and trying to maintain a no merge conflict implementation
+- Reviewing PRs and working with a teammate simultaneously was helpful in figuring out my implementation and to get a second opinion
+- Bonus week work came in handy as it cleaned up our unnecessarily large files and components that had multiple functions which helped with implementation this week
 
 What didn't go well:
 - I had a hard time trying to understand our uploadFolderView as the component had over 700 lines of code and trying to figure out how to simplify the component without breaking functionality
 - Some parts of refactor took longer because I ran into some logic errors once I moved the logic to somewhere else
-
-Next Week: 
-- I want to work on doing on order output of projects by chronological order for non git projects https://github.com/COSC-499-W2025/capstone-project-team-8/issues/147
-- Discuss where we at with group next class (Monday)
-  
-Reflection: I learned the importance of a single responsibility princple and how it makes implementing new features a lot easier and makes components easy to understand
-I also learnt the importance of slowing down on implementation and reviewing what you currently have and the importance of refactoring before continuing. 
-
-Nov 17 - 23
-
-<img width="1081" height="638" alt="image" src="https://github.com/user-attachments/assets/4523e980-03aa-47e7-aee1-7285cce9fcad" />
-
-
-- This week I Implemented chronological ordering for non-git projects by extracting file timestamps from ZIP metadata. This feature enables projects to be displayed in chronological order (oldest first) based on their actual creation dates, not just git commit history.
-PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/155 Issue: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/147
-- I worked with Kyle McLeod together while we both worked on our own features simultaneosly interacting with eachother and asking questions to see
-  if what we were doing was right
-- I reviewed 2 PRs one as first reviewer
-- Tested my own and teammates code
-
-What went well: 
-- Reviewing PRs and working with a teammate simultaneously was helpful in figuring out my implementation and to get a second opinion
-- Bonus week work came in handy as it cleaned up our unneccassry large files and componenets that had multiple functions which helped with implementation this week
-
-What didn't go well:
-- Trying to figure out how to retrieve a unix timestamp for a project that is non-git since there is no time for inital commit
-- Our heuristics model markers weren't detecting some projects when testing, so I added those.
-- We potentially need to reconfigure to something more realiable other than heuristics since it is not accurate and marking most cases as 'coding projects'
+- Trying to figure out how to retrieve a unix timestamp for a project that is non-git since there is no time for initial commit
+- Our heuristics model markers weren't detecting some projects when testing, so I added those
+- We potentially need to reconfigure to something more reliable other than heuristics since it is not accurate and marking most cases as 'coding projects'
 
 Next week:
-- I want to meet with the team and delegate our tasks and bring up potential reconfiguring of our heuristics model and see if there is better alternatives to implement
-- I want to potentially start Issue https://github.com/COSC-499-W2025/capstone-project-team-8/issues/111 since Kyle implementated the projects models for our DB
+- I want to meet with the team and delegate our tasks and bring up potential reconfiguring of our heuristics model and see if there are better alternatives to implement
+- I want to potentially start Issue https://github.com/COSC-499-W2025/capstone-project-team-8/issues/111 since Kyle implemented the projects models for our DB
 
-Reflection: I learned more about the importance of proper refractoring and slowing down on new features in a project. I also learned that the way our JSON output works
-could use a tune-up/improvement since it is missing markers for certain project, and seems to flag most things as 'coding' I also learned that work can be done quicker and more
-efficiently if you work with someone near you for feedback/review on the spot while implemeneting
+Reflection: I learned the importance of a single responsibility principle and how it makes implementing new features a lot easier and makes components easy to understand. I also learned the importance of slowing down on implementation and reviewing what you currently have and the importance of refactoring before continuing. I learned more about the importance of proper refactoring and slowing down on new features in a project. I also learned that the way our JSON output works could use a tune-up/improvement since it is missing markers for certain project, and seems to flag most things as 'coding'. I also learned that work can be done quicker and more efficiently if you work with someone near you for feedback/review on the spot while implementing
 
   
 
