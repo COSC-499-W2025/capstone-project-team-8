@@ -105,15 +105,25 @@ class TestExcludedDirectories(unittest.TestCase):
     def test_excluded_dirs_constant(self):
         """Test that EXCLUDED_DIRS contains expected directories."""
         expected_exclusions = {
-            'node_modules', '__pycache__', '.git', '.next', 
+            'node_modules', '__pycache__', '.next', 
             'dist', 'build', '.venv', 'venv'
         }
+        
+        # .git is NOT excluded because we need it for git analysis
+        should_not_be_excluded = {'.git'}
         
         for excluded in expected_exclusions:
             self.assertIn(
                 excluded, 
                 self.scanner.EXCLUDED_DIRS,
                 f"{excluded} should be in EXCLUDED_DIRS"
+            )
+        
+        for not_excluded in should_not_be_excluded:
+            self.assertNotIn(
+                not_excluded,
+                self.scanner.EXCLUDED_DIRS,
+                f"{not_excluded} should NOT be in EXCLUDED_DIRS (needed for git analysis)"
             )
     
     def tearDown(self):
