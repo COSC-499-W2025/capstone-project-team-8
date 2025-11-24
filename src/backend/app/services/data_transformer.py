@@ -27,10 +27,10 @@ def transform_to_new_structure(
         project_classifications: Dict of project classifications
         git_contrib_data: Dict of git contribution data per project
         project_timestamps: Dict mapping project tags to Unix timestamps (optional)
-        filter_username: Optional GitHub username to filter contributors (optional)
+        filter_username: Optional full name or username (for metrics only)
         
     Returns:
-        Dict with the new structure: {source, projects, overall}
+        Dict with the new structure: {source, projects, overall, user_contributions?, username_entered?}
     """
     if project_timestamps is None:
         project_timestamps = {}
@@ -160,16 +160,13 @@ def transform_to_new_structure(
             
             project_data[tag]["classification"] = class_obj
     
-    # Add contributors to each project
+    # Add contributors to each project (always full lists)
     for tag in project_data:
         project_key = f"project_{tag}"
         if project_key in git_contrib_data:
             contrib_data = git_contrib_data[project_key]
-            
             if "contributors" in contrib_data:
                 contributors_list = []
-                total_commits = contrib_data.get("total_commits", 0)
-                
                 for name, stats in contrib_data["contributors"].items():
                     contributor = {
                         "name": name,
@@ -178,32 +175,10 @@ def transform_to_new_structure(
                         "lines_deleted": stats.get("lines_deleted", 0),
                         "percent_commits": stats.get("percent_of_commits", 0)
                     }
-                    
-                    # Add email if available
                     if "email" in stats and stats["email"]:
                         contributor["email"] = stats["email"]
-                    
                     contributors_list.append(contributor)
-                
-                # Sort by commits descending
                 contributors_list.sort(key=lambda x: x["commits"], reverse=True)
-
-                if filter_username:
-                    uname = filter_username.lower()
-
-                    def _matches(u: str, c: dict) -> bool:
-                        name = c["name"].lower()
-                        email_local = c.get("email", "").split("@")[0].lower() if c.get("email") else ""
-                        # Match full name, first token, or email local part
-                        first_token = name.split()[0]
-                        return (
-                            u == name
-                            or u == first_token
-                            or (email_local and u == email_local)
-                        )
-
-                    contributors_list = [c for c in contributors_list if _matches(uname, c)]
-
                 project_data[tag]["contributors"] = contributors_list
 
         # Collaboration heuristic (after contributors assigned):
@@ -276,39 +251,56 @@ def transform_to_new_structure(
     if "resume_skills" in overall_classification:
         overall["resume_skills"] = overall_classification["resume_skills"]
 
-    # Summarize filtered user if requested
+    # Build user_contributions metrics (without altering project contributors)
     user_contrib_summary = None
     if filter_username:
+        uname = filter_username.lower()
+
+        def _matches(u: str, c: dict) -> bool:
+            name = c["name"].lower()
+            email_local = c.get("email", "").split("@")[0].lower() if c.get("email") else ""
+            first_token = name.split()[0]
+            return (
+                u == name
+                or u == first_token
+                or (email_local and u == email_local)
+            )
+
         total_commits_user = 0
         total_added_user = 0
         total_deleted_user = 0
         projects_with_user = []
+        matched_any = False
+
         for proj in project_data.values():
-            user_entries = proj["contributors"]
+            full_contribs = proj["contributors"]
+            user_entries = [c for c in full_contribs if _matches(uname, c)]
             if user_entries:
-                # After filtering, list has either that user or is empty
-                for c in user_entries:
-                    total_commits_user += c.get("commits", 0)
-                    total_added_user += c.get("lines_added", 0)
-                    total_deleted_user += c.get("lines_deleted", 0)
+                matched_any = True
+                commits_sum = sum(c.get("commits", 0) for c in user_entries)
+                added_sum = sum(c.get("lines_added", 0) for c in user_entries)
+                deleted_sum = sum(c.get("lines_deleted", 0) for c in user_entries)
+                total_commits_user += commits_sum
+                total_added_user += added_sum
+                total_deleted_user += deleted_sum
                 projects_with_user.append(
                     {
                         "project_id": proj["id"],
                         "root": proj["root"],
-                        "commits": sum(c.get("commits", 0) for c in user_entries),
-                        "lines_added": sum(c.get("lines_added", 0) for c in user_entries),
-                        "lines_deleted": sum(c.get("lines_deleted", 0) for c in user_entries),
+                        "commits": commits_sum,
+                        "lines_added": added_sum,
+                        "lines_deleted": deleted_sum,
                     }
                 )
 
         user_contrib_summary = {
             "username": filter_username,
-            "found": len(projects_with_user) > 0,
-            "projects": projects_with_user,
+            "found": matched_any,
+            "projects": projects_with_user if matched_any else [],
             "totals": {
-                "commits": total_commits_user,
-                "lines_added": total_added_user,
-                "lines_deleted": total_deleted_user,
+                "commits": total_commits_user if matched_any else 0,
+                "lines_added": total_added_user if matched_any else 0,
+                "lines_deleted": total_deleted_user if matched_any else 0,
             },
         }
     
@@ -341,4 +333,9 @@ def transform_to_new_structure(
     }
     if user_contrib_summary:
         payload["user_contributions"] = user_contrib_summary
+        payload["username_entered"] = filter_username
+    elif filter_username:
+        # Still echo entered name even if we couldn't compute summary for any reason
+        payload["username_entered"] = filter_username
+
     return payload

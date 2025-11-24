@@ -170,8 +170,8 @@ class UploadFolderView(APIView):
                                     </div>
         <div>
             <label>
-                Your Full Name or GitHub Username (optional):
-                <input type="text" name="github_username" placeholder="e.g., Bronny James" />
+                Your Full Name (optional):
+                <input type="text" name="github_username" placeholder="e.g., John Doe" />
             </label>
         </div>
                   <button type="submit">Upload</button>
