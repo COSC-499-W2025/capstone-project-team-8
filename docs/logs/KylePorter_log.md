@@ -33,3 +33,19 @@
 
 - Reviewed teamates code
 - Fix bug in duplicate finding of projects
+
+## Week 12 November 17th - November 21st:
+<img width="1621" height="948" alt="Weekly status" src="https://github.com/user-attachments/assets/9447994a-ee3c-4d60-98b7-c937c9669d0c" />
+### Recap:
+- Merged bugfix PR
+- Merged PR for CI automation of tests
+- Reviewed a few PRs
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| [https://github.com/COSC-499-W2025/capstone-project-team-8/pull/150](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/158)  |  [https://github.com/COSC-499-W2025/capstone-project-team-8/issues/65](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/148) |
+| [https://github.com/COSC-499-W2025/capstone-project-team-8/pull/153](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/154)  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/149 |
+
+### What went well
+Finished 2 PRs.
