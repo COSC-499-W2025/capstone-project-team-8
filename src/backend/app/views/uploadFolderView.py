@@ -4,6 +4,11 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 
 from app.services.folder_upload import FolderUploadService
+from app.services.database_service import ProjectDatabaseService
+import tempfile
+import zipfile
+import os
+from app.services.analysis.analyzers.skill_analyzer import analyze_project
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -23,7 +28,7 @@ from app.services.folder_upload import FolderUploadService
 
 class UploadFolderView(APIView):
     parser_classes = (MultiPartParser, FormParser)
-    #permission_classes = [IsAuthenticated]  # Require JWT authentication
+    #permission_classes = [IsAuthenticated]
 
     def post(self, request, format=None):
         """
@@ -61,11 +66,60 @@ class UploadFolderView(APIView):
             }
             return JsonResponse(minimal_payload)
 
+        # Try to produce skill analysis by extracting the uploaded zip to a temp dir.
+        analysis_result = None
+        try:
+            with tempfile.TemporaryDirectory() as tmpdir:
+                tmp_zip_path = os.path.join(tmpdir, getattr(upload, "name", "upload.zip") or "upload.zip")
+                # Save uploaded file to disk
+                with open(tmp_zip_path, "wb") as out_f:
+                    for chunk in upload.chunks():
+                        out_f.write(chunk)
+                # Extract safely to a subfolder
+                extract_dir = os.path.join(tmpdir, "extracted")
+                os.makedirs(extract_dir, exist_ok=True)
+                try:
+                    with zipfile.ZipFile(tmp_zip_path, "r") as zf:
+                        zf.extractall(extract_dir)
+                    # Run skill analyzer on the extracted content
+                    analysis_result = analyze_project(extract_dir)
+                except zipfile.BadZipFile:
+                    # Not a zip or corrupted; leave analysis_result as None
+                    analysis_result = {"error": "uploaded file is not a valid zip or extraction failed"}
+                # tmpdir and its contents cleaned up automatically
+        except Exception as e:
+            # Non-fatal: keep going to service processing but record the analyzer error
+            analysis_result = {"error": f"analysis failure: {str(e)}"}
+
         # Delegate to service layer for business logic
         try:
             service = FolderUploadService()
             response_payload = service.process_zip(upload, github_username)
+            if request.user.is_authenticated:
+                try:
+                    db_service = ProjectDatabaseService()
+                    projects = db_service.save_project_analysis(
+                        user=request.user,
+                        analysis_data=response_payload,
+                        upload_filename=upload.name or "upload.zip"
+                    )
+                    
+                    # Add database IDs to response
+                    response_payload["saved_projects"] = [
+                        {"id": project.id, "name": project.name} 
+                        for project in projects
+                    ]
+                    
+                except Exception as db_error:
+                    response_payload["database_warning"] = f"Analysis completed but failed to save to database: {str(db_error)}"
+            else:
+                response_payload["database_info"] = "Analysis completed. Sign in to save projects to your account."
             
+            # Merge in skill analysis if available
+            if analysis_result is not None:
+                # Avoid clobbering existing keys; attach under "skill_analysis"
+                response_payload["skill_analysis"] = analysis_result
+
             # Build ordered payload with consent metadata
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
             for k, v in response_payload.items():

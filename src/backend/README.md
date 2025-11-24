@@ -215,7 +215,11 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
         "languages": [
           "Python"
         ],
-        "frameworks": []
+        "frameworks": [],
+        "resume_skills": [
+          "Backend Development",
+          "Object-Oriented Programming"
+        ]
       },
       "files": {
         "code": [
@@ -261,6 +265,9 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
   "overall": {
     "classification": "coding",
     "confidence": 0.652,
+    "collaborative": true,
+    "collaborative_projects": 1,
+    "collaboration_rate": 1.0,
     "totals": {
       "projects": 1,
       "files": 3,
@@ -271,7 +278,11 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
     "languages": [
       "Python"
     ],
-    "frameworks": []
+    "frameworks": [],
+    "resume_skills": [
+      "Backend Development",
+      "Object-Oriented Programming"
+    ]
   }
 }
 ```
@@ -287,12 +298,14 @@ Files not in any project → special project with `id: 0`, `root: "(non-git-file
 Each project contains:
 - **`id`** (integer): Sequential project identifier (1, 2, 3...)
 - **`root`** (string): Project root directory path
+- **`collaborative`** (boolean): Whether the project has multiple active contributors (2+ contributors with commits > 0)
 - **`classification`** (object): Project type classification
   - **`type`**: One of `"coding"`, `"writing"`, `"art"`, `"mixed:type1+type2"`, or `"unknown"`
   - **`confidence`**: Classification confidence score (0.0 to 1.0)
   - **`features`** (optional): File count breakdown
   - **`languages`** (array, coding projects only): Detected programming languages, sorted by prevalence
   - **`frameworks`** (array, coding projects only): Detected frameworks and libraries
+  - **`resume_skills`** (array, coding and art projects only): Inferred professional skills and capabilities (e.g., "Backend Development", "RESTful APIs", "Containerization"). These are resume-appropriate skill concepts, NOT framework names.
 - **`files`** (object): Files organized by type
   - **`code`**: Array of code files with `path` and `lines`
   - **`content`**: Array of text/document files with `path` and `length` (characters)
@@ -303,6 +316,9 @@ Each project contains:
 ### Overall Object
 - **`classification`** (string): Overall project type
 - **`confidence`** (number): Overall classification confidence
+- **`collaborative`** (boolean): Whether any projects in the portfolio are collaborative
+- **`collaborative_projects`** (integer): Count of collaborative projects (excludes unorganized files)
+- **`collaboration_rate`** (number): Ratio of collaborative to total projects (0.0 to 1.0)
 - **`totals`** (object): Aggregate file counts
   - **`projects`**: Number of Git repositories discovered
   - **`files`**: Total files (excluding `.git` directory contents)
@@ -311,6 +327,7 @@ Each project contains:
   - **`image_files`**: Total image files
 - **`languages`** (array, optional): Aggregated programming languages across all projects
 - **`frameworks`** (array, optional): Aggregated frameworks across all projects
+- **`resume_skills`** (array, optional): Aggregated professional skills across all projects
 
 ## Example: No Git Projects Detected
 
@@ -325,6 +342,7 @@ When uploading a folder without any `.git` directories, files are listed under a
     {
       "id": 0,
       "root": "(non-git-files)",
+      "collaborative": false,
       "classification": {
         "type": "coding",
         "confidence": 0.712,
@@ -339,7 +357,11 @@ When uploading a folder without any `.git` directories, files are listed under a
           "JavaScript",
           "HTML"
         ],
-        "frameworks": []
+        "frameworks": [],
+        "resume_skills": [
+          "Full-Stack Development",
+          "Object-Oriented Programming"
+        ]
       },
       "files": {
         "code": [
@@ -376,6 +398,9 @@ When uploading a folder without any `.git` directories, files are listed under a
   "overall": {
     "classification": "coding",
     "confidence": 0.712,
+    "collaborative": false,
+    "collaborative_projects": 0,
+    "collaboration_rate": 0.0,
     "totals": {
       "projects": 0,
       "files": 5,
@@ -388,9 +413,35 @@ When uploading a folder without any `.git` directories, files are listed under a
       "JavaScript",
       "HTML"
     ],
-    "frameworks": []
+    "frameworks": [],
+    "resume_skills": [
+      "Full-Stack Development",
+      "Object-Oriented Programming"
+    ]
+  },
+  "skill_analysis": {
+    "total_files_scanned": 5,
+    "total_skill_matches": 5,
+    "skills": {
+      "Web Backend": {
+        "count": 2,
+        "percentage": 40.0,
+        "languages": {
+          "Python": 1,
+          "JavaScript": 1
+        }
+      },
+      "Web Frontend": {
+        "count": 1,
+        "percentage": 20.0,
+        "languages": {
+          "HTML": 1
+        }
+      }
+    }
   }
 }
+
 ```
 
 **Note:** When no Git projects are detected:
@@ -399,6 +450,7 @@ When uploading a folder without any `.git` directories, files are listed under a
 - The project uses the overall classification
 - `overall.totals.projects` remains `0` (since this isn't a real Git repository)
 - No contributors are listed (since there's no Git history)
+- collaborative is false (no Git history means no collaboration data)
 
 ## Notes
 
@@ -408,4 +460,5 @@ When uploading a folder without any `.git` directories, files are listed under a
 - **Project Detection:** Currently only Git repositories (via `.git` folders) are detected. Future versions will support detection of other project types
 - Files not belonging to any detected project are grouped under `id: 0` with `root: "(non-git-files)"`
 - The `overall.totals.projects` count excludes the unorganized files project (id=0)
+- **Skills Detection:** Skills are automatically inferred from detected languages, frameworks, and file types. Framework names appear in `frameworks` array, while their associated capabilities appear in `resume_skills`
 

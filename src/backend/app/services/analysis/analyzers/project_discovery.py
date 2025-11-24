@@ -37,6 +37,8 @@ def discover_projects(root: Path) -> Dict[Path, int]:
         "pom.xml",  # Java
         "CMakeLists.txt",  # CMake/C/C++
         "meson.build",  # Meson/C/C++
+        ".project",  # Eclipse
+        ".classpath",  # Eclipse
     ]
     projects: Dict[Path, int] = {}
     tag = 1

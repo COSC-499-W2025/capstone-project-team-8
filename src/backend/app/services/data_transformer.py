@@ -154,6 +154,10 @@ def transform_to_new_structure(
             if "frameworks" in classification:
                 class_obj["frameworks"] = classification["frameworks"]
             
+            # Add resume_skills if available (for coding projects)
+            if "resume_skills" in classification:
+                class_obj["resume_skills"] = classification["resume_skills"]
+            
             project_data[tag]["classification"] = class_obj
     
     # Add contributors to each project (always full lists)
@@ -176,6 +180,19 @@ def transform_to_new_structure(
                     contributors_list.append(contributor)
                 contributors_list.sort(key=lambda x: x["commits"], reverse=True)
                 project_data[tag]["contributors"] = contributors_list
+
+        # Collaboration heuristic (after contributors assigned):
+        active_contributors = [
+            c for c in project_data[tag].get("contributors", [])
+            if c.get("commits", 0) > 0
+        ]
+        is_collab = len(active_contributors) >= 2
+        # Optional stricter dominance rule (commented out):
+        # if is_collab:
+        #     top_pct = project_data[tag]["contributors"][0].get("percent_commits", 100)
+        #     if top_pct > 95:
+        #         is_collab = False
+        project_data[tag]["collaborative"] = is_collab
     
     # Build overall statistics
     overall_classification = project_classifications.get("overall", {})
@@ -213,12 +230,26 @@ def transform_to_new_structure(
             "image_files": total_image_files
         }
     }
+
+    # Collaboration summary (exclude synthetic id=0)
+    collaborative_projects = sum(
+        1 for tag, pdata in project_data.items()
+        if tag != 0 and pdata.get("collaborative")
+    )
+    overall["collaborative_projects"] = collaborative_projects
+    overall["collaboration_rate"] = (
+        round(collaborative_projects / total_projects, 3)
+        if total_projects > 0 else 0.0
+    )
+    overall["collaborative"] = collaborative_projects > 0
     
-    # Add languages and frameworks to overall if available
+    # Add languages, frameworks, and resume_skills to overall if available
     if "languages" in overall_classification:
         overall["languages"] = overall_classification["languages"]
     if "frameworks" in overall_classification:
         overall["frameworks"] = overall_classification["frameworks"]
+    if "resume_skills" in overall_classification:
+        overall["resume_skills"] = overall_classification["resume_skills"]
 
     # Build user_contributions metrics (without altering project contributors)
     user_contrib_summary = None

@@ -8,6 +8,69 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 11 (Reading Week) & 12: Nov 10 - 22
+
+### Our Goals for this week:
+  Our goals for this week were to make progress towards finalizing things for Milestone 1. This included more database integration with uploaded projects, improving our analysis engine, and finishing off any unfinished areas of development for the analyzer. Alongside some minor bug fixes our focus was mainly poloshing off some rough edges that needed attention before the submission. The database is the last major step for the project in regards to this milestone so this was also of key focus for us this week.
+
+
+### Reflection:
+  This week development went very smoothly with little to no blockers. The team worked well and collaborated nicely to assist each other in areas where needed. The database now saving projects was massive for us this week as well, now we are able to store results from the analysis and we will be able to hopefully have massive performance increases as a result from this. We are feeling good about our progress towards Milestone 1 and are excited to see the final product come together.
+
+
+### What went well:
+  Development was definitely the highlight for our group this week. Each of us made solid progress this week and we were able to get a lot done. Our analyzer is nearly complete which allows us to focus on the final steps for the project in this last week.
+
+
+### What didn't go well:
+  There were minimal issues this week, however we did run into some small bugs with saving into the database and the data models. These have been resolved for the most part but will need some final polishing before Milestone 1.
+
+
+### Burn Up Chart
+
+
+<img width="1780" height="1056" alt="image" src="https://github.com/user-attachments/assets/a83a4806-775e-4bbf-a71b-364522173ad2" />
+
+
+### Completed Tasks
+
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| Reduce Redundant Scans | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/137 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/160 |
+|Determine Collaborative Projects| jordany78 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/65   |  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/150 |
+|Save Analysis to Database| kylekmcleod  |   https://github.com/COSC-499-W2025/capstone-project-team-8/issues/145   | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/156 |
+| Refactor Analysis and Classifiers | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/142 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/143 |
+| Chronological Ordering Non Code Projects | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/147 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/155 |
+| Refactor UploadFolderView Service Layer | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/134 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/144 |
+| Extract Key Skills | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/107   | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/161  |
+|Generate list of resume-ready skills (without AI)  | cschwebi  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/157    | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/162 |
+|  correct response on signing up with existing email | Porter-K | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/148| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/158 |
+| Automated Backend Tests  | Porter-K  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/149  | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/154 |  
+|Bugfix name filtering | jordann78  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/152, https://github.com/COSC-499-W2025/capstone-project-team-8/issues/151  |  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/153 |
+
+### In Progress Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+| NA   |     NA      |    NA   |
+
+There are no remaining tasks in progress for this week.
+
+
+### Next Weeks Plan Towards Milestone 1 
+14. Retrieve previously generated portfolio information 
+16. Rank importance of each project based on user's contributions
+18. Delete previously generated insights and ensure files that are shared across multiple reports do not get affected 
+20. Produce a chronological list of skills exercised 
+
+
+
+### Test Report
+
+
+<img width="1276" height="320" alt="Week12TestReport" src="https://github.com/user-attachments/assets/6213aa57-252c-41d9-8ab0-5223a0cd729d" />
+
+
 ## Week 10: Nov 2 - 9
 
 ### Our Goals for this week:
