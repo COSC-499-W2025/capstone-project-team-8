@@ -1,0 +1,23 @@
+name: Backend Workflow
+
+on:
+  - pull_request
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout under $GITHUB_WORKSPACE
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+
+      - name: Create Docker containers
+        run: docker compose up --build --detach
+
+      - name: Run Backend Tests
+        run: docker exec capstone_backend python manage.py test
+
