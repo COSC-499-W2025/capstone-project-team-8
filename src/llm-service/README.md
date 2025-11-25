@@ -127,6 +127,7 @@ PORT=3001 npm start
 
 All requests to the protected endpoints require authentication. Include the API key in your request headers (you can find the key in our group Discord channel):
 
+**Basic Query (Text Only):**
 ```bash
 curl -X POST http://129.146.9.215:3001/api/query \
   -H "Content-Type: application/json" \
@@ -135,6 +136,15 @@ curl -X POST http://129.146.9.215:3001/api/query \
     "model": "llama3.1:8b",
     "prompt": "Your prompt here"
   }'
+```
+
+**Query With File Upload:**
+```bash
+curl -X POST http://129.146.9.215:3001/api/query \
+  -H "x-api-key: YOUR_API_KEY_HERE" \
+  -F "prompt=Analyze this file and summarize its contents" \
+  -F "model=llama3.1:8b" \
+  -F "file=@/path/to/your/file.txt"
 ```
 
 ### Rate Limiting
