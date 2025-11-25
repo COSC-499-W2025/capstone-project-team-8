@@ -252,6 +252,85 @@ def analyze_project(root_path: str, max_files: int = 10000) -> Dict:
 	}
 	return result
 
+def generate_chronological_skill_detection(
+    project_skills: Dict[int, Iterable[str]],
+    project_timestamps: Dict[int, int],
+    *,
+    ignore_zero_timestamps: bool = True,
+    max_entries: int = None
+) -> Dict[int, Dict[str, object]]:
+    """
+    Generate a chronological ranking of skills based on per-project timestamps.
+
+    Args:
+        project_skills: Mapping from project_tag (int) to an iterable of detected skills (strings).
+                        Example: {1: ['Frontend Web','Databases'], 2: ['Machine Learning']}
+        project_timestamps: Mapping from project_tag (int) to Unix timestamp (int).
+                            Timestamps of 0 or missing are treated as unknown.
+        ignore_zero_timestamps: If True, projects with missing/zero timestamps are placed after
+                                known timestamps or omitted from ranking (see below).
+        max_entries: Optional cap on number of ranked skills to return.
+
+    Returns:
+        Ordered mapping (1-based rank) -> { "skill": str, "project_tag": int, "timestamp": int | None }
+
+    Behavior:
+        - For each skill, the earliest timestamp among projects that include that skill is chosen.
+        - By default unknown timestamps (<= 0 or missing) are treated as unknown and placed after known timestamps.
+        - If ignore_zero_timestamps is True, unknown-timestamp skills will still be included but with timestamp=None and placed after known ones.
+    """
+    # Build earliest occurrence per skill: skill -> (timestamp, project_tag)
+    earliest: Dict[str, Tuple[float, int]] = {}
+
+    for tag, skills in project_skills.items():
+        # normalize timestamp; treat missing or non-positive as "unknown"
+        raw_ts = project_timestamps.get(tag, 0)
+        if raw_ts and isinstance(raw_ts, (int, float)) and raw_ts > 0:
+            ts_val = float(raw_ts)
+        else:
+            # Unknown timestamp represented as +inf so known timestamps sort before it
+            ts_val = float("inf")
+
+        # Use a set to avoid duplicate skills reported multiple times for same project
+        for skill in set(skills):
+            if skill not in earliest or ts_val < earliest[skill][0]:
+                earliest[skill] = (ts_val, tag)
+
+    # Convert earliest dict to list and optionally filter/format unknown timestamps
+    items = []
+    for skill, (ts_val, tag) in earliest.items():
+        if ts_val == float("inf"):
+            # unknown timestamp
+            if ignore_zero_timestamps:
+                items.append((skill, None, tag))
+            else:
+                # keep as None but place after known ones by using +inf internally
+                items.append((skill, None, tag))
+        else:
+            items.append((skill, int(ts_val), tag))
+
+    # Sort: known timestamps ascending first, then unknowns (None)
+    def sort_key(entry):
+        skill, ts, tag = entry
+        return (ts if ts is not None else float("inf"), skill)
+
+    items.sort(key=sort_key)
+
+    # Apply max_entries if provided
+    if max_entries is not None:
+        items = items[:max_entries]
+
+    # Build ranked mapping 1-based
+    ranked: Dict[int, Dict[str, object]] = {}
+    for idx, (skill, ts, tag) in enumerate(items, start=1):
+        ranked[idx] = {
+            "skill": skill,
+            "project_tag": tag,
+            "timestamp": ts  # None indicates unknown
+        }
+
+    return ranked
+
 # Small helper for example/debugging; in production the caller would call analyze_project directly.
 if __name__ == "__main__":
 	import json, sys
