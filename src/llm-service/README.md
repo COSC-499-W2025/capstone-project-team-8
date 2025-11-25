@@ -39,7 +39,7 @@ Quick Rundown:
 
 ### Option 1: Docker Deployment (Recommended for Production)
 
-The easiest way to deploy this microservice is using Docker. See [DEPLOYMENT.md](DEPLOYMENT.md) for comprehensive deployment instructions.
+The easiest way to deploy this microservice is using Docker.
 
 **Quick Docker Setup:**
 ```bash
@@ -98,7 +98,7 @@ Notes
 
 ## Start the Express server (this microservice)
 
-This Express app is a thin API that forwards requests to the Ollama server. By default it listens on port 3000.
+This Express app is a thin API that forwards requests to the Ollama server. By default it listens on port 3001.
 
 ### Docker Deployment (Production)
 ```bash
