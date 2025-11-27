@@ -16,6 +16,7 @@ urlpatterns = [
     path("token/", CustomTokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("token/refresh/", CustomTokenRefreshView.as_view(), name="token_refresh"),
     path("token/logout/", TokenLogoutView.as_view(), name="token_logout"),
+    
     # User profile endpoints
     path("users/me/", UserMeView.as_view(), name="user-me"),
     path("users/<str:username>/", PublicUserView.as_view(), name="user-public"),
