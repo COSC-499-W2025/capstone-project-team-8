@@ -1,5 +1,5 @@
 import unittest
-from app.services.llm import get_completion
+from app.services.llm import ai_analyze
 
 
 class TestAzureLLM(unittest.TestCase):
@@ -8,7 +8,7 @@ class TestAzureLLM(unittest.TestCase):
     def test_basic_completion(self):
         """Test that LLM returns a response"""
         prompt = "Say 'Hello' in one word."
-        response = get_completion(prompt)
+        response = ai_analyze(prompt)
         
         self.assertIsNotNone(response)
         self.assertIsInstance(response, str)
@@ -20,7 +20,7 @@ class TestAzureLLM(unittest.TestCase):
         code = "def add(a, b): return a + b"
         prompt = f"Analyze this function: {code}"
         
-        response = get_completion(prompt)
+        response = ai_analyze(prompt)
         
         self.assertIsNotNone(response)
         self.assertIsInstance(response, str)
@@ -46,7 +46,7 @@ def authenticate_user(username, password):
 
 Do NOT include any introductions, explanations, or other text. ONLY the bullet points."""
         
-        response = get_completion(prompt, system_message=system_msg)
+        response = ai_analyze(prompt, system_message=system_msg)
         
         self.assertIsNotNone(response)
         self.assertIsInstance(response, str)
