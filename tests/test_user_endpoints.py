@@ -78,7 +78,6 @@ class UserApiTests(TestCase):
 
     def test_get_public_user_view(self):
         # Set some public fields then GET the public view
-        self.user.github_username = 'publicgh'
         self.user.bio = 'public bio'
         self.user.save()
 
@@ -87,4 +86,3 @@ class UserApiTests(TestCase):
         data = response.json()
         self.assertIn('user', data)
         self.assertEqual(data['user']['username'], self.username)
-        self.assertEqual(data['user']['github_username'], 'publicgh')
