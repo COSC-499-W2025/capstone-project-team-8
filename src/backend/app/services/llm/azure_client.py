@@ -23,7 +23,7 @@ def get_azure_client():
     )
 
 
-def get_completion(prompt, system_message=None, deployment=None):
+def ai_analyze(prompt, system_message=None, deployment=None):
     """
     Send a prompt to Azure OpenAI and get a response.
     
