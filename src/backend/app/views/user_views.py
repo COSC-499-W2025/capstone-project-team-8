@@ -85,13 +85,7 @@ class PublicUserView(APIView):
 	def _user_to_dict(self, user):
 		return {
 			'username': user.username,
-			'first_name': user.first_name,
-			'last_name': user.last_name,
 			'bio': user.bio,
-			'github_username': user.github_username,
-			'linkedin_url': user.linkedin_url,
-			'portfolio_url': user.portfolio_url,
-			'twitter_username': user.twitter_username,
 			'profile_image_url': user.profile_image_url,
 			'date_joined': user.date_joined.isoformat() if user.date_joined else None,
 		}
