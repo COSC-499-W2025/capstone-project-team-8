@@ -1,0 +1,106 @@
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+import re
+import logging
+
+logger = logging.getLogger(__name__)
+
+from app.models import User
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class UserMeView(APIView):
+	"""GET/PUT current authenticated user's profile."""
+
+	permission_classes = [IsAuthenticated]
+
+	def _user_to_dict(self, user, include_email=False):
+		out = {
+			'username': user.username,
+			'first_name': user.first_name,
+			'last_name': user.last_name,
+			'bio': user.bio,
+			'github_username': user.github_username,
+			'linkedin_url': user.linkedin_url,
+			'portfolio_url': user.portfolio_url,
+			'twitter_username': user.twitter_username,
+			'profile_image_url': user.profile_image_url,
+			'date_joined': user.date_joined.isoformat() if user.date_joined else None,
+		}
+		if include_email:
+			out['email'] = user.email
+		return out
+
+	def get(self, request):
+		user = request.user
+		return JsonResponse({'user': self._user_to_dict(user, include_email=True)})
+
+	def put(self, request):
+		user = request.user
+		try:
+			data = request.data if hasattr(request, 'data') else {}
+		except Exception:
+			data = {}
+
+		if isinstance(data, dict) and 'user' in data and isinstance(data['user'], dict):
+			data = data['user']
+			
+		allowed = [
+			'first_name', 'last_name', 'bio', 'github_username',
+			'linkedin_url', 'portfolio_url', 'twitter_username', 'profile_image_url'
+		]
+
+		changed = False
+		for k in allowed:
+			if k in data:
+				val = data.get(k)
+				# Basic type safety: require strings or None
+				if val is None or isinstance(val, str):
+					logger.debug("Setting attribute %s => %r on user %s", k, val, user)
+					setattr(user, k, val)
+					changed = True
+
+		# Ignore any attempt to change email (if present in payload)
+		if 'email' in data:
+			# Optionally you could return an error instead of silently ignoring.
+			pass
+
+		if changed:
+			user.save()
+
+		return JsonResponse({'user': self._user_to_dict(user, include_email=True)})
+
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PublicUserView(APIView):
+	"""GET public profile by username."""
+
+	permission_classes = [AllowAny]
+
+	def _user_to_dict(self, user):
+		return {
+			'username': user.username,
+			'first_name': user.first_name,
+			'last_name': user.last_name,
+			'bio': user.bio,
+			'github_username': user.github_username,
+			'linkedin_url': user.linkedin_url,
+			'portfolio_url': user.portfolio_url,
+			'twitter_username': user.twitter_username,
+			'profile_image_url': user.profile_image_url,
+			'date_joined': user.date_joined.isoformat() if user.date_joined else None,
+		}
+
+	def get(self, request, username):
+		user = get_object_or_404(User, username=username)
+		return JsonResponse({'user': self._user_to_dict(user)})
+
+
+
+
+
