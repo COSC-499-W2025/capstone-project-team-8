@@ -27,6 +27,7 @@ class SignupView(APIView):
             password = data['password']
             confirm_password = data['confirm_password']
             github_username = data.get('github_username', '').strip()
+            github_email = data.get('github_email', '').strip()
         except KeyError as e:
             if is_json:
                 return JsonResponse(
@@ -44,7 +45,8 @@ class SignupView(APIView):
                     username,
                     email,
                     password,
-                    github_username=github_username
+                    github_username=github_username,
+                    github_email=github_email
                 )
             except IntegrityError:
                 if User.objects.filter(username=username).exists():
@@ -87,6 +89,7 @@ class SignupView(APIView):
                         "refresh": str(refresh),
                         "username": username,
                         "github_username": user.github_username or "",
+                        "github_email": user.github_email or "",
                     },
                     status=http_status.HTTP_201_CREATED
                 )

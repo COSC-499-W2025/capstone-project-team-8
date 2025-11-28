@@ -10,6 +10,7 @@ from datetime import datetime
 from django.db import transaction
 from django.utils import timezone
 import datetime as dt
+import re
 
 from app.models import (
     User, Project, ProgrammingLanguage, Framework,
@@ -365,12 +366,18 @@ class ProjectDatabaseService:
             if not name:
                 continue
             
+            matched_user = self._find_matching_user(name, email)
+            
             # Get or create contributor
             contributor, created = Contributor.objects.get_or_create(
                 name=name,
                 email=email,
-                defaults={'user': self._find_matching_user(name, email)}
+                defaults={'user': matched_user}
             )
+            
+            if not created and matched_user and contributor.user_id != matched_user.id:
+                contributor.user = matched_user
+                contributor.save(update_fields=['user'])
             
             # Create contribution record
             ProjectContribution.objects.create(
@@ -393,23 +400,41 @@ class ProjectDatabaseService:
         Returns:
             User instance if match found, None otherwise
         """
-        if not email:
-            return None
+        emails_to_check = self._extract_emails(email)
         
-        # Try exact email match first
-        try:
-            return User.objects.get(email=email)
-        except User.DoesNotExist:
-            pass
+        for candidate in emails_to_check:
+            try:
+                return User.objects.get(email__iexact=candidate)
+            except User.DoesNotExist:
+                pass
+            
+            try:
+                return User.objects.get(github_email__iexact=candidate)
+            except User.DoesNotExist:
+                pass
         
-        # Try GitHub username match
+        # Try GitHub username match if no email matches
         if name:
             try:
-                return User.objects.get(github_username__iexact=name)
+                return User.objects.get(github_username__iexact=name.strip())
             except User.DoesNotExist:
                 pass
         
         return None
+
+    def _extract_emails(self, raw_email: str) -> List[str]:
+        """Split raw email field into individual addresses."""
+        if not raw_email:
+            return []
+        
+        # Split on commas, semicolons, whitespace, and newlines
+        parts = re.split(r'[\s,;]+', raw_email)
+        emails = []
+        for part in parts:
+            candidate = part.strip()
+            if candidate and '@' in candidate:
+                emails.append(candidate)
+        return emails
     
     # Helper methods for categorization
     def _get_language_category(self, language: str) -> str:
