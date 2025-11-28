@@ -366,7 +366,7 @@ class ProjectDatabaseService:
             if not name:
                 continue
             
-            matched_user = self._find_matching_user(name, email)
+            matched_user = self._find_matching_user(name, email, project.user)
             
             # Get or create contributor
             contributor, created = Contributor.objects.get_or_create(
@@ -389,7 +389,7 @@ class ProjectDatabaseService:
                 percent_of_commits=contributor_info.get('percent_commits', 0.0)
             )
     
-    def _find_matching_user(self, name: str, email: str) -> Optional[User]:
+    def _find_matching_user(self, name: str, email: str, project_user: Optional[User] = None) -> Optional[User]:
         """
         Try to match a contributor to an existing User account.
         
@@ -402,23 +402,42 @@ class ProjectDatabaseService:
         """
         emails_to_check = self._extract_emails(email)
         
+        normalized_name = name.strip() if name else None
+
+        # Prefer linking to the uploading user when identities align
+        if project_user:
+            project_emails = {project_user.email.lower()}
+            if project_user.github_email:
+                project_emails.add(project_user.github_email.lower())
+            for candidate in emails_to_check:
+                if candidate.lower() in project_emails:
+                    return project_user
+            if normalized_name and project_user.github_username and project_user.github_username.lower() == normalized_name.lower():
+                return project_user
+
         for candidate in emails_to_check:
-            try:
-                return User.objects.get(email__iexact=candidate)
-            except User.DoesNotExist:
-                pass
-            
-            try:
-                return User.objects.get(github_email__iexact=candidate)
-            except User.DoesNotExist:
-                pass
-        
+            primary_match = User.objects.filter(email__iexact=candidate).first()
+            if primary_match:
+                return primary_match
+
+            github_matches = User.objects.filter(github_email__iexact=candidate)
+            if normalized_name:
+                github_matches = github_matches.filter(github_username__iexact=normalized_name)
+            github_match = github_matches.first()
+            if github_match:
+                return github_match
+
+            # Fallback: if no exact github_username match, allow first github_email match
+            if not normalized_name:
+                loose_github_match = User.objects.filter(github_email__iexact=candidate).first()
+                if loose_github_match:
+                    return loose_github_match
+
         # Try GitHub username match if no email matches
-        if name:
-            try:
-                return User.objects.get(github_username__iexact=name.strip())
-            except User.DoesNotExist:
-                pass
+        if normalized_name:
+            username_match = User.objects.filter(github_username__iexact=normalized_name).first()
+            if username_match:
+                return username_match
         
         return None
 
