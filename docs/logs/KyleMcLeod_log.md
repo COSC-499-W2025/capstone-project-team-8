@@ -116,3 +116,28 @@ Next week:
 
 Reflection:
 This week I learned that it's important to keep a clean code structure from the start, since having the messy code might have delayed our progress by a little bit. Now that we have a refactored codebase, we are ready to implement some more complex features.
+
+## Week 13 November 24-28
+(TODO log screenshot)
+
+This week:
+- bug fix on fixing our file analyzer still scanning dependency folder PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/172 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/137
+- LLM microservice doc updates PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/177
+- migrated AI to a new host and made big performance improvements PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/179 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/176
+- created user API endpoints PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/180 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/169
+
+What went well:
+- made a lot of progress with AI, our responses are much faster now and we can start integrating this in our analysis pipeline
+- our codebase is staying clean since our refactor
+
+What went wrong:
+- our new AI is from Azure foundry which is an AI platform that enables developers to quickly made AI agents
+- I'm not 100% sure if data is kept or used for training with this API
+- we will use this AI for development and if we need to worry about security/privacy later, we can deploy our AI microservice I programmed
+
+Next week:
+- present our project
+- prepare for milestone 2
+
+Reflection:
+We have made a lot of progress since our last week. Ever since we got the refactor done and started using our database, our development has been a lot smoother. We will present our project and prepare for milestone 2. I'm happy with the progress we have made for the first term.
