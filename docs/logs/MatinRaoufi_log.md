@@ -130,7 +130,35 @@ Next week:
 
 Reflection: I learned the importance of a single responsibility principle and how it makes implementing new features a lot easier and makes components easy to understand. I also learned the importance of slowing down on implementation and reviewing what you currently have and the importance of refactoring before continuing. I learned more about the importance of proper refactoring and slowing down on new features in a project. I also learned that the way our JSON output works could use a tune-up/improvement since it is missing markers for certain project, and seems to flag most things as 'coding'. I also learned that work can be done quicker and more efficiently if you work with someone near you for feedback/review on the spot while implementing
 
-  
+Nov 24 - 30
+
+- Implemented project ranking by contributor impact, wiring the new scoring logic into `/api/projects/ranked/` and updating database matching heuristics (Issue [#108](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/108), PR [#186](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/186))
+- Added focused unit tests for signup GitHub email handling and contributor matching; exercised the endpoint in Postman to verify ranked output matches expectations
+- Reviewed teammates’ PRs that expand project endpoint tests and the Azure LLM client, following their instructions and confirming test runs
+- Tested their PRs 
+
+
+What went well:
+- Following a strict TDD cycle kept the new ranking logic reliable, and Postman verification matched unit-test expectations
+- Collaborating with teammates on the LLM and project-endpoint PRs surfaced missing environment setup early, so we could unblock each other quickly
+
+What didn’t go well:
+- Docker test runs initially failed because the container lacked the Azure env vars; needed extra iterations to document the proper setup
+- Mapping contributor emails revealed duplicate user data, so additional data cleanup was required before scores displayed correctly
+- Trying to find a way to store projects created_at date from the JSON output of the file uploaded instead of saving it as the created_at of the date the project was uploaded
+
+Next week:
+- Present our milestone 1
+
+- Begin milestone 2 related things
+
+
+Reflection:
+- We have made a lot of progress and utilized lots of different tools at our disposal, happy with the teams communications and work contributions so far
+- Reviewing complex PRs highlighted the value of reproducible test instructions—especially when external services (Azure, Docker) are involved
+
+
+
 
 
 
