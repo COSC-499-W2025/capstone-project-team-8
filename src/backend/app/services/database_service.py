@@ -189,6 +189,10 @@ class ProjectDatabaseService:
                 created_at_dt = None
                 first_commit_date = None
 
+        # Ensure created_at is set: default to now when payload didn't include a created_at
+        if created_at_dt is None:
+            created_at_dt = timezone.now()
+
         # Prefer explicit last-updated ISO from analyzer for updated_at if present
         updated_at_dt = None
         last_updated_iso = project_data.get("_last_updated_iso") or project_data.get("last_updated")
