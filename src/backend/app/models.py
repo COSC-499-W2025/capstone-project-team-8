@@ -64,6 +64,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     # Social media links
     github_username = models.CharField(max_length=100, blank=True, db_index=True)
+    github_email = models.EmailField(max_length=255, blank=True)
     linkedin_url = models.URLField(max_length=255, blank=True)
     portfolio_url = models.URLField(max_length=255, blank=True)
     twitter_username = models.CharField(max_length=100, blank=True)
