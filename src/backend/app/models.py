@@ -228,8 +228,11 @@ class Project(models.Model):
     original_zip_name = models.CharField(max_length=255, blank=True)
     
     # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Allow storing timestamps derived from external JSON rather than auto-populating.
+    # Make nullable so migrations won't fail for existing rows; views/serializers can
+    # set these values from your JSON payload.
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
     
     # Relationships
     languages = models.ManyToManyField(

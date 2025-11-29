@@ -131,13 +131,21 @@ class ProjectDatabaseService:
         
         # Parse timestamps
         created_at_timestamp = project_data.get('created_at')
+        created_at_dt = None
         first_commit_date = None
         if created_at_timestamp:
             try:
-                first_commit_date = dt.datetime.fromtimestamp(created_at_timestamp, tz=timezone.UTC)
+                # Assume Unix seconds timestamp; produce tz-aware UTC datetime
+                created_at_dt = dt.datetime.fromtimestamp(float(created_at_timestamp), tz=dt.timezone.utc)
+                # Keep existing behavior: also use the timestamp for first_commit_date if desired
+                first_commit_date = created_at_dt
             except (ValueError, TypeError, AttributeError):
-                pass
+                created_at_dt = None
+                first_commit_date = None
         
+        # If no created_at from payload, updated_at will be now; otherwise set updated_at to created_at_dt
+        updated_at_dt = created_at_dt or timezone.now()
+
         # Determine if this is a git repository
         project_id = project_data.get('id', 0)
         contributors = project_data.get('contributors', [])
@@ -164,6 +172,10 @@ class ProjectDatabaseService:
             first_commit_date=first_commit_date,
             upload_source='zip_file',
             original_zip_name=upload_filename
+            # Explicitly set created_at/updated_at from the incoming JSON timestamp when available.
+            # These fields are nullable in the model so existing rows remain compatible.
+            , created_at=created_at_dt
+            , updated_at=updated_at_dt
         )
         
         return project
