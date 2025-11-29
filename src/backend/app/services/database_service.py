@@ -56,8 +56,54 @@ class ProjectDatabaseService:
         
         created_projects = []
         
+        # Build last-updated lookups from analysis_data if provided
+        last_updated_meta = {}
+        lu = analysis_data.get("analysis_meta", {}).get("last_updated") if isinstance(analysis_data.get("analysis_meta"), dict) else None
+        if lu:
+            # lu expected shape: {"projects": [{"project_root": "...", "project_tag": int, "last_updated": "ISO"}, ...], "overall_last_updated": "..."}"
+            try:
+                for entry in lu.get("projects", []) if isinstance(lu.get("projects", []), list) else []:
+                    tag = entry.get("project_tag")
+                    root = entry.get("project_root")
+                    iso = entry.get("last_updated")
+                    if tag is not None and iso:
+                        last_updated_meta.setdefault("by_tag", {})[int(tag)] = iso
+                    if root is not None and iso:
+                        # normalize root key similar to view/transformer
+                        rk = root.strip()
+                        if rk in ("", ".", "./"):
+                            rk = "."
+                        else:
+                            rk = rk.lstrip("./").rstrip("/")
+                        last_updated_meta.setdefault("by_root", {})[rk] = iso
+            except Exception:
+                # non-fatal: ignore malformed timestamps
+                last_updated_meta = {}
+
         with transaction.atomic():
             for project_data in projects:
+                # Attach matched last-updated ISO onto project_data for _create_project to consume
+                try:
+                    matched_iso = None
+                    pid = project_data.get("id")
+                    root = str(project_data.get("root", "") or "")
+                    # 1) by tag
+                    if pid is not None and "by_tag" in last_updated_meta:
+                        matched_iso = last_updated_meta["by_tag"].get(int(pid))
+                    # 2) by root
+                    if not matched_iso and root and "by_root" in last_updated_meta:
+                        rk = root.strip()
+                        if rk in ("", ".", "./"):
+                            rk = "."
+                        else:
+                            rk = rk.lstrip("./").rstrip("/")
+                        matched_iso = last_updated_meta["by_root"].get(rk)
+                    if matched_iso:
+                        project_data["_last_updated_iso"] = matched_iso
+                except Exception:
+                    # ignore matching errors and continue
+                    pass
+
                 project = self._create_project(
                     user=user,
                     project_data=project_data,
@@ -142,9 +188,35 @@ class ProjectDatabaseService:
             except (ValueError, TypeError, AttributeError):
                 created_at_dt = None
                 first_commit_date = None
-        
-        # If no created_at from payload, updated_at will be now; otherwise set updated_at to created_at_dt
-        updated_at_dt = created_at_dt or timezone.now()
+
+        # Prefer explicit last-updated ISO from analyzer for updated_at if present
+        updated_at_dt = None
+        last_updated_iso = project_data.get("_last_updated_iso") or project_data.get("last_updated")
+        if last_updated_iso:
+            try:
+                # Try robust parsing (datetime.fromisoformat preserves timezone if present)
+                parsed = None
+                try:
+                    parsed = dt.datetime.fromisoformat(last_updated_iso)
+                except Exception:
+                    # try common fallback without microseconds/timezone
+                    try:
+                        parsed = dt.datetime.strptime(last_updated_iso, "%Y-%m-%dT%H:%M:%S")
+                        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+                    except Exception:
+                        parsed = None
+                if parsed:
+                    if parsed.tzinfo is None:
+                        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+                    updated_at_dt = parsed
+                else:
+                    updated_at_dt = None
+            except Exception:
+                updated_at_dt = None
+
+        # If no updated_at from payload, updated_at will be created_at_dt or now
+        if updated_at_dt is None:
+            updated_at_dt = created_at_dt or timezone.now()
 
         # Determine if this is a git repository
         project_id = project_data.get('id', 0)

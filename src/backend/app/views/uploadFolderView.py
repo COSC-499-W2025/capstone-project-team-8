@@ -109,6 +109,12 @@ class UploadFolderView(APIView):
         try:
             service = FolderUploadService()
             response_payload = service.process_zip(upload, github_username)
+
+            # Merge last_updated_info into the payload so the DB service can persist it
+            if last_updated_info is not None:
+                response_payload.setdefault("analysis_meta", {})
+                response_payload["analysis_meta"]["last_updated"] = last_updated_info
+
             if request.user.is_authenticated:
                 try:
                     db_service = ProjectDatabaseService()
@@ -126,39 +132,94 @@ class UploadFolderView(APIView):
 
                     # If we computed last-updated info, try to apply it to saved DB projects.
                     db_update_warnings = []
+                    applied_updates = []
                     if last_updated_info:
-                        # Build a lookup mapping project_root -> last_updated ISO string
-                        lookup = {p["project_root"]: p.get("last_updated") for p in last_updated_info.get("projects", [])}
+                        # Build lookups from analyzer output:
+                        tag_lookup = {}   # project_tag (int) -> iso
+                        root_lookup = {}  # normalized project_root (str) -> iso
+
+                        def _norm_root_key(s: str) -> str:
+                            if s is None:
+                                return ""
+                            # normalize posix-ish project root keys used by analyzer
+                            k = s.strip()
+                            if k in (".", "", "./"):
+                                return "."
+                            k = k.lstrip("./")
+                            if k.endswith("/"):
+                                k = k[:-1]
+                            return k
+
+                        for p in last_updated_info.get("projects", []):
+                            iso = p.get("last_updated")
+                            tag = p.get("project_tag")
+                            root = p.get("project_root")
+                            if tag is not None:
+                                try:
+                                    tag_lookup[int(tag)] = iso
+                                except Exception:
+                                    pass
+                            if root is not None:
+                                root_lookup[_norm_root_key(root)] = iso
+
+                        # Also allow mapping via response_payload['projects'] if present (helps match names/tags)
+                        payload_project_map = {}
+                        for pp in response_payload.get("projects", []) or []:
+                            # project entries may contain project_tag and project_root
+                            t = pp.get("project_tag")
+                            r = pp.get("project_root")
+                            if t is not None:
+                                payload_project_map[int(t)] = _norm_root_key(r or "")
+
                         for project in projects:
                             try:
-                                # Try several matching strategies:
-                                possible_keys = []
-                                if project.project_root_path:
-                                    possible_keys.append(project.project_root_path)
-                                # Some payloads store plain project_root in response_payload['projects']
-                                # Try matching by name as fallback
-                                possible_keys.append(project.name)
                                 matched_iso = None
-                                for key in possible_keys:
-                                    if key in lookup and lookup[key]:
-                                        matched_iso = lookup[key]
-                                        break
+                                # 1) Match by project_tag if available
+                                if getattr(project, "project_tag", None) is not None:
+                                    pt = project.project_tag
+                                    if pt in tag_lookup and tag_lookup[pt]:
+                                        matched_iso = tag_lookup[pt]
+                                # 2) Match via response payload mapping (tag -> root) then root_lookup
+                                if not matched_iso and getattr(project, "project_tag", None) is not None:
+                                    pt = project.project_tag
+                                    root_key = payload_project_map.get(pt)
+                                    if root_key and root_key in root_lookup and root_lookup[root_key]:
+                                        matched_iso = root_lookup[root_key]
+                                # 3) Match by project_root_path (normalize)
+                                if not matched_iso and getattr(project, "project_root_path", None):
+                                    ppath_key = _norm_root_key(project.project_root_path)
+                                    if ppath_key in root_lookup and root_lookup[ppath_key]:
+                                        matched_iso = root_lookup[ppath_key]
+                                # 4) Match by project name as last resort
+                                if not matched_iso and project.name:
+                                    nkey = _norm_root_key(project.name)
+                                    if nkey in root_lookup and root_lookup[nkey]:
+                                        matched_iso = root_lookup[nkey]
+
                                 if matched_iso:
-                                    # parse ISO and set project's updated_at
+                                    # parse ISO robustly and set updated_at
                                     try:
                                         dt = datetime.datetime.fromisoformat(matched_iso)
                                     except Exception:
-                                        # fallback: try parsing without timezone and assume UTC
-                                        dt = datetime.datetime.strptime(matched_iso, "%Y-%m-%dT%H:%M:%S")
-                                        dt = dt.replace(tzinfo=datetime.timezone.utc)
-                                    if dt.tzinfo is None:
-                                        dt = dt.replace(tzinfo=datetime.timezone.utc)
-                                    project.updated_at = dt
-                                    project.save(update_fields=["updated_at"])
+                                        try:
+                                            dt = datetime.datetime.strptime(matched_iso, "%Y-%m-%dT%H:%M:%S")
+                                            dt = dt.replace(tzinfo=datetime.timezone.utc)
+                                        except Exception:
+                                            dt = None
+                                    if dt is not None:
+                                        if dt.tzinfo is None:
+                                            dt = dt.replace(tzinfo=datetime.timezone.utc)
+                                        project.updated_at = dt
+                                        project.save(update_fields=["updated_at"])
+                                        applied_updates.append({"project_id": project.id, "updated_at": matched_iso})
                             except Exception as e:
-                                db_update_warnings.append(f"Failed to update project {project.id} updated_at: {str(e)}")
+                                db_update_warnings.append(f"Failed to update project {getattr(project,'id', 'unknown')} updated_at: {str(e)}")
+                    if applied_updates:
+                        response_payload["last_updated_applied"] = applied_updates
                     if db_update_warnings:
                         response_payload.setdefault("database_warning", "")
+                        if response_payload["database_warning"]:
+                            response_payload["database_warning"] += " | "
                         response_payload["database_warning"] += " | ".join(db_update_warnings)
                     
                 except Exception as db_error:
