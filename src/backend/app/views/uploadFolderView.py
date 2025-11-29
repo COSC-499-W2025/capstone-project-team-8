@@ -9,6 +9,8 @@ import tempfile
 import zipfile
 import os
 from app.services.analysis.analyzers.skill_analyzer import analyze_project
+from app.services.analysis.analyzers.last_updated import compute_projects_last_updated
+import datetime
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -68,6 +70,7 @@ class UploadFolderView(APIView):
 
         # Try to produce skill analysis by extracting the uploaded zip to a temp dir.
         analysis_result = None
+        last_updated_info = None
         try:
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmp_zip_path = os.path.join(tmpdir, getattr(upload, "name", "upload.zip") or "upload.zip")
@@ -83,6 +86,17 @@ class UploadFolderView(APIView):
                         zf.extractall(extract_dir)
                     # Run skill analyzer on the extracted content
                     analysis_result = analyze_project(extract_dir)
+
+                    # Compute last-updated timestamps for discovered projects (best-effort)
+                    try:
+                        # Use zip metadata timestamps (ZipInfo.date_time) instead of filesystem mtimes
+                        with zipfile.ZipFile(tmp_zip_path, "r") as zf_for_meta:
+                            last_updated_info = compute_projects_last_updated(zip_file=zf_for_meta)
+                    except Exception as e:
+                        # non-fatal: record analyzer failure info in analysis_result
+                        if not isinstance(analysis_result, dict):
+                            analysis_result = {}
+                        analysis_result.setdefault("last_updated_error", str(e))
                 except zipfile.BadZipFile:
                     # Not a zip or corrupted; leave analysis_result as None
                     analysis_result = {"error": "uploaded file is not a valid zip or extraction failed"}
@@ -109,6 +123,43 @@ class UploadFolderView(APIView):
                         {"id": project.id, "name": project.name} 
                         for project in projects
                     ]
+
+                    # If we computed last-updated info, try to apply it to saved DB projects.
+                    db_update_warnings = []
+                    if last_updated_info:
+                        # Build a lookup mapping project_root -> last_updated ISO string
+                        lookup = {p["project_root"]: p.get("last_updated") for p in last_updated_info.get("projects", [])}
+                        for project in projects:
+                            try:
+                                # Try several matching strategies:
+                                possible_keys = []
+                                if project.project_root_path:
+                                    possible_keys.append(project.project_root_path)
+                                # Some payloads store plain project_root in response_payload['projects']
+                                # Try matching by name as fallback
+                                possible_keys.append(project.name)
+                                matched_iso = None
+                                for key in possible_keys:
+                                    if key in lookup and lookup[key]:
+                                        matched_iso = lookup[key]
+                                        break
+                                if matched_iso:
+                                    # parse ISO and set project's updated_at
+                                    try:
+                                        dt = datetime.datetime.fromisoformat(matched_iso)
+                                    except Exception:
+                                        # fallback: try parsing without timezone and assume UTC
+                                        dt = datetime.datetime.strptime(matched_iso, "%Y-%m-%dT%H:%M:%S")
+                                        dt = dt.replace(tzinfo=datetime.timezone.utc)
+                                    if dt.tzinfo is None:
+                                        dt = dt.replace(tzinfo=datetime.timezone.utc)
+                                    project.updated_at = dt
+                                    project.save(update_fields=["updated_at"])
+                            except Exception as e:
+                                db_update_warnings.append(f"Failed to update project {project.id} updated_at: {str(e)}")
+                    if db_update_warnings:
+                        response_payload.setdefault("database_warning", "")
+                        response_payload["database_warning"] += " | ".join(db_update_warnings)
                     
                 except Exception as db_error:
                     response_payload["database_warning"] = f"Analysis completed but failed to save to database: {str(db_error)}"
@@ -119,6 +170,10 @@ class UploadFolderView(APIView):
             if analysis_result is not None:
                 # Avoid clobbering existing keys; attach under "skill_analysis"
                 response_payload["skill_analysis"] = analysis_result
+
+            # Attach last-updated info to the response payload (if available)
+            if last_updated_info is not None:
+                response_payload["last_updated"] = last_updated_info
 
             # Build ordered payload with consent metadata
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
