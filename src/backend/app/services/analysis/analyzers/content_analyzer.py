@@ -387,15 +387,25 @@ class ContentAnalyzer:
         """Extract main topics using keyword matching."""
         topic_keywords = {
             'Machine Learning': ['machine learning', 'neural network', 'deep learning', 'ai model'],
-            'Web Development': ['web development', 'frontend', 'backend', 'api', 'rest'],
+            'Web Development': ['web development', 'frontend', 'backend', ' api '],
             'Data Science': ['data science', 'data analysis', 'statistics', 'analytics'],
             'Cybersecurity': ['security', 'encryption', 'authentication', 'vulnerability'],
-            'Cloud Computing': ['cloud', 'aws', 'azure', 'kubernetes', 'docker'],
+            'Cloud Computing': ['cloud server', 'cloud services', ' aws ', 'azure', 'kubernetes', 'docker'],
             'Mobile Development': ['mobile', 'ios', 'android', 'app development'],
             'DevOps': ['devops', 'ci/cd', 'deployment', 'automation'],
             'Database Management': ['database', 'sql', 'nosql', 'postgresql', 'mongodb'],
             'UI/UX Design': [' ux ', 'user experience', 'usability', 'user interface'],
-            'Software Testing': ['testing', 'unit test', 'integration test', 'qa'],
+            'Software Testing': ['testing', 'unit test', 'integration test', ' qa '],
+            'Life Sciences/Biology': ['genetics', 'genome', 'protein synthesis', 'dna sequence', 'evolutionary', 'organism', 'cell division', 'phylogeny'],
+            'Medicine/Healthcare': ['clinical trial', 'diagnosis', 'treatment protocol', 'patient care', 'pathology'],
+            'Physical Sciences': ['quantum mechanics', 'particle physics', 'thermodynamics', 'electromagnetic', 'reactivity'],
+            'Psychology': ['cognitive psychology', 'psychotherapy', 'neuroscience', 'behavioral analysis', 'mental health'],
+            'Economics': ['macroeconomics', 'microeconomics', 'financial markets', 'gdp', 'inflation rate', 'economic policy'],
+            'Business': ['revenue', 'profit', ' q1 ', ' q2 ', ' q3 ', ' q4 ', 'quarterly report', 'annual report', 'financial projections'],
+            'Literature': ['literary analysis', 'narrative structure', 'literary criticism', 'prose', 'poetry'],
+            'Philosophy': ['metaphysics', 'epistemology', 'ethics', 'philosophical argument', 'philosophy of '],
+            'History': ['historical analysis', 'archaeolog', 'anthropolog', 'chronological', 'historical period', 'a.d.', 'b.c.', 'b.c.e'],
+            'Education': ['pedagogy', 'curriculum', 'educational theory', 'learning outcomes'],
         }
         
         text_lower = text.lower()
