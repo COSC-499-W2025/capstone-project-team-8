@@ -330,14 +330,14 @@ class ContentAnalyzer:
         creative_score = sum(1 for p in creative_patterns if re.search(p, text, re.IGNORECASE))
         
         # Classify based on scores
-        if academic_score >= 3:
+        if creative_score >= 2:
+            return 'creative_writing'
+        elif blog_score >= 2:
+            return 'blog_post'
+        elif academic_score >= 3:
             return 'research_paper'
         elif tech_score >= 3:
             return 'technical_documentation'
-        elif blog_score >= 2:
-            return 'blog_post'
-        elif creative_score >= 2:
-            return 'creative_writing'
         else:
             return 'general_article'
     
@@ -394,7 +394,7 @@ class ContentAnalyzer:
             'Mobile Development': ['mobile', 'ios', 'android', 'app development'],
             'DevOps': ['devops', 'ci/cd', 'deployment', 'automation'],
             'Database Management': ['database', 'sql', 'nosql', 'postgresql', 'mongodb'],
-            'UI/UX Design': ['ux', 'user experience', 'usability', 'user interface'],
+            'UI/UX Design': [' ux ', 'user experience', 'usability', 'user interface'],
             'Software Testing': ['testing', 'unit test', 'integration test', 'qa'],
         }
         
