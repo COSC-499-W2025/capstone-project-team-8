@@ -182,3 +182,93 @@ class ProjectStatsView(APIView):
             "top_frameworks": framework_stats
         }
         return JsonResponse(resp)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RankedProjectsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Return projects ranked by user's contribution score.
+        
+        Contribution Score Formula:
+        - commit_percentage * 0.4 + lines_changed_percentage * 0.6
+        
+        Where:
+        - commit_percentage: User's commits / total project commits * 100
+        - lines_changed_percentage: User's lines changed / total project lines * 100
+        """
+        user = request.user
+        
+        # Get all projects for this user
+        projects = Project.objects.filter(user=user).prefetch_related('files', 'contributions')
+        
+        ranked_projects = []
+        
+        for project in projects:
+            # Find user's contribution to this project
+            # The user's contribution is via their linked Contributor profile
+            user_contributions = ProjectContribution.objects.filter(
+                project=project,
+                contributor__user=user
+            ).first()
+            
+            if not user_contributions:
+                # User has no Git contributions to this project
+                # Include it with score 0 if it's not a git repo, otherwise skip
+                if not project.git_repository:
+                    ranked_projects.append({
+                        "id": project.id,
+                        "name": project.name,
+                        "project_tag": project.project_tag,
+                        "classification_type": project.classification_type,
+                        "contribution_score": 0.0,
+                        "commit_percentage": 0.0,
+                        "lines_changed_percentage": 0.0,
+                        "total_commits": 0,
+                        "total_lines_changed": 0,
+                        "total_project_lines": 0,
+                    })
+                continue
+            
+            # Calculate total project lines from all files
+            total_project_lines = ProjectFile.objects.filter(
+                project=project,
+                file_type='code'
+            ).aggregate(total=Sum('line_count'))['total'] or 0
+            
+            # Calculate user's contribution metrics
+            commit_percentage = user_contributions.percent_of_commits or 0.0
+            total_lines_changed = user_contributions.lines_added + user_contributions.lines_deleted
+            
+            # Calculate lines changed percentage
+            if total_project_lines > 0:
+                lines_changed_percentage = (total_lines_changed / total_project_lines) * 100
+            else:
+                lines_changed_percentage = 0.0
+            
+            # Calculate contribution score
+            contribution_score = (commit_percentage * 0.4) + (lines_changed_percentage * 0.6)
+            
+            ranked_projects.append({
+                "id": project.id,
+                "name": project.name,
+                "project_tag": project.project_tag,
+                "project_root_path": project.project_root_path,
+                "classification_type": project.classification_type,
+                "classification_confidence": float(project.classification_confidence or 0.0),
+                "git_repository": bool(project.git_repository),
+                "contribution_score": round(contribution_score, 2),
+                "commit_percentage": round(commit_percentage, 2),
+                "lines_changed_percentage": round(lines_changed_percentage, 2),
+                "total_commits": user_contributions.commit_count,
+                "total_lines_changed": total_lines_changed,
+                "total_project_lines": total_project_lines,
+                "first_commit_date": int(project.first_commit_date.timestamp()) if project.first_commit_date else None,
+            })
+        
+        # Sort by contribution score descending
+        ranked_projects.sort(key=lambda x: x['contribution_score'], reverse=True)
+        
+        return JsonResponse({"projects": ranked_projects})

@@ -300,6 +300,48 @@ class UpdatedAuthEndpointsTests(TestCase):
         self.assertIn('access', data)
         self.assertIn('refresh', data)
         self.assertIn('username', data)
+
+    def test_signup_accepts_github_username(self):
+        """Test /api/signup/ stores optional github_username field"""
+        response = self.client.post('/api/signup/',
+            json.dumps({
+                'username': 'ghuser',
+                'email': 'gh@test.com',
+                'password': 'newpass123',
+                'confirm_password': 'newpass123',
+                'github_username': 'MatinDev'
+            }),
+            content_type='application/json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        data = response.json()
+        self.assertEqual(data.get('github_username'), 'MatinDev')
+
+        created = User.objects.get(username='ghuser')
+        self.assertEqual(created.github_username, 'MatinDev')
+
+    def test_signup_accepts_github_email(self):
+        """Test /api/signup/ stores optional github_email field"""
+        response = self.client.post('/api/signup/',
+            json.dumps({
+                'username': 'ghmailuser',
+                'email': 'ghmail@test.com',
+                'password': 'newpass123',
+                'confirm_password': 'newpass123',
+                'github_email': 'matin0014@users.noreply.github.com'
+            }),
+            content_type='application/json'
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        data = response.json()
+        self.assertEqual(data.get('github_email'), 'matin0014@users.noreply.github.com')
+
+        created = User.objects.get(username='ghmailuser')
+        self.assertEqual(created.github_email, 'matin0014@users.noreply.github.com')
     
     def test_signup_password_mismatch_json_error(self):
         """Test /api/signup/ returns JSON error for password mismatch"""
