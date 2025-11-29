@@ -6,3 +6,4 @@ python-decouple
 python-dotenv
 GitPython
 requests
+PyMuPDF>=1.23.0
