@@ -4,6 +4,12 @@ from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Sum, Count
+from datetime import datetime
+from app.services.llm import ai_analyze
+from app.utils.prompt_loader import load_prompt_template
+import logging
+
+logger = logging.getLogger(__name__)
 
 from app.models import (
     Project, ProjectFile, Contributor, ProjectContribution,
@@ -272,3 +278,184 @@ class RankedProjectsView(APIView):
         ranked_projects.sort(key=lambda x: x['contribution_score'], reverse=True)
         
         return JsonResponse({"projects": ranked_projects})
+
+@method_decorator(csrf_exempt, name="dispatch")
+class TopProjectsSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        """
+        Return the top 3 ranked projects with AI-generated summaries.
+        
+        Uses Azure OpenAI to generate professional portfolio-ready summaries
+        based on contribution metrics, technologies, and project classification.
+        """
+        user = request.user
+        
+        # Get ranked projects
+        ranked_projects = self._get_ranked_projects_with_tech(user)
+        
+        # Take only top 3
+        top_3 = ranked_projects[:3]
+        
+        # Generate summaries
+        summaries = []
+        for project_data in top_3:
+            context = self._build_project_context(project_data)
+            summary = self._generate_summary(context)
+            
+            result = {
+                **project_data,
+                'summary': summary,
+                'summary_generated': summary is not None
+            }
+            summaries.append(result)
+        
+        return JsonResponse({
+            'top_projects': summaries,
+            'count': len(summaries)
+        })
+    
+    def _get_ranked_projects_with_tech(self, user):
+        """Get ranked projects with languages and frameworks."""
+        projects = Project.objects.filter(user=user).prefetch_related(
+            'files', 'contributions', 'languages', 'frameworks'
+        )
+        
+        ranked_projects = []
+        
+        for project in projects:
+            user_contributions = ProjectContribution.objects.filter(
+                project=project,
+                contributor__user=user
+            ).first()
+            
+            if not user_contributions:
+                if not project.git_repository:
+                    ranked_projects.append({
+                        "id": project.id,
+                        "name": project.name,
+                        "project_tag": project.project_tag,
+                        "classification_type": project.classification_type,
+                        "contribution_score": 0.0,
+                        "commit_percentage": 0.0,
+                        "lines_changed_percentage": 0.0,
+                        "total_commits": 0,
+                        "total_lines_changed": 0,
+                        "total_project_lines": 0,
+                        "languages": [],
+                        "frameworks": [],
+                        "first_commit_date": None
+                    })
+                continue
+            
+            total_project_lines = ProjectFile.objects.filter(
+                project=project,
+                file_type='code'
+            ).aggregate(total=Sum('line_count'))['total'] or 0
+            
+            commit_percentage = user_contributions.percent_of_commits or 0.0
+            total_lines_changed = user_contributions.lines_added + user_contributions.lines_deleted
+            
+            if total_project_lines > 0:
+                lines_changed_percentage = (total_lines_changed / total_project_lines) * 100
+            else:
+                lines_changed_percentage = 0.0
+            
+            contribution_score = (commit_percentage * 0.4) + (lines_changed_percentage * 0.6)
+            
+            # Get languages (top 5)
+            languages = list(
+                ProjectLanguage.objects.filter(project=project)
+                .select_related('language')
+                .order_by('-file_count')
+                .values_list('language__name', flat=True)[:5]
+            )
+            
+            # Get frameworks (top 5)
+            frameworks = list(
+                ProjectFramework.objects.filter(project=project)
+                .select_related('framework')
+                .values_list('framework__name', flat=True)[:5]
+            )
+            
+            ranked_projects.append({
+                "id": project.id,
+                "name": project.name,
+                "project_tag": project.project_tag,
+                "project_root_path": project.project_root_path,
+                "classification_type": project.classification_type,
+                "classification_confidence": float(project.classification_confidence or 0.0),
+                "git_repository": bool(project.git_repository),
+                "contribution_score": round(contribution_score, 2),
+                "commit_percentage": round(commit_percentage, 2),
+                "lines_changed_percentage": round(lines_changed_percentage, 2),
+                "total_commits": user_contributions.commit_count,
+                "total_lines_changed": total_lines_changed,
+                "total_project_lines": total_project_lines,
+                "first_commit_date": int(project.first_commit_date.timestamp()) if project.first_commit_date else None,
+                "languages": languages,
+                "frameworks": frameworks
+            })
+        
+        ranked_projects.sort(key=lambda x: x['contribution_score'], reverse=True)
+        return ranked_projects
+    
+    def _build_project_context(self, project_data: dict) -> str:
+        """Build formatted context string for LLM."""
+        date_info = ""
+        if project_data.get('first_commit_date'):
+            try:
+                date = datetime.fromtimestamp(project_data['first_commit_date'])
+                date_info = f"- First Commit Date: {date.strftime('%B %Y')}\n"
+            except:
+                pass
+        
+        languages = project_data.get('languages', [])
+        languages_str = ", ".join(languages) if languages else "None detected"
+        
+        frameworks = project_data.get('frameworks', [])
+        frameworks_str = ", ".join(frameworks) if frameworks else "None detected"
+        
+        context = f"""
+Project Name: {project_data.get('name', 'Unknown')}
+Classification: {project_data.get('classification_type', 'unknown')}
+Primary Languages: {languages_str}
+Frameworks: {frameworks_str}
+Contribution Score: {project_data.get('contribution_score', 0)}/100
+Commit Percentage: {project_data.get('commit_percentage', 0)}%
+Lines Changed Percentage: {project_data.get('lines_changed_percentage', 0)}%
+Total Commits: {project_data.get('total_commits', 0)}
+{date_info}
+"""
+        return context.strip()
+    
+    def _generate_summary(self, context: str) -> str:
+        """Generate summary using Azure OpenAI."""
+        try:
+            template = load_prompt_template('project_contribution_summary')
+            full_prompt = template.build_prompt(context)
+            
+            system_msg = """You are a professional resume writer specializing in software engineering portfolios.
+
+Generate concise, impactful 2-3 sentence summaries suitable for a portfolio or resume.
+
+Guidelines:
+- Focus on technical achievements and quantifiable contributions
+- Highlight key technologies prominently
+- Use active voice and emphasize impact
+- If high contribution (>50%), emphasize leadership
+- If moderate (20-50%), emphasize collaboration
+- Keep it professional and compelling
+
+Output ONLY the summary text."""
+            
+            summary = ai_analyze(full_prompt, system_message=system_msg)
+            return summary if summary else "Unable to generate summary at this time."
+            
+        except FileNotFoundError as e:
+            logger.error(f"Prompt template not found: {e}")
+            return "Summary generation unavailable."
+        except Exception as e:
+            logger.error(f"Error generating summary: {e}")
+            return "Unable to generate summary at this time."
