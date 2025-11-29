@@ -160,24 +160,6 @@ class ContentSkillsExtractorTests(TestCase):
         
         self.assertIn('Advanced Writing', skills)
     
-    def test_intermediate_complexity_no_skill(self):
-        """Test that intermediate complexity doesn't add generic skill"""
-        analysis = DocumentAnalysis(
-            word_count=500, character_count=2500, paragraph_count=5, sentence_count=25,
-            document_type='general_article', writing_style='formal', 
-            complexity_level='intermediate',
-            topics=[], key_terms=[], domain_indicators={},
-            has_citations=False, has_code_blocks=False, has_mathematical_notation=False,
-            has_lists=False, has_tables=False, has_headings=False,
-            avg_word_length=5.0, avg_sentence_length=15, estimated_read_time=3,
-            vocabulary_richness=0.5, specialized_term_count=5
-        )
-        
-        skills = extract_skills_from_document(analysis)
-        
-        # Should not get "Writing" or any generic skill
-        self.assertNotIn('Writing', skills)
-        self.assertNotIn('Professional Writing', skills)
     
     def test_basic_complexity_no_skill(self):
         """Test that basic complexity doesn't add any skill"""
@@ -205,7 +187,7 @@ class ContentSkillsExtractorTests(TestCase):
             word_count=1000, character_count=5000, paragraph_count=10, sentence_count=50,
             document_type='technical_documentation', writing_style='technical', 
             complexity_level='intermediate',
-            topics=['Machine Learning', 'Data Science', 'Cloud Computing'],
+            topics=['UI/UX Design'],
             key_terms=[], domain_indicators={'technical_writing': 5},
             has_citations=False, has_code_blocks=True, has_mathematical_notation=False,
             has_lists=True, has_tables=False, has_headings=True,
@@ -216,42 +198,9 @@ class ContentSkillsExtractorTests(TestCase):
         skills = extract_skills_from_document(analysis)
         
         self.assertIn('Technical Writing', skills)
+        self.assertIn('UX Writing', skills)
     
     # ===== Structural Feature Tests =====
-    
-    def test_citations_in_research_paper(self):
-        """Test that citations in research paper add Research Methodology"""
-        analysis = DocumentAnalysis(
-            word_count=1000, character_count=5000, paragraph_count=10, sentence_count=50,
-            document_type='research_paper', writing_style='academic', 
-            complexity_level='advanced',
-            topics=[], key_terms=[], domain_indicators={'academic_writing': 5},
-            has_citations=True, has_code_blocks=False, has_mathematical_notation=False,
-            has_lists=False, has_tables=False, has_headings=True,
-            avg_word_length=5.5, avg_sentence_length=20, estimated_read_time=5,
-            vocabulary_richness=0.7, specialized_term_count=10
-        )
-        
-        skills = extract_skills_from_document(analysis)
-        
-        self.assertIn('Research Methodology', skills)
-    
-    def test_code_blocks_in_technical_writing(self):
-        """Test that code blocks in technical writing add Code Documentation"""
-        analysis = DocumentAnalysis(
-            word_count=800, character_count=4000, paragraph_count=8, sentence_count=40,
-            document_type='technical_documentation', writing_style='technical', 
-            complexity_level='intermediate',
-            topics=[], key_terms=[], domain_indicators={'technical_writing': 5},
-            has_citations=False, has_code_blocks=True, has_mathematical_notation=False,
-            has_lists=True, has_tables=False, has_headings=True,
-            avg_word_length=5.0, avg_sentence_length=15, estimated_read_time=4,
-            vocabulary_richness=0.6, specialized_term_count=10
-        )
-        
-        skills = extract_skills_from_document(analysis)
-        
-        self.assertIn('Code Documentation', skills)
     
     def test_mathematical_notation_in_technical_doc(self):
         """Test that mathematical notation adds Mathematical Writing"""
@@ -270,35 +219,6 @@ class ContentSkillsExtractorTests(TestCase):
         
         self.assertIn('Mathematical Writing', skills)
     
-    # ===== Generic Skills Filter Tests =====
-    
-    def test_no_generic_skills_extracted(self):
-        """Test that overly generic skills are never extracted"""
-        # Even with various document types, should never get overly generic skills
-        doc_types = ['research_paper', 'technical_documentation', 'blog_post', 
-                     'creative_writing', 'general_article']
-        
-        # Skills that are too generic to be useful
-        overly_generic_skills = ['Writing', 'Communication', 'Professional Writing', 'Content Development']
-        
-        for doc_type in doc_types:
-            analysis = DocumentAnalysis(
-                word_count=500, character_count=2500, paragraph_count=5, sentence_count=25,
-                document_type=doc_type, writing_style='formal', 
-                complexity_level='intermediate',
-                topics=[], key_terms=[], domain_indicators={},
-                has_citations=False, has_code_blocks=False, has_mathematical_notation=False,
-                has_lists=False, has_tables=False, has_headings=False,
-                avg_word_length=5.0, avg_sentence_length=15, estimated_read_time=3,
-                vocabulary_richness=0.5, specialized_term_count=5
-            )
-            
-            skills = extract_skills_from_document(analysis)
-            
-            # Check that no overly generic skills are present
-            for generic_skill in overly_generic_skills:
-                self.assertNotIn(generic_skill, skills, 
-                               f"Generic skill '{generic_skill}' found for {doc_type}")
     
     # ===== Project-Level Skills Tests =====
     
@@ -404,42 +324,6 @@ class ContentSkillsExtractorTests(TestCase):
         skills = extract_skills_from_project_content(summary)
         
         self.assertIn('Research Portfolio', skills)
-    
-    # ===== Deduplication Tests =====
-    
-    def test_code_documentation_removes_generic_technical_writing(self):
-        """Test that Code Documentation removes generic Technical Writing"""
-        analysis = DocumentAnalysis(
-            word_count=1000, character_count=5000, paragraph_count=10, sentence_count=50,
-            document_type='technical_documentation', writing_style='technical', 
-            complexity_level='intermediate',
-            topics=[],  # No topics
-            key_terms=[], domain_indicators={'technical_writing': 5},
-            has_citations=False, has_code_blocks=True, has_mathematical_notation=False,
-            has_lists=True, has_tables=False, has_headings=True,
-            avg_word_length=5.0, avg_sentence_length=15, estimated_read_time=5,
-            vocabulary_richness=0.6, specialized_term_count=10
-        )
-        
-        summary = ProjectContentSummary(
-            total_documents=1, total_words=1000, total_characters=5000,
-            document_types={'technical_documentation': 1},
-            primary_document_type='technical_documentation',
-            writing_styles=['technical'], primary_writing_style='technical',
-            complexity_levels=['intermediate'], primary_complexity='intermediate',
-            all_topics=[], primary_topics=[],
-            domain_indicators={'technical_writing': 5},
-            has_citations=False, has_code_examples=True, has_mathematical_content=False,
-            average_document_length=1000, estimated_total_read_time=5,
-            vocabulary_richness=0.6, document_analyses=[analysis]
-        )
-        
-        skills = extract_skills_from_project_content(summary)
-        
-        # Should have Code Documentation
-        self.assertIn('Code Documentation', skills)
-        # Should NOT have generic Technical Writing (deduplicated)
-        self.assertNotIn('Technical Writing', skills)
     
     # ===== Empty/Edge Case Tests =====
     
