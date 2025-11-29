@@ -14,7 +14,7 @@ Main functions:
 
 import os
 from pathlib import Path
-from typing import List, Set, Union
+from typing import List, Set, Union, Dict
 from collections import Counter
 
 
@@ -326,6 +326,53 @@ FILE_TYPE_SKILLS = {
 }
 
 
+def _get_content_files_with_text(root_dir: Path) -> List[Dict[str, str]]:
+    """
+    Extract text content from content files (.md, .txt, .pdf, .docx) in the project.
+    
+    Args:
+        root_dir: Path to project directory
+        
+    Returns:
+        List of dicts with 'path' and 'text' keys
+    """
+    import os
+    from app.services.utils import read_docx, read_pdf
+    
+    content_files = []
+    content_extensions = {'.md', '.txt', '.pdf', '.docx'}
+    
+    for dirpath, _, filenames in os.walk(root_dir):
+        for filename in filenames:
+            file_path = Path(dirpath) / filename
+            
+            # Skip if not a content file
+            if file_path.suffix.lower() not in content_extensions:
+                continue
+            
+            try:
+                # Extract text based on file type
+                if file_path.suffix.lower() == '.pdf':
+                    text = read_pdf(file_path)
+                elif file_path.suffix.lower() == '.docx':
+                    text = read_docx(file_path)
+                else:
+                    # Plain text files (.md, .txt)
+                    text = file_path.read_text(errors='ignore')
+                
+                # Only include if there's actual content
+                if text and text.strip():
+                    content_files.append({
+                        'path': str(file_path.name),
+                        'text': text
+                    })
+            except Exception:
+                # Skip files that can't be read
+                pass
+    
+    return content_files
+
+
 def extract_resume_skills(
     root_dir: Union[str, Path],
     languages: List[str] = None,
@@ -367,6 +414,13 @@ def extract_resume_skills(
     all_skills.update(extract_skills_from_languages(languages))
     all_skills.update(extract_skills_from_frameworks(frameworks))
     all_skills.update(extract_skills_from_files(root_path))
+    
+    # NEW: Extract content-based skills from documents (PDFs, DOCX, MD, TXT)
+    content_files = _get_content_files_with_text(root_path)
+    if content_files:
+        from .content_skills_extractor import integrate_content_skills
+        # Integrate content skills (this handles deduplication internally)
+        all_skills = set(integrate_content_skills(list(all_skills), content_files))
     
     # Cross-source inference: Add contextual skills based on language + framework combinations
     # This is where we infer skills like "Backend Development", "Frontend Development", etc.
