@@ -58,7 +58,8 @@ class FolderUploadService:
     def process_zip(
         self,
         upload: UploadedFile,
-        github_username: Optional[str] = None
+        github_username: Optional[str] = None,
+        send_to_llm: bool = False
     ) -> Dict[str, Any]:
         """
         Main orchestrator method to process an uploaded ZIP file.
@@ -112,7 +113,13 @@ class FolderUploadService:
                 if tag not in project_timestamps or project_timestamps[tag] == 0:
                     project_timestamps[tag] = timestamp
             
-            # Step 8: Transform results
+            # Step 8: Generate AI summaries if consent given
+            project_summaries = self._generate_project_summaries(
+                projects, 
+                tmpdir_path, 
+                send_to_llm 
+            )
+
             response_data = transform_to_new_structure(
                 results,
                 projects,
@@ -120,7 +127,8 @@ class FolderUploadService:
                 project_classifications,
                 git_contrib_data,
                 project_timestamps,
-                github_username
+                github_username,
+                project_summaries
             )
             
             return response_data
@@ -307,3 +315,45 @@ class FolderUploadService:
             pass
         
         return project_timestamps
+
+    def _generate_project_summaries(self, projects, tmpdir_path, send_to_llm):
+        """
+        Generate AI summaries for projects if user consented to LLM.
+    
+        Args:
+            projects: Dict of project paths to tags
+            tmpdir_path: Path to extracted files
+            send_to_llm: Boolean indicating user consent for LLM processing
+        
+        Returns:
+            Dict mapping project tags to AI summary text
+        """
+        if not send_to_llm:
+            return {}
+    
+        from app.services.llm.azure_client import ai_analyze
+        from app.services.analysis.prompt_loader import load_prompt_template
+        import logging
+    
+        logger = logging.getLogger(__name__)
+        summaries = {}
+    
+        for project_path, tag in projects.items():
+            try:
+                # Build context for this project (similar to TopProjectsSummaryView)
+                # You can reuse the logic to extract languages, frameworks, etc.
+                context = self._build_summary_context(project_path, tmpdir_path)
+            
+                # Load prompt template
+                prompt_template = load_prompt_template("project_contribution_summary")
+                prompt = prompt_template.format(**context)
+            
+                # Generate summary
+                summary = ai_analyze(prompt)
+                summaries[tag] = summary
+            
+            except Exception as e:
+                logger.warning(f"Failed to generate summary for project {tag}: {e}")
+                summaries[tag] = ""
+    
+        return summaries
