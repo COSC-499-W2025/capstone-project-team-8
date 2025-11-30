@@ -130,11 +130,34 @@ class FolderUploadService:
             
             # Step 9: Generate resume items for each project
             from app.services.resume_item_generator import ResumeItemGenerator
+            from app.services.analysis.analyzers.content_analyzer import analyze_project_content
             generator = ResumeItemGenerator()
             
             for project in response_data.get('projects', []):
                 try:
-                    resume_items = generator.generate_resume_items(project, github_username)
+                    # Extract content files for content analysis
+                    content_files = []
+                    files = project.get('files', {})
+                    for content_file in files.get('content', []):
+                        if 'text' in content_file:
+                            content_files.append({
+                                'path': content_file.get('path', ''),
+                                'text': content_file.get('text', '')
+                            })
+                    
+                    # Analyze content if content files are available
+                    content_summary = None
+                    if content_files:
+                        try:
+                            content_summary = analyze_project_content(content_files)
+                        except Exception as e:
+                            # Log but don't fail - resume generation can work without content analysis
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.debug(f"Content analysis failed for project {project.get('id')}: {e}")
+                    
+                    # Generate resume items with content summary
+                    resume_items = generator.generate_resume_items(project, github_username, content_summary)
                     project['resume_items'] = resume_items
                 except Exception as e:
                     # Log error but don't break the flow
