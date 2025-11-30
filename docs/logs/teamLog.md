@@ -46,7 +46,7 @@ This week things flowed like usual, we spent more time on bugfixes. We seem to n
 
 ### Burn up chart
 
-
+<img width="1780" height="1033" alt="image" src="https://github.com/user-attachments/assets/ef26d5b0-753e-45b2-9812-51fb2a8b7734" />
 
 
 ### In Progress Tasks
