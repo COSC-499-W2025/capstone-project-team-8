@@ -125,6 +125,7 @@ This week:
 - LLM microservice doc updates PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/177
 - migrated AI to a new host and made big performance improvements PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/179 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/176
 - created user API endpoints PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/180 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/169
+- setup and contributed to slides for our presentation
 - LLM test patch PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/192
 - reviewed matins code PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/186
 - reviewed jordans code PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/193
