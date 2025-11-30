@@ -18,6 +18,57 @@ jobs:
       - name: Create Docker containers
         run: docker compose up --build --detach
 
-      - name: Run Backend Tests
-        run: docker exec capstone_backend python manage.py test
+      - name: Run Tests Batch 1 (Project Endpoints)
+        run: |
+          docker exec capstone_backend python manage.py test \
+            tests.test_project_endpoints \
+            tests.test_project_summary \
+            --settings=src.test_settings \
+            --parallel=1
 
+      - name: Run Tests Batch 2 (Upload & Folder)
+        run: |
+          docker exec capstone_backend python manage.py test \
+            tests.test_upload_folder \
+            tests.test_upload_folder_with_classifier \
+            tests.test_folder_upload_service \
+            tests.test_upload_view \
+            --settings=src.test_settings \
+            --parallel=1
+
+      - name: Run Tests Batch 3 (Models & Database)
+        run: |
+          docker exec capstone_backend python manage.py test \
+            tests.test_models \
+            tests.test_user_model \
+            tests.test_database_saving \
+            --settings=src.test_settings \
+            --parallel=1
+
+      - name: Run Tests Batch 4 (Analysis & Classification)
+        run: |
+          docker exec capstone_backend python manage.py test \
+            tests.test_project_classifier \
+            tests.test_file_analyzers \
+            tests.test_skill_analyzer \
+            tests.test_resume_skill_extractor \
+            --settings=src.test_settings \
+            --parallel=1
+
+      - name: Run Tests Batch 5 (Remaining)
+        run: |
+          docker exec capstone_backend python manage.py test \
+            tests.test_jwt_authentication \
+            tests.test_llm \
+            tests.test_prompt_loader \
+            tests.test_collaborative_tag \
+            tests.test_chronological_ordering \
+            tests.test_content_reading \
+            tests.test_project_metadata \
+            tests.test_upload_consent_and_ordering \
+            tests.test_upload_github_filter \
+            tests.test_upload_skips_files \
+            tests.test_zip_timestamps \
+            --settings=src.test_settings \
+            --parallel=1
+            
