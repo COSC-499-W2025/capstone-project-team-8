@@ -128,7 +128,8 @@ class FolderUploadService:
                 git_contrib_data,
                 project_timestamps,
                 github_username,
-                project_summaries
+                project_summaries,
+                send_to_llm
             )
             
             return response_data

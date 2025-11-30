@@ -9,13 +9,16 @@ from pathlib import Path as PathLib
 
 
 def transform_to_new_structure(
-        results, 
-        projects, 
-        projects_rel, 
-        project_classifications, 
+        results,
+        projects,
+        projects_rel,
+        project_classifications,
         git_contrib_data,
-        project_timestamps=None,
-        filter_username=None,
+        project_timestamps,
+        github_username=None,
+        project_summaries=None,
+        send_to_llm=False,
+        filter_username=None
         ):
     """
     Transform the collected data into the new JSON structure.
@@ -27,13 +30,20 @@ def transform_to_new_structure(
         project_classifications: Dict of project classifications
         git_contrib_data: Dict of git contribution data per project
         project_timestamps: Dict mapping project tags to Unix timestamps (optional)
-        filter_username: Optional full name or username (for metrics only)
+        github_username: Optional full name/username/email local-part filter (for metrics only)
+        project_summaries: Optional dict {project_tag: summary_text}
+        send_to_llm: Whether user consented to LLM processing (True/False)
         
     Returns:
         Dict with the new structure: {source, projects, overall, user_contributions?, username_entered?}
     """
+    effective_username = github_username or filter_username
+    
     if project_timestamps is None:
         project_timestamps = {}
+    if project_summaries is None:
+        project_summaries = {}
+
     # Initialize project data structure
     project_data = {}
     for tag, root_str in projects_rel.items():
@@ -187,11 +197,6 @@ def transform_to_new_structure(
             if c.get("commits", 0) > 0
         ]
         is_collab = len(active_contributors) >= 2
-        # Optional stricter dominance rule (commented out):
-        # if is_collab:
-        #     top_pct = project_data[tag]["contributors"][0].get("percent_commits", 100)
-        #     if top_pct > 95:
-        #         is_collab = False
         project_data[tag]["collaborative"] = is_collab
     
     # Build overall statistics
@@ -253,13 +258,13 @@ def transform_to_new_structure(
 
     # Build user_contributions metrics (without altering project contributors)
     user_contrib_summary = None
-    if filter_username:
-        uname = filter_username.lower()
+    if effective_username:
+        uname = effective_username.lower()
 
         def _matches(u: str, c: dict) -> bool:
-            name = c["name"].lower()
+            name = c.get("name", "").lower()
             email_local = c.get("email", "").split("@")[0].lower() if c.get("email") else ""
-            first_token = name.split()[0]
+            first_token = name.split()[0] if name else ""
             return (
                 u == name
                 or u == first_token
@@ -273,7 +278,7 @@ def transform_to_new_structure(
         matched_any = False
 
         for proj in project_data.values():
-            full_contribs = proj["contributors"]
+            full_contribs = proj.get("contributors", [])
             user_entries = [c for c in full_contribs if _matches(uname, c)]
             if user_entries:
                 matched_any = True
@@ -294,7 +299,7 @@ def transform_to_new_structure(
                 )
 
         user_contrib_summary = {
-            "username": filter_username,
+            "username": effective_username,
             "found": matched_any,
             "projects": projects_with_user if matched_any else [],
             "totals": {
@@ -318,24 +323,30 @@ def transform_to_new_structure(
     if 0 in project_data:
         sorted_tags.append(0)
     
-    # Add timestamp to project data if available
+    # Add timestamp and AI fields to project data if available
     projects_list = []
     for tag in sorted_tags:
         project = project_data[tag]
+        # Attach created_at timestamp
         if tag in project_timestamps and project_timestamps[tag] > 0:
             project["created_at"] = project_timestamps[tag]
+        # Attach AI summary and consent (stored once at upload time)
+        project["ai_summary"] = project_summaries.get(tag, "") or project.get("ai_summary", "")
+        project["llm_consent"] = bool(send_to_llm)
         projects_list.append(project)
     
     payload = {
         "source": "zip_file",
+        "scan_performed": True,
+        "send_to_llm": bool(send_to_llm),
         "projects": projects_list,
         "overall": overall
     }
     if user_contrib_summary:
         payload["user_contributions"] = user_contrib_summary
-        payload["username_entered"] = filter_username
-    elif filter_username:
+        payload["username_entered"] = effective_username
+    elif effective_username:
         # Still echo entered name even if we couldn't compute summary for any reason
-        payload["username_entered"] = filter_username
+        payload["username_entered"] = effective_username
 
     return payload
