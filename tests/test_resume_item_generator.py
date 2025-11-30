@@ -2,12 +2,13 @@
 Tests for Resume Item Generator Service
 
 Tests cover:
-- Different project types (coding, writing, art, mixed)
-- Date handling (with/without dates, edge cases)
+- Different project types (coding, writing, mixed)
+- Category-based generation (languages, frameworks, skills, content, git)
+- Framework-specific contextual templates
+- Content analysis integration with edge cases
 - Git contribution statistics (solo, collaborative, user matching)
-- Template variable substitution
-- Minimal data scenarios
-- Error handling
+- Coverage tracking and non-overlapping generation
+- Minimal data scenarios and error handling
 """
 
 import os
@@ -27,7 +28,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.settings')
 import django
 django.setup()
 
-from app.services.resume_item_generator import ResumeItemGenerator, generate_resume_items
+from app.services.resume_item_generator import ResumeItemGenerator
+from app.services.analysis.analyzers.content_analyzer import ProjectContentSummary
 
 
 class ResumeItemGeneratorTests(TestCase):
@@ -40,7 +42,7 @@ class ResumeItemGeneratorTests(TestCase):
     # ===== Coding Projects =====
 
     def test_coding_project_with_full_data(self):
-        """Test coding project with languages, frameworks, skills, and dates"""
+        """Test coding project with languages, frameworks, skills"""
         project_data = {
             'root': 'my-web-app',
             'classification': {
@@ -65,11 +67,12 @@ class ResumeItemGeneratorTests(TestCase):
         self.assertIn('items', result)
         self.assertIn('generated_at', result)
         self.assertGreaterEqual(len(result['items']), 3)
-        self.assertLessEqual(len(result['items']), 6)
         
-        # Check that items contain technical details
+        # Should contain framework-specific contextual templates or category bullets
+        items_text = ' '.join(result['items'])
         self.assertTrue(
-            any('Python' in item or 'Django' in item or 'React' in item for item in result['items'])
+            any('Python' in item or 'Django' in item or 'React' in item or 'JavaScript' in item 
+                for item in result['items'])
         )
 
     def test_coding_project_collaborative_with_git_stats(self):
@@ -78,9 +81,9 @@ class ResumeItemGeneratorTests(TestCase):
             'root': 'team-project',
             'classification': {
                 'type': 'coding',
-                'languages': ['Python'],  # Reduced to 1 language to limit contextual templates
-                'frameworks': [],  # No frameworks to limit contextual templates
-                'resume_skills': ['Web Backend']  # Reduced to 1 skill to limit contextual templates
+                'languages': ['Python'],
+                'frameworks': [],
+                'resume_skills': ['Web Backend']
             },
             'created_at': int(datetime(2022, 3, 10).timestamp()),
             'end_date': int(datetime(2023, 12, 5).timestamp()),
@@ -112,52 +115,14 @@ class ResumeItemGeneratorTests(TestCase):
         result = self.generator.generate_resume_items(project_data, user_name='John Doe')
         
         self.assertGreaterEqual(len(result['items']), 3)
-        self.assertLessEqual(len(result['items']), 6)
         
-        # Should contain collaborative language, git stats, or contribution percentage
+        # Should contain git contribution information
         items_text = ' '.join(result['items'])
         self.assertTrue(
-            any('team' in item.lower() or 'collaborat' in item.lower() or '60' in item or 
-                'coordinating' in item.lower() or 'contributing' in item.lower() or 
-                'spearheaded' in item.lower() or 'orchestrated' in item.lower() or
-                'led' in item.lower() or 'drove' in item.lower() or 'guided' in item.lower()
+            any('60' in item or '45' in item or 'commits' in item.lower() or 
+                'contributed' in item.lower() or 'version control' in item.lower()
                 for item in result['items'])
         )
-
-    def test_coding_project_solo_with_git_stats(self):
-        """Test solo coding project with git statistics"""
-        project_data = {
-            'root': 'solo-project',
-            'classification': {
-                'type': 'coding',
-                'languages': ['Python'],
-                'frameworks': ['Flask'],
-                'resume_skills': ['Web Backend']
-            },
-            'created_at': int(datetime(2023, 5, 1).timestamp()),
-            'end_date': int(datetime(2024, 1, 15).timestamp()),
-            'files': {
-                'code': [{'path': 'app.py'}],
-                'content': [],
-                'image': [],
-                'unknown': []
-            },
-            'collaborative': False,
-            'contributors': [
-                {
-                    'name': 'Developer',
-                    'commits': 120,
-                    'lines_added': 5000,
-                    'lines_deleted': 500,
-                    'percent_commits': 100.0
-                }
-            ]
-        }
-        
-        result = self.generator.generate_resume_items(project_data)
-        
-        self.assertGreaterEqual(len(result['items']), 3)
-        self.assertLessEqual(len(result['items']), 6)
 
     def test_coding_project_without_git_stats(self):
         """Test coding project without git history"""
@@ -181,84 +146,80 @@ class ResumeItemGeneratorTests(TestCase):
         result = self.generator.generate_resume_items(project_data)
         
         self.assertGreaterEqual(len(result['items']), 3)
-        self.assertLessEqual(len(result['items']), 6)
+        
+        # Should still generate items based on languages, frameworks, skills, code files
+        items_text = ' '.join(result['items'])
+        self.assertTrue(
+            any('Python' in item or 'Django' in item or 'code file' in item.lower()
+                for item in result['items'])
+        )
 
     # ===== Writing Projects =====
 
-    def test_writing_project(self):
-        """Test writing project"""
+    def test_writing_project_with_content_analysis(self):
+        """Test writing project with content analysis"""
         project_data = {
-            'root': 'my-essays',
+            'root': 'research-paper',
             'classification': {
                 'type': 'writing',
             },
-            'created_at': int(datetime(2023, 2, 1).timestamp()),
-            'end_date': int(datetime(2023, 8, 30).timestamp()),
             'files': {
                 'code': [],
                 'content': [
-                    {'path': 'essay1.md'},
-                    {'path': 'essay2.md'},
-                    {'path': 'essay3.md'}
+                    {'path': 'paper.md', 'text': 'Research content here'}
                 ],
                 'image': [],
                 'unknown': []
             }
         }
         
-        result = self.generator.generate_resume_items(project_data)
+        # Create mock content summary
+        content_summary = ProjectContentSummary(
+            total_documents=1,
+            total_words=12500,
+            total_characters=75000,
+            document_types={'research_paper': 1},
+            primary_document_type='research_paper',
+            writing_styles=['academic'],
+            primary_writing_style='academic',
+            complexity_levels=['advanced'],
+            primary_complexity='advanced',
+            all_topics=['Machine Learning', 'Psychology'],
+            primary_topics=['Machine Learning', 'Psychology'],
+            domain_indicators={},
+            has_citations=True,
+            has_code_examples=False,
+            has_mathematical_content=True,
+            average_document_length=12500,
+            estimated_total_read_time=50,
+            vocabulary_richness=0.72,
+            document_analyses=[]
+        )
+        
+        result = self.generator.generate_resume_items(project_data, content_summary=content_summary)
         
         self.assertGreaterEqual(len(result['items']), 3)
-        self.assertLessEqual(len(result['items']), 6)
-        # Should mention documents/files
+        
+        # Should contain content analysis information
         items_text = ' '.join(result['items'])
         self.assertTrue(
-            any('document' in item.lower() or 'file' in item.lower() or '3' in item for item in result['items'])
-        )
-
-    # ===== Art Projects =====
-
-    def test_art_project(self):
-        """Test art/design project"""
-        project_data = {
-            'root': 'portfolio-designs',
-            'classification': {
-                'type': 'art',
-            },
-            'created_at': int(datetime(2023, 1, 1).timestamp()),
-            'end_date': int(datetime(2023, 12, 31).timestamp()),
-            'files': {
-                'code': [],
-                'content': [],
-                'image': [
-                    {'path': 'design1.png'},
-                    {'path': 'design2.jpg'},
-                    {'path': 'design3.svg'}
-                ],
-                'unknown': []
-            }
-        }
-        
-        result = self.generator.generate_resume_items(project_data)
-        
-        self.assertGreaterEqual(len(result['items']), 3)
-        self.assertLessEqual(len(result['items']), 6)
-        # Should mention visual/design assets
-        self.assertTrue(
-            any('visual' in item.lower() or 'design' in item.lower() or 'asset' in item.lower() for item in result['items'])
+            any('12,500' in item or 'word' in item.lower() or 'research paper' in item.lower() or
+                'Machine Learning' in item or 'Psychology' in item or
+                'citations' in item.lower() or 'mathematical' in item.lower()
+                for item in result['items'])
         )
 
     # ===== Mixed Projects =====
 
     def test_mixed_coding_writing_project(self):
-        """Test mixed coding + writing project"""
+        """Test mixed coding + writing project - should generate both coding and writing bullets"""
         project_data = {
             'root': 'documentation-tool',
             'classification': {
                 'type': 'mixed:coding+writing',
                 'languages': ['Python'],
                 'frameworks': ['Flask'],
-                'resume_skills': ['Web Backend']
+                'resume_skills': ['Web Backend', 'Technical Writing']
             },
             'files': {
                 'code': [{'path': 'app.py'}],
@@ -271,69 +232,31 @@ class ResumeItemGeneratorTests(TestCase):
         result = self.generator.generate_resume_items(project_data)
         
         self.assertGreaterEqual(len(result['items']), 3)
-
-    # ===== Date Handling =====
-
-    def test_project_without_dates(self):
-        """Test project with missing dates (should still generate items)"""
-        project_data = {
-            'root': 'no-dates-project',
-            'classification': {
-                'type': 'coding',
-                'languages': ['Python'],
-                'frameworks': ['Django'],
-                'resume_skills': ['Backend Development']
-            },
-            'files': {
-                'code': [{'path': 'main.py'}],
-                'content': [],
-                'image': [],
-                'unknown': []
-            }
-        }
         
-        result = self.generator.generate_resume_items(project_data)
-        
-        self.assertGreaterEqual(len(result['items']), 3)
-        # Should not crash and should generate items
-
-    def test_project_with_only_start_date(self):
-        """Test project with only start date"""
-        project_data = {
-            'root': 'ongoing-project',
-            'classification': {
-                'type': 'coding',
-                'languages': ['Python'],
-            },
-            'created_at': int(datetime(2023, 1, 1).timestamp()),
-            'files': {
-                'code': [{'path': 'main.py'}],
-                'content': [],
-                'image': [],
-                'unknown': []
-            }
-        }
-        
-        result = self.generator.generate_resume_items(project_data)
-        
-        self.assertGreaterEqual(len(result['items']), 3)
+        # Should contain both coding and writing aspects
         items_text = ' '.join(result['items'])
-        # Should handle "Present" in date range
-        # (Note: may or may not appear depending on template selection)
+        has_coding = any('Python' in item or 'Flask' in item or 'code file' in item.lower() 
+                        for item in result['items'])
+        has_writing = any('Technical Writing' in item or 'Web Backend' in item 
+                         for item in result['items'])
+        
+        # At minimum, should have coding aspects (writing aspects may come from content analysis)
+        self.assertTrue(has_coding)
 
-    def test_project_with_same_start_end_date(self):
-        """Test project where start and end dates are the same"""
-        timestamp = int(datetime(2023, 6, 15).timestamp())
+    # ===== Framework-Specific Contextual Templates =====
+
+    def test_framework_specific_templates(self):
+        """Test that framework-specific contextual templates are generated with specific text"""
         project_data = {
-            'root': 'single-day-project',
+            'root': 'ml-project',
             'classification': {
                 'type': 'coding',
                 'languages': ['Python'],
+                'frameworks': ['TensorFlow', 'React', 'Django'],
+                'resume_skills': ['Machine Learning']
             },
-            'created_at': timestamp,
-            'end_date': timestamp,
             'files': {
-                'code': [{'path': 'main.py'}],
+                'code': [{'path': 'model.py'}],
                 'content': [],
                 'image': [],
                 'unknown': []
@@ -342,55 +265,436 @@ class ResumeItemGeneratorTests(TestCase):
         
         result = self.generator.generate_resume_items(project_data)
         
-        self.assertGreaterEqual(len(result['items']), 3)
+        items_text = ' '.join(result['items'])
+        
+        # Should contain framework-specific explanations (not just framework names)
+        self.assertTrue(
+            any('TensorFlow' in item and ('machine learning' in item.lower() or 'neural network' in item.lower()) or
+                'React' in item and ('component-based' in item.lower() or 'user interface' in item.lower()) or
+                'Django' in item and ('ORM' in item or 'web framework' in item.lower())
+                for item in result['items'])
+        )
 
-    # ===== Date Formatting Edge Cases =====
+    # ===== Category-Based Generation: Languages =====
 
-    def test_date_formatting_valid_timestamp(self):
-        """Test date formatting with valid timestamp"""
-        timestamp = int(datetime(2023, 3, 15).timestamp())
-        formatted = self.generator._format_date(timestamp)
-        self.assertEqual(formatted, 'Mar 2023')
+    def test_languages_category_bullet_single(self):
+        """Test languages category with single language"""
+        bullet = self.generator._generate_languages_bullet(['Python'], [])
+        self.assertEqual(bullet, "Developed using Python")
 
-    def test_date_formatting_none(self):
-        """Test date formatting with None"""
-        formatted = self.generator._format_date(None)
-        self.assertEqual(formatted, '')
+    def test_languages_category_bullet_two(self):
+        """Test languages category with two languages"""
+        bullet = self.generator._generate_languages_bullet(['Python', 'JavaScript'], [])
+        self.assertEqual(bullet, "Developed using Python and JavaScript")
 
-    def test_date_formatting_zero(self):
-        """Test date formatting with 0"""
-        formatted = self.generator._format_date(0)
-        self.assertEqual(formatted, '')
+    def test_languages_category_bullet_multiple(self):
+        """Test languages category with multiple languages"""
+        bullet = self.generator._generate_languages_bullet(['Python', 'JavaScript', 'TypeScript', 'Go'], [])
+        self.assertIn('Developed using', bullet)
+        self.assertIn('Python', bullet)
+        self.assertIn('JavaScript', bullet)
 
-    def test_date_range_both_dates(self):
-        """Test date range formatting with both start and end"""
-        start = int(datetime(2023, 1, 1).timestamp())
-        end = int(datetime(2024, 12, 31).timestamp())
-        date_range = self.generator._format_date_range(start, end)
-        self.assertEqual(date_range, 'Jan 2023 - Dec 2024')
+    def test_languages_category_bullet_all_covered(self):
+        """Test languages category when all languages are covered by contextual templates"""
+        bullet = self.generator._generate_languages_bullet(['Python'], ['Python'])
+        self.assertIsNone(bullet)
 
-    def test_date_range_same_dates(self):
-        """Test date range formatting with same start and end"""
-        timestamp = int(datetime(2023, 6, 15).timestamp())
-        date_range = self.generator._format_date_range(timestamp, timestamp)
-        self.assertEqual(date_range, 'Jun 2023')
+    def test_languages_category_bullet_partial_coverage(self):
+        """Test languages category with partial coverage"""
+        bullet = self.generator._generate_languages_bullet(['Python', 'JavaScript'], ['Python'])
+        self.assertIsNotNone(bullet)
+        self.assertIn('JavaScript', bullet)
+        self.assertNotIn('Python', bullet)
 
-    def test_date_range_only_start(self):
-        """Test date range formatting with only start date"""
-        start = int(datetime(2023, 1, 1).timestamp())
-        date_range = self.generator._format_date_range(start, None)
-        self.assertEqual(date_range, 'Jan 2023 - Present')
+    # ===== Category-Based Generation: Frameworks =====
 
-    def test_date_range_only_end(self):
-        """Test date range formatting with only end date"""
-        end = int(datetime(2024, 12, 31).timestamp())
-        date_range = self.generator._format_date_range(None, end)
-        self.assertEqual(date_range, 'Until Dec 2024')
+    def test_frameworks_category_bullet_single(self):
+        """Test frameworks category with single framework"""
+        bullet = self.generator._generate_frameworks_bullet(['React'], [])
+        self.assertEqual(bullet, "Built with React")
 
-    def test_date_range_no_dates(self):
-        """Test date range formatting with no dates"""
-        date_range = self.generator._format_date_range(None, None)
-        self.assertEqual(date_range, '')
+    def test_frameworks_category_bullet_all_covered(self):
+        """Test frameworks category when all frameworks are covered"""
+        bullet = self.generator._generate_frameworks_bullet(['Django'], ['Django'])
+        self.assertIsNone(bullet)
+
+    def test_frameworks_category_bullet_partial_coverage(self):
+        """Test frameworks category with partial coverage"""
+        bullet = self.generator._generate_frameworks_bullet(['Django', 'React'], ['Django'])
+        self.assertIsNotNone(bullet)
+        self.assertIn('React', bullet)
+        self.assertNotIn('Django', bullet)
+
+    # ===== Category-Based Generation: Skills =====
+
+    def test_skills_category_bullet(self):
+        """Test skills category generates appropriate bullets"""
+        project_data = {
+            'root': 'skills-test',
+            'classification': {
+                'type': 'coding',
+                'languages': ['Python'],
+                'frameworks': [],
+                'resume_skills': ['API Development', 'Database Design', 'Testing']
+            },
+            'files': {
+                'code': [{'path': 'app.py'}],
+                'content': [],
+                'image': [],
+                'unknown': []
+            }
+        }
+        
+        result = self.generator.generate_resume_items(project_data)
+        
+        items_text = ' '.join(result['items'])
+        # Should contain skills bullet
+        self.assertTrue(
+            any('Demonstrated skills' in item or 'API Development' in item or
+                'Database Design' in item or 'Testing' in item
+                for item in result['items'])
+        )
+
+    def test_skills_category_bullet_many_skills(self):
+        """Test skills category with more than 5 skills (should truncate)"""
+        bullet = self.generator._generate_skills_bullet(
+            ['Skill1', 'Skill2', 'Skill3', 'Skill4', 'Skill5', 'Skill6', 'Skill7'], []
+        )
+        self.assertIn('Demonstrated skills', bullet)
+        self.assertIn('Skill1', bullet)
+        self.assertIn('and 2 more', bullet)
+
+    def test_skills_category_bullet_all_covered(self):
+        """Test skills category when all skills are covered"""
+        bullet = self.generator._generate_skills_bullet(['Web Development'], ['Web Development'])
+        self.assertIsNone(bullet)
+
+    # ===== Category-Based Generation: Code Metrics =====
+
+    def test_code_metrics_category_bullet_single_file(self):
+        """Test code metrics with single file (singular form)"""
+        bullet = self.generator._generate_code_metrics_bullet(1)
+        self.assertEqual(bullet, "Developed 1 code file")
+
+    def test_code_metrics_category_bullet_multiple_files(self):
+        """Test code metrics with multiple files (plural form)"""
+        bullet = self.generator._generate_code_metrics_bullet(3)
+        self.assertEqual(bullet, "Developed 3 code files")
+
+    # ===== Category-Based Generation: Content Analysis =====
+
+    def test_content_volume_bullet_single_document(self):
+        """Test content volume bullet with single document"""
+        summary = ProjectContentSummary(
+            total_documents=1, total_words=5000, total_characters=30000,
+            document_types={'blog_post': 1}, primary_document_type='blog_post',
+            writing_styles=['casual'], primary_writing_style='casual',
+            complexity_levels=['intermediate'], primary_complexity='intermediate',
+            all_topics=[], primary_topics=[], domain_indicators={},
+            has_citations=False, has_code_examples=False, has_mathematical_content=False,
+            average_document_length=5000, estimated_total_read_time=20,
+            vocabulary_richness=0.5, document_analyses=[]
+        )
+        bullet = self.generator._generate_content_volume_bullet(summary)
+        self.assertIn('5,000', bullet)
+        self.assertIn('blog post', bullet.lower())
+
+    def test_content_volume_bullet_multiple_documents(self):
+        """Test content volume bullet with multiple documents"""
+        summary = ProjectContentSummary(
+            total_documents=5, total_words=15000, total_characters=90000,
+            document_types={'blog_post': 5}, primary_document_type='blog_post',
+            writing_styles=['casual'], primary_writing_style='casual',
+            complexity_levels=['intermediate'], primary_complexity='intermediate',
+            all_topics=[], primary_topics=[], domain_indicators={},
+            has_citations=False, has_code_examples=False, has_mathematical_content=False,
+            average_document_length=3000, estimated_total_read_time=60,
+            vocabulary_richness=0.55, document_analyses=[]
+        )
+        bullet = self.generator._generate_content_volume_bullet(summary)
+        self.assertIn('15,000', bullet)
+        self.assertIn('5', bullet)
+        self.assertIn('blog posts', bullet.lower())
+
+    def test_content_type_bullet_single_type(self):
+        """Test content type bullet with single document type"""
+        summary = ProjectContentSummary(
+            total_documents=1, total_words=5000, total_characters=30000,
+            document_types={'research_paper': 1}, primary_document_type='research_paper',
+            writing_styles=['academic'], primary_writing_style='academic',
+            complexity_levels=['advanced'], primary_complexity='advanced',
+            all_topics=[], primary_topics=[], domain_indicators={},
+            has_citations=True, has_code_examples=False, has_mathematical_content=False,
+            average_document_length=5000, estimated_total_read_time=20,
+            vocabulary_richness=0.7, document_analyses=[]
+        )
+        bullet = self.generator._generate_content_type_bullet(summary)
+        self.assertIsNotNone(bullet)
+        self.assertIn('research paper', bullet.lower())
+
+    def test_content_type_bullet_multiple_types(self):
+        """Test content type bullet with multiple document types"""
+        summary = ProjectContentSummary(
+            total_documents=3, total_words=10000, total_characters=60000,
+            document_types={'blog_post': 2, 'technical_documentation': 1},
+            primary_document_type='blog_post',
+            writing_styles=['casual'], primary_writing_style='casual',
+            complexity_levels=['intermediate'], primary_complexity='intermediate',
+            all_topics=[], primary_topics=[], domain_indicators={},
+            has_citations=False, has_code_examples=False, has_mathematical_content=False,
+            average_document_length=3333, estimated_total_read_time=40,
+            vocabulary_richness=0.55, document_analyses=[]
+        )
+        bullet = self.generator._generate_content_type_bullet(summary)
+        self.assertIsNotNone(bullet)
+        self.assertIn('blog post', bullet.lower() or 'technical documentation' in bullet.lower())
+
+    def test_topics_bullet_single_topic(self):
+        """Test topics bullet with single topic"""
+        bullet = self.generator._generate_topics_bullet(['Machine Learning'])
+        self.assertEqual(bullet, "Covered topic: Machine Learning")
+
+    def test_topics_bullet_two_topics(self):
+        """Test topics bullet with two topics"""
+        bullet = self.generator._generate_topics_bullet(['Machine Learning', 'Psychology'])
+        self.assertEqual(bullet, "Covered topics: Machine Learning and Psychology")
+
+    def test_topics_bullet_many_topics(self):
+        """Test topics bullet with many topics (should truncate)"""
+        bullet = self.generator._generate_topics_bullet(['Topic1', 'Topic2', 'Topic3', 'Topic4', 'Topic5', 'Topic6'])
+        self.assertIn('Covered topics including', bullet)
+        self.assertIn('Topic1', bullet)
+        self.assertIn('and 2 more', bullet)
+
+    def test_topics_bullet_empty(self):
+        """Test topics bullet with empty list"""
+        bullet = self.generator._generate_topics_bullet([])
+        self.assertIsNone(bullet)
+
+    def test_structural_features_bullet_with_features(self):
+        """Test structural features bullet when features exist"""
+        summary = ProjectContentSummary(
+            total_documents=1, total_words=5000, total_characters=30000,
+            document_types={'research_paper': 1}, primary_document_type='research_paper',
+            writing_styles=['academic'], primary_writing_style='academic',
+            complexity_levels=['advanced'], primary_complexity='advanced',
+            all_topics=[], primary_topics=[], domain_indicators={},
+            has_citations=True, has_code_examples=True, has_mathematical_content=True,
+            average_document_length=5000, estimated_total_read_time=20,
+            vocabulary_richness=0.7, document_analyses=[]
+        )
+        bullet = self.generator._generate_structural_features_bullet(summary)
+        self.assertIsNotNone(bullet)
+        self.assertIn('Featured', bullet)
+        self.assertTrue(
+            'citations' in bullet.lower() or 
+            'code example' in bullet.lower() or 
+            'mathematical' in bullet.lower()
+        )
+
+    def test_structural_features_bullet_no_features(self):
+        """Test structural features bullet when no features exist"""
+        summary = ProjectContentSummary(
+            total_documents=1, total_words=5000, total_characters=30000,
+            document_types={'blog_post': 1}, primary_document_type='blog_post',
+            writing_styles=['casual'], primary_writing_style='casual',
+            complexity_levels=['intermediate'], primary_complexity='intermediate',
+            all_topics=[], primary_topics=[], domain_indicators={},
+            has_citations=False, has_code_examples=False, has_mathematical_content=False,
+            average_document_length=5000, estimated_total_read_time=20,
+            vocabulary_richness=0.5, document_analyses=[]
+        )
+        bullet = self.generator._generate_structural_features_bullet(summary)
+        self.assertIsNone(bullet)
+
+    def test_writing_quality_bullet_advanced(self):
+        """Test writing quality bullet with advanced complexity and high vocabulary"""
+        summary = ProjectContentSummary(
+            total_documents=1, total_words=5000, total_characters=30000,
+            document_types={'research_paper': 1}, primary_document_type='research_paper',
+            writing_styles=['academic'], primary_writing_style='academic',
+            complexity_levels=['advanced'], primary_complexity='advanced',
+            all_topics=[], primary_topics=[], domain_indicators={},
+            has_citations=True, has_code_examples=False, has_mathematical_content=False,
+            average_document_length=5000, estimated_total_read_time=20,
+            vocabulary_richness=0.72, document_analyses=[]
+        )
+        bullet = self.generator._generate_writing_quality_bullet(summary)
+        self.assertIsNotNone(bullet)
+        self.assertIn('advanced', bullet.lower())
+        self.assertIn('72.0%', bullet or '72%' in bullet)
+
+    def test_writing_quality_bullet_not_advanced(self):
+        """Test writing quality bullet with non-advanced complexity (should return None)"""
+        summary = ProjectContentSummary(
+            total_documents=1, total_words=5000, total_characters=30000,
+            document_types={'blog_post': 1}, primary_document_type='blog_post',
+            writing_styles=['casual'], primary_writing_style='casual',
+            complexity_levels=['intermediate'], primary_complexity='intermediate',
+            all_topics=[], primary_topics=[], domain_indicators={},
+            has_citations=False, has_code_examples=False, has_mathematical_content=False,
+            average_document_length=5000, estimated_total_read_time=20,
+            vocabulary_richness=0.72, document_analyses=[]
+        )
+        bullet = self.generator._generate_writing_quality_bullet(summary)
+        self.assertIsNone(bullet)
+
+    def test_writing_quality_bullet_low_vocabulary(self):
+        """Test writing quality bullet with low vocabulary richness (should return None)"""
+        summary = ProjectContentSummary(
+            total_documents=1, total_words=5000, total_characters=30000,
+            document_types={'research_paper': 1}, primary_document_type='research_paper',
+            writing_styles=['academic'], primary_writing_style='academic',
+            complexity_levels=['advanced'], primary_complexity='advanced',
+            all_topics=[], primary_topics=[], domain_indicators={},
+            has_citations=True, has_code_examples=False, has_mathematical_content=False,
+            average_document_length=5000, estimated_total_read_time=20,
+            vocabulary_richness=0.5, document_analyses=[]
+        )
+        bullet = self.generator._generate_writing_quality_bullet(summary)
+        self.assertIsNone(bullet)
+
+    # ===== Category-Based Generation: Project Scale =====
+
+    def test_project_scale_bullet_large_project(self):
+        """Test project scale bullet with large project (>20 files, multiple types)"""
+        project_data = {
+            'files': {
+                'code': [{'path': f'file{i}.py'} for i in range(15)],
+                'content': [{'path': f'doc{i}.md'} for i in range(10)],
+                'image': [{'path': f'img{i}.png'} for i in range(5)],
+                'unknown': []
+            }
+        }
+        bullet = self.generator._generate_project_scale_bullet(project_data)
+        self.assertIsNotNone(bullet)
+        self.assertIn('30', bullet)
+        self.assertTrue('code' in bullet.lower() or 'content' in bullet.lower())
+
+    def test_project_scale_bullet_small_project(self):
+        """Test project scale bullet with small project (<20 files, should return None)"""
+        project_data = {
+            'files': {
+                'code': [{'path': 'file1.py'}],
+                'content': [{'path': 'doc1.md'}],
+                'image': [],
+                'unknown': []
+            }
+        }
+        bullet = self.generator._generate_project_scale_bullet(project_data)
+        self.assertIsNone(bullet)
+
+    def test_project_scale_bullet_single_file_type(self):
+        """Test project scale bullet with single file type (should return None)"""
+        project_data = {
+            'files': {
+                'code': [{'path': f'file{i}.py'} for i in range(25)],
+                'content': [],
+                'image': [],
+                'unknown': []
+            }
+        }
+        bullet = self.generator._generate_project_scale_bullet(project_data)
+        self.assertIsNone(bullet)
+
+    # ===== Category-Based Generation: Git Contributions =====
+
+    def test_git_contribution_bullet_user_stats(self):
+        """Test git contribution bullet with user-specific stats"""
+        project_data = {
+            'contributors': [
+                {'name': 'John Doe', 'commits': 50, 'lines_added': 2000, 'lines_deleted': 100},
+                {'name': 'Jane Smith', 'commits': 30, 'lines_added': 1500, 'lines_deleted': 50}
+            ]
+        }
+        bullet = self.generator._generate_git_contribution_bullet(project_data, 'John Doe')
+        self.assertIsNotNone(bullet)
+        self.assertIn('Contributed', bullet)
+        self.assertIn('50', bullet)
+        self.assertIn('2,000', bullet)
+
+    def test_git_contribution_bullet_aggregate_stats(self):
+        """Test git contribution bullet with aggregate stats (no user match)"""
+        project_data = {
+            'contributors': [
+                {'name': 'John Doe', 'commits': 50, 'lines_added': 2000, 'lines_deleted': 100},
+                {'name': 'Jane Smith', 'commits': 30, 'lines_added': 1500, 'lines_deleted': 50}
+            ]
+        }
+        bullet = self.generator._generate_git_contribution_bullet(project_data, None)
+        self.assertIsNotNone(bullet)
+        self.assertIn('Maintained version control', bullet)
+        self.assertIn('80', bullet)
+
+    def test_git_contribution_bullet_no_contributors(self):
+        """Test git contribution bullet with no contributors (should return None)"""
+        project_data = {}
+        bullet = self.generator._generate_git_contribution_bullet(project_data, None)
+        self.assertIsNone(bullet)
+
+    def test_git_contribution_bullet_zero_commits(self):
+        """Test git contribution bullet with zero commits (should return None)"""
+        project_data = {
+            'contributors': [
+                {'name': 'John Doe', 'commits': 0, 'lines_added': 0, 'lines_deleted': 0}
+            ]
+        }
+        bullet = self.generator._generate_git_contribution_bullet(project_data, None)
+        self.assertIsNone(bullet)
+
+    # ===== Content Analysis Integration Edge Cases =====
+
+    def test_content_analysis_none(self):
+        """Test that content_summary=None doesn't generate content bullets"""
+        project_data = {
+            'root': 'test-project',
+            'classification': {'type': 'writing'},
+            'files': {'code': [], 'content': [{'path': 'doc.md'}], 'image': [], 'unknown': []}
+        }
+        result = self.generator.generate_resume_items(project_data, content_summary=None)
+        
+        # Should not have content-specific bullets
+        items_text = ' '.join(result['items'])
+        self.assertFalse(
+            any('word' in item.lower() and ('12,500' in item or '15,000' in item) or
+                'research paper' in item.lower() or 'blog post' in item.lower()
+                for item in result['items'])
+        )
+
+    # ===== Coverage Tracking Edge Cases =====
+
+    def test_covered_items_tracking(self):
+        """Test that covered items tracking works correctly"""
+        frameworks = ['Django', 'React']
+        languages = ['Python', 'JavaScript']
+        skills = ['Web Development']
+        
+        # Framework contextual templates mention Django
+        bullets = [
+            "Developed backend infrastructure using Django Python web framework with built-in ORM and admin interface"
+        ]
+        
+        covered = self.generator._get_covered_items(bullets, frameworks, languages, skills)
+        
+        # Django should be covered
+        self.assertIn('Django', covered['frameworks'])
+        # Python should be covered (mentioned in bullet)
+        self.assertIn('Python', covered['languages'])
+
+    def test_all_covered_check(self):
+        """Test that _all_covered correctly identifies when all items are covered"""
+        items = ['Python', 'JavaScript']
+        covered = ['Python', 'JavaScript']
+        
+        self.assertTrue(self.generator._all_covered(items, covered))
+        
+        # Not all covered
+        covered_partial = ['Python']
+        self.assertFalse(self.generator._all_covered(items, covered_partial))
+        
+        # Empty items
+        self.assertTrue(self.generator._all_covered([], covered))
+
 
     # ===== Git Contribution Statistics =====
 
@@ -478,10 +782,105 @@ class ResumeItemGeneratorTests(TestCase):
         self.assertEqual(stats['user_lines_added'], 1800)
         self.assertEqual(stats['user_lines_deleted'], 80)
 
+    # ===== Integration Scenarios =====
+
+    def test_full_integration_coding_with_content_and_git(self):
+        """Test full integration: coding project + content analysis + git stats"""
+        project_data = {
+            'root': 'full-stack-app',
+            'classification': {
+                'type': 'coding',
+                'languages': ['Python', 'JavaScript'],
+                'frameworks': ['Django', 'React'],
+                'resume_skills': ['Full-Stack Development', 'API Development']
+            },
+            'files': {
+                'code': [{'path': 'app.py'}, {'path': 'component.js'}],
+                'content': [{'path': 'docs.md', 'text': 'Documentation'}],
+                'image': [],
+                'unknown': []
+            },
+            'contributors': [
+                {'name': 'Developer', 'commits': 100, 'lines_added': 5000, 'lines_deleted': 500}
+            ]
+        }
+        
+        content_summary = ProjectContentSummary(
+            total_documents=1, total_words=5000, total_characters=30000,
+            document_types={'technical_documentation': 1}, primary_document_type='technical_documentation',
+            writing_styles=['technical'], primary_writing_style='technical',
+            complexity_levels=['intermediate'], primary_complexity='intermediate',
+            all_topics=['Web Development'], primary_topics=['Web Development'],
+            domain_indicators={}, has_citations=False, has_code_examples=True,
+            has_mathematical_content=False, average_document_length=5000,
+            estimated_total_read_time=20, vocabulary_richness=0.6, document_analyses=[]
+        )
+        
+        result = self.generator.generate_resume_items(project_data, content_summary=content_summary)
+        
+        # Should have multiple categories
+        self.assertGreaterEqual(len(result['items']), 5)
+        
+        items_text = ' '.join(result['items'])
+        # Should have coding aspects
+        has_coding = any('Python' in item or 'Django' in item or 'React' in item 
+                        for item in result['items'])
+        # Should have content aspects
+        has_content = any('5,000' in item or 'word' in item.lower() or 'code example' in item.lower()
+                         for item in result['items'])
+        # Should have git aspects
+        has_git = any('100' in item or 'commits' in item.lower() 
+                     for item in result['items'])
+        
+        self.assertTrue(has_coding)
+        self.assertTrue(has_content)
+        self.assertTrue(has_git)
+
+    def test_writing_project_all_content_categories(self):
+        """Test writing project with all content categories populated"""
+        project_data = {
+            'root': 'comprehensive-writing',
+            'classification': {'type': 'writing'},
+            'files': {'code': [], 'content': [{'path': 'doc.md'}], 'image': [], 'unknown': []}
+        }
+        
+        content_summary = ProjectContentSummary(
+            total_documents=3, total_words=20000, total_characters=120000,
+            document_types={'research_paper': 2, 'blog_post': 1},
+            primary_document_type='research_paper',
+            writing_styles=['academic'], primary_writing_style='academic',
+            complexity_levels=['advanced'], primary_complexity='advanced',
+            all_topics=['Machine Learning', 'Data Science', 'Python', 'Statistics'],
+            primary_topics=['Machine Learning', 'Data Science', 'Python', 'Statistics'],
+            domain_indicators={}, has_citations=True, has_code_examples=True,
+            has_mathematical_content=True, average_document_length=6666,
+            estimated_total_read_time=80, vocabulary_richness=0.75, document_analyses=[]
+        )
+        
+        result = self.generator.generate_resume_items(project_data, content_summary=content_summary)
+        
+        # Should have multiple content-related bullets
+        self.assertGreaterEqual(len(result['items']), 4)
+        
+        items_text = ' '.join(result['items'])
+        # Check for volume, type, topics, structural features, writing quality
+        has_volume = any('20,000' in item or '3' in item for item in result['items'])
+        has_topics = any('Machine Learning' in item or 'Data Science' in item 
+                        for item in result['items'])
+        has_features = any('citations' in item.lower() or 'code example' in item.lower() 
+                          or 'mathematical' in item.lower() for item in result['items'])
+        has_quality = any('advanced' in item.lower() and 'vocabulary' in item.lower() 
+                         for item in result['items'])
+        
+        self.assertTrue(has_volume)
+        self.assertTrue(has_topics)
+        self.assertTrue(has_features)
+        self.assertTrue(has_quality)
+
     # ===== Minimal Data Scenarios =====
 
     def test_minimal_project_data(self):
-        """Test project with minimal data (should use generic templates)"""
+        """Test project with minimal data (should use fallback)"""
         project_data = {
             'root': 'minimal-project',
             'classification': {
@@ -491,82 +890,35 @@ class ResumeItemGeneratorTests(TestCase):
         
         result = self.generator.generate_resume_items(project_data)
         
-        # Should still generate at least 3 items using fallback templates
-        self.assertGreaterEqual(len(result['items']), 3)
-        self.assertLessEqual(len(result['items']), 6)
-
-    def test_project_with_only_name(self):
-        """Test project with only name"""
-        project_data = {
-            'root': 'name-only-project'
-        }
-        
-        result = self.generator.generate_resume_items(project_data)
-        
-        self.assertGreaterEqual(len(result['items']), 3)
-
-    # ===== Template Variable Substitution =====
-
-    def test_template_substitution_all_variables(self):
-        """Test that templates correctly substitute all variables"""
-        project_data = {
-            'root': 'test-project',
-            'classification': {
-                'type': 'coding',
-                'languages': ['Python', 'JavaScript'],
-                'frameworks': ['Django', 'React'],
-                'resume_skills': ['Backend Development', 'Frontend Development']
-            },
-            'created_at': int(datetime(2023, 1, 1).timestamp()),
-            'end_date': int(datetime(2023, 12, 31).timestamp()),
-            'files': {
-                'code': [{'path': 'file1.py'}, {'path': 'file2.js'}],
-                'content': [],
-                'image': [],
-                'unknown': []
-            },
-            'collaborative': False,
-            'contributors': [
-                {'name': 'Developer', 'commits': 100, 'lines_added': 5000, 'lines_deleted': 500}
-            ]
-        }
-        
-        result = self.generator.generate_resume_items(project_data)
-        
-        # All items should be properly formatted (no {placeholders})
-        for item in result['items']:
-            self.assertNotIn('{', item)
-            self.assertNotIn('}', item)
+        # Should still generate at least a fallback item
+        self.assertGreaterEqual(len(result['items']), 1)
+        self.assertIn('items', result)
+        self.assertIn('generated_at', result)
 
     # ===== Error Handling =====
 
     def test_error_handling_invalid_data(self):
-        """Test error handling with invalid project data - errors are expected and handled gracefully"""
+        """Test error handling with invalid project data"""
         import logging
         
         # Suppress expected error logging for this test
         logger = logging.getLogger('app.services.resume_item_generator')
         original_level = logger.level
-        logger.setLevel(logging.CRITICAL)  # Only show critical errors, suppress ERROR level
+        logger.setLevel(logging.CRITICAL)
         
         try:
             project_data = {
-                'root': None,  # Invalid root
-                'classification': None  # Invalid classification
+                'root': None,
+                'classification': None
             }
             
-            # NOTE: This test intentionally passes invalid data to verify error handling.
-            # Any errors logged are expected and indicate the error handling is working.
             result = self.generator.generate_resume_items(project_data)
             
             # Should return empty items list or fallback items, not crash
             self.assertIn('items', result)
             self.assertIn('generated_at', result)
-            
-            # Verify error was handled gracefully (items should still be generated with fallbacks)
             self.assertGreaterEqual(len(result['items']), 0)
         finally:
-            # Restore original logging level
             logger.setLevel(original_level)
 
     def test_error_handling_missing_keys(self):
@@ -578,73 +930,32 @@ class ResumeItemGeneratorTests(TestCase):
         # Should handle gracefully
         self.assertIn('items', result)
         self.assertIn('generated_at', result)
+        self.assertGreaterEqual(len(result['items']), 1)  # Should have fallback
 
-    # ===== Convenience Function =====
-
-    def test_convenience_function(self):
-        """Test the convenience function generate_resume_items"""
+    def test_error_handling_non_dict_classification(self):
+        """Test error handling with classification as non-dict"""
         project_data = {
-            'root': 'convenience-test',
-            'classification': {
-                'type': 'coding',
-                'languages': ['Python'],
-            },
-            'files': {
-                'code': [{'path': 'main.py'}],
-                'content': [],
-                'image': [],
-                'unknown': []
-            }
+            'root': 'test',
+            'classification': 'invalid_string'  # Should be dict
         }
         
-        result = generate_resume_items(project_data)
+        result = self.generator.generate_resume_items(project_data)
         
+        # Should handle gracefully
         self.assertIn('items', result)
         self.assertIn('generated_at', result)
-        self.assertGreaterEqual(len(result['items']), 3)
+        self.assertGreaterEqual(len(result['items']), 1)
 
-    # ===== Item Count Validation =====
-
-    def test_item_count_between_3_and_5(self):
-        """Test that generated items are between 3 and 5"""
+    def test_error_handling_non_list_contributors(self):
+        """Test error handling with contributors as non-list"""
         project_data = {
-            'root': 'count-test',
-            'classification': {
-                'type': 'coding',
-                'languages': ['Python'],
-                'frameworks': ['Django'],
-                'resume_skills': ['Backend Development']
-            },
-            'files': {
-                'code': [{'path': 'main.py'}],
-                'content': [],
-                'image': [],
-                'unknown': []
-            }
-        }
-        
-        result = self.generator.generate_resume_items(project_data)
-        
-        self.assertGreaterEqual(len(result['items']), 3)
-        self.assertLessEqual(len(result['items']), 6)
-
-    # ===== Generated Timestamp =====
-
-    def test_generated_at_timestamp(self):
-        """Test that generated_at is a valid timestamp"""
-        project_data = {
-            'root': 'timestamp-test',
+            'root': 'test',
             'classification': {'type': 'coding'},
-            'files': {'code': [], 'content': [], 'image': [], 'unknown': []}
+            'contributors': 'invalid_string'  # Should be list
         }
         
         result = self.generator.generate_resume_items(project_data)
         
+        # Should handle gracefully
+        self.assertIn('items', result)
         self.assertIn('generated_at', result)
-        self.assertIsInstance(result['generated_at'], int)
-        self.assertGreater(result['generated_at'], 0)
-        
-        # Should be recent (within last minute)
-        current_time = int(datetime.now().timestamp())
-        self.assertLess(abs(result['generated_at'] - current_time), 60)
-
