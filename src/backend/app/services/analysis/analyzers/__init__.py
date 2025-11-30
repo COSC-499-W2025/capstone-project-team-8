@@ -8,6 +8,18 @@ from .git_contributions import get_git_contributors, get_project_timestamp
 from .project_discovery import discover_projects, find_project_tag_for_path
 from .project_metadata import detect_languages, detect_frameworks
 from .resume_skill_extractor import extract_resume_skills, extract_skills_from_languages, extract_skills_from_frameworks, extract_skills_from_files, get_skill_categories
+from .content_analyzer import (
+    analyze_document,
+    analyze_project_content,
+    ContentAnalyzer,
+    DocumentAnalysis,
+    ProjectContentSummary
+)
+from .content_skills_extractor import (
+    extract_skills_from_document,
+    extract_skills_from_project_content,
+    integrate_content_skills
+)
 
 __all__ = [
     'analyze_image',
@@ -25,5 +37,13 @@ __all__ = [
     'extract_skills_from_languages',
     'extract_skills_from_frameworks',
     'extract_skills_from_files',
-    'get_skill_categories'
+    'get_skill_categories',
+    'analyze_document',
+    'analyze_project_content',
+    'ContentAnalyzer',
+    'DocumentAnalysis',
+    'ProjectContentSummary',
+    'extract_skills_from_document',
+    'extract_skills_from_project_content',
+    'integrate_content_skills',
 ]
