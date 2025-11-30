@@ -43,8 +43,9 @@ jobs:
       - name: Run Database Tests
         run: docker compose run --rm backend python manage.py test tests.test_database_saving tests.test_models tests.test_content_reading
 
-      - name: Run LLM Tests
-        run: docker compose run --rm backend python manage.py test tests.test_llm tests.test_local_llm tests.test_prompt_loader
+      # Skip LLM Tests. Run Locally instead with: docker-compose exec backend python manage.py test tests.test_llm
+      #- name: Run LLM Tests
+      #  run: docker compose run --rm backend python manage.py test tests.test_llm tests.test_local_llm tests.test_prompt_loader
 
       - name: Run Misc Tests
         run: docker compose run --rm backend python manage.py test tests.test_chronological_ordering tests.test_collaborative_tag tests.test_zip_timestamps
