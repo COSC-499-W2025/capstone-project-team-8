@@ -2,8 +2,9 @@
 Resume Item Generator Service
 
 This module generates professional resume bullet points for projects based on
-detected skills, languages, frameworks, project classification, and git contribution
-statistics. The service is modular and can be used from any endpoint.
+detected skills, languages, frameworks, project classification, git contribution
+statistics, and content analysis. The service uses a category-based approach
+to ensure comprehensive, non-overlapping bullet points.
 
 Main function:
     - generate_resume_items(): Generate resume bullet points for a project
@@ -20,33 +21,25 @@ class ResumeItemGenerator:
     """
     Service for generating professional resume bullet points from project data.
     
-    This service uses templates to create resume-ready bullet points that can be
-    copied directly into a resume. Templates are organized by project type and
-    collaboration status.
+    Uses a category-based generation approach:
+    1. Framework-specific contextual templates (detailed explanations)
+    2. Category-based bullets (languages, frameworks, skills, content, git, etc.)
     
-    Future enhancements:
-    - User customization: Allow users to select which templates to use
-    - Template editing: Allow users to modify template text
-    - Multiple output formats: Support different resume styles (ATS-friendly, creative, etc.)
-    - Skill-based filtering: Generate items focused on specific skills
-    - Length customization: Allow users to request more/fewer items
-    - Git contribution filtering: Allow users to filter by contribution percentage thresholds
-    - File-specific tracking: Track which specific files a user edited and include
-      file-level details in resume items (e.g., "Developed core API endpoints across
-      15 Python files" or "Implemented authentication system in auth.py and middleware.py")
+    This ensures comprehensive coverage without overlap.
     """
     
     def __init__(self):
-        """Initialize the resume item generator with templates."""
-        self.templates = self._initialize_templates()
+        """Initialize the resume item generator."""
+        pass
     
     def generate_resume_items(
         self, 
         project_data: Dict[str, Any], 
-        user_name: Optional[str] = None
+        user_name: Optional[str] = None,
+        content_summary: Optional[Any] = None  # ProjectContentSummary from content_analyzer
     ) -> Dict[str, Any]:
         """
-        Generate resume bullet points for a project.
+        Generate comprehensive, non-overlapping resume bullet points for a project.
         
         Args:
             project_data: Project data dictionary containing:
@@ -58,6 +51,7 @@ class ResumeItemGenerator:
                 - collaborative: Boolean indicating if collaborative (optional)
                 - files: Dict with file counts (optional)
             user_name: Optional username to extract user-specific contribution stats
+            content_summary: Optional ProjectContentSummary from content analyzer
             
         Returns:
             Dict with:
@@ -65,104 +59,98 @@ class ResumeItemGenerator:
                 - generated_at: Timestamp when items were generated
         """
         try:
+            bullets = []
+            
             # Extract project metadata
-            project_name = project_data.get('root', 'Project')
             classification = project_data.get('classification') or {}
-            project_type = classification.get('type', 'unknown') if isinstance(classification, dict) else 'unknown'
-            
-            # Extract dates
-            start_date_ts = project_data.get('created_at')
-            end_date_ts = project_data.get('end_date')
-            start_date = self._format_date(start_date_ts) if start_date_ts else ''
-            end_date = self._format_date(end_date_ts) if end_date_ts else ''
-            date_range = self._format_date_range(start_date_ts, end_date_ts)
-            
-            # Extract technical data
             languages = classification.get('languages', []) if isinstance(classification, dict) else []
             frameworks = classification.get('frameworks', []) if isinstance(classification, dict) else []
             skills = classification.get('resume_skills', []) if isinstance(classification, dict) else []
-            primary_language = languages[0] if languages else ''
             
             # Extract file counts
             files = project_data.get('files', {})
-            file_count = (
-                len(files.get('code', [])) +
-                len(files.get('content', [])) +
-                len(files.get('image', [])) +
-                len(files.get('unknown', []))
-            )
             code_files = len(files.get('code', []))
             
-            # Extract git contribution data
-            contributors = project_data.get('contributors', [])
-            is_collaborative = project_data.get('collaborative', False)
-            contributor_count = len([c for c in contributors if c.get('commits', 0) > 0])
+            # Build context for framework templates
+            context = self._build_context(project_data, user_name)
             
-            # Extract user-specific or aggregate git stats
-            git_stats = self._extract_user_contributions(contributors, user_name)
-            has_git_stats = bool(git_stats.get('total_commits') or git_stats.get('user_commits'))
-            has_user_stats = 'user_commits' in git_stats  # Check if user-specific stats are available
+            # CATEGORY 1: Framework-specific contextual templates (detailed explanations)
+            framework_bullets = self._get_contextual_templates(context)
+            bullets.extend(framework_bullets)
             
-            # Build template context
-            # For contextual templates, we need ALL frameworks/languages, not just top 3
-            all_frameworks_str = ', '.join(frameworks) if frameworks else ''
-            all_languages_str = ', '.join(languages) if languages else ''
+            # Track what frameworks/languages/skills were covered by contextual templates
+            covered = self._get_covered_items(framework_bullets, frameworks, languages, skills)
             
-            context = {
-                'project_name': project_name,
-                'start_date': start_date,
-                'end_date': end_date,
-                'date_range': date_range,
-                'primary_language': primary_language,
-                'languages': ', '.join(languages[:3]) if languages else '',  # Top 3 languages for display
-                'frameworks': ', '.join(frameworks[:3]) if frameworks else '',  # Top 3 frameworks for display
-                'all_frameworks': all_frameworks_str,  # ALL frameworks for contextual template matching
-                'all_languages': all_languages_str,  # ALL languages for contextual template matching
-                'skills': ', '.join(skills[:5]) if skills else '',  # Top 5 skills
-                'file_count': file_count,
-                'code_files': code_files,
-                'is_collaborative': is_collaborative,
-                'contributor_count': contributor_count,
-                **git_stats  # Merge git stats into context
-            }
+            # CATEGORY 2: Languages (if not fully covered by contextual templates)
+            if languages and not self._all_covered(languages, covered['languages']):
+                lang_bullet = self._generate_languages_bullet(languages, covered['languages'])
+                if lang_bullet:
+                    bullets.append(lang_bullet)
             
-            # Step 1: Gather all contextual templates and track what they cover
-            contextual_items, covered_items = self._gather_contextual_items(context, frameworks, languages, skills)
+            # CATEGORY 3: Frameworks (if not fully covered by contextual templates)
+            if frameworks and not self._all_covered(frameworks, covered['frameworks']):
+                fw_bullet = self._generate_frameworks_bullet(frameworks, covered['frameworks'])
+                if fw_bullet:
+                    bullets.append(fw_bullet)
             
-            # Step 2: Generate generic templates that avoid covered concepts
-            # If we have < 5 contextual items, generate 2 generic; if >= 5, generate 1 generic
-            generic_count = 2 if len(contextual_items) < 5 else 1
-            template_set = self._get_template_set(project_type, is_collaborative, has_git_stats, has_user_stats)
-            generic_items = self._generate_generic_items(
-                template_set, context, covered_items, generic_count, 
-                frameworks, languages, skills
-            )
+            # CATEGORY 4: Skills (if not fully covered)
+            if skills and not self._all_covered(skills, covered['skills']):
+                skill_bullet = self._generate_skills_bullet(skills, covered['skills'])
+                if skill_bullet:
+                    bullets.append(skill_bullet)
             
-            # Combine contextual and generic items
-            items = contextual_items + generic_items
+            # CATEGORY 5: Content Volume (from content analysis)
+            if content_summary and content_summary.total_documents > 0:
+                content_bullet = self._generate_content_volume_bullet(content_summary)
+                if content_bullet:
+                    bullets.append(content_bullet)
             
-            # Determine if project has limited information (few skills/languages/frameworks)
-            has_limited_info = (
-                len(frameworks) < 2 or 
-                len(languages) < 2 or 
-                len(skills) < 3 or
-                (len(frameworks) + len(languages) + len(skills)) < 5
-            )
+            # CATEGORY 6: Content Type
+            if content_summary:
+                type_bullet = self._generate_content_type_bullet(content_summary)
+                if type_bullet:
+                    bullets.append(type_bullet)
             
-            # Set minimum based on available information
-            min_items = 4 if has_limited_info else 3
+            # CATEGORY 7: Topics
+            if content_summary and content_summary.primary_topics:
+                topics_bullet = self._generate_topics_bullet(content_summary.primary_topics)
+                if topics_bullet:
+                    bullets.append(topics_bullet)
             
-            # Ensure we have at least the minimum number of items
-            if len(items) < min_items:
-                # Add generic fallback templates
-                fallback_items = self._get_fallback_templates(project_type, context)
-                items.extend(fallback_items[:min_items - len(items)])
+            # CATEGORY 8: Structural Features
+            if content_summary:
+                struct_bullet = self._generate_structural_features_bullet(content_summary)
+                if struct_bullet:
+                    bullets.append(struct_bullet)
             
-            # Limit to 6 items (target)
-            items = items[:6]
+            # CATEGORY 9: Writing Quality (only if advanced)
+            if content_summary:
+                quality_bullet = self._generate_writing_quality_bullet(content_summary)
+                if quality_bullet:
+                    bullets.append(quality_bullet)
+            
+            # CATEGORY 10: Code Metrics (if code files exist)
+            if code_files > 0:
+                code_bullet = self._generate_code_metrics_bullet(code_files)
+                if code_bullet:
+                    bullets.append(code_bullet)
+            
+            # CATEGORY 11: Git Contributions
+            git_bullet = self._generate_git_contribution_bullet(project_data, user_name)
+            if git_bullet:
+                bullets.append(git_bullet)
+            
+            # CATEGORY 12: Project Scale (if substantial)
+            scale_bullet = self._generate_project_scale_bullet(project_data)
+            if scale_bullet:
+                bullets.append(scale_bullet)
+            
+            # Fallback: If no bullets generated, add a generic one
+            if not bullets:
+                bullets.append("Worked on project development")
             
             return {
-                'items': items,
+                'items': bullets,
                 'generated_at': int(datetime.now().timestamp())
             }
             
@@ -172,6 +160,244 @@ class ResumeItemGenerator:
                 'items': [],
                 'generated_at': int(datetime.now().timestamp())
             }
+    
+    def _build_context(self, project_data: Dict, user_name: Optional[str]) -> Dict:
+        """Build template context for framework-specific templates."""
+        classification = project_data.get('classification') or {}
+        languages = classification.get('languages', []) if isinstance(classification, dict) else []
+        frameworks = classification.get('frameworks', []) if isinstance(classification, dict) else []
+        skills = classification.get('resume_skills', []) if isinstance(classification, dict) else []
+        files = project_data.get('files', {})
+        contributors = project_data.get('contributors', [])
+        
+        if not isinstance(contributors, list): 
+            contributors = []
+
+        git_stats = self._extract_user_contributions(contributors, user_name)
+        
+        return {
+            'primary_language': languages[0] if languages else '',
+            'languages': ', '.join(languages[:3]) if languages else '',
+            'frameworks': ', '.join(frameworks[:3]) if frameworks else '',
+            'all_frameworks': ', '.join(frameworks) if frameworks else '',
+            'all_languages': ', '.join(languages) if languages else '',
+            'skills': ', '.join(skills[:5]) if skills else '',
+            'code_files': len(files.get('code', [])) if isinstance(files, dict) else 0,
+            'file_count': sum(len(files.get(k, [])) for k in ['code', 'content', 'image', 'unknown']) if isinstance(files, dict) else 0,
+            'is_collaborative': project_data.get('collaborative', False),
+            'contributor_count': len([c for c in contributors if isinstance(c, dict) and c.get('commits', 0) > 0]),
+            **git_stats
+        }
+    
+    def _get_covered_items(
+        self, 
+        bullets: List[str], 
+        frameworks: List[str], 
+        languages: List[str], 
+        skills: List[str]
+    ) -> Dict[str, List[str]]:
+        """Extract which frameworks, languages, and skills are mentioned in contextual bullets."""
+        covered = {'frameworks': [], 'languages': [], 'skills': []}
+        text_lower = ' '.join(bullets).lower()
+        
+        for fw in frameworks:
+            if fw.lower() in text_lower:
+                covered['frameworks'].append(fw)
+        for lang in languages:
+            if lang.lower() in text_lower:
+                covered['languages'].append(lang)
+        for skill in skills:
+            if skill.lower() in text_lower:
+                covered['skills'].append(skill)
+        
+        return covered
+    
+    def _all_covered(self, items: List[str], covered: List[str]) -> bool:
+        """Check if all items are covered."""
+        if not items:
+            return True
+        return len(covered) >= len(items) and all(item in covered for item in items)
+    
+    def _generate_languages_bullet(self, languages: List[str], covered: List[str]) -> Optional[str]:
+        """Generate languages bullet (only uncovered languages)."""
+        uncovered = [l for l in languages if l not in covered]
+        if not uncovered:
+            return None
+        
+        if len(uncovered) == 1:
+            return f"Developed using {uncovered[0]}"
+        elif len(uncovered) == 2:
+            return f"Developed using {uncovered[0]} and {uncovered[1]}"
+        else:
+            lang_str = ', '.join(uncovered[:4])
+            if len(uncovered) > 4:
+                lang_str += f", and {len(uncovered) - 4} more"
+            return f"Developed using {lang_str}"
+    
+    def _generate_frameworks_bullet(self, frameworks: List[str], covered: List[str]) -> Optional[str]:
+        """Generate frameworks bullet (only uncovered frameworks)."""
+        uncovered = [f for f in frameworks if f not in covered]
+        if not uncovered:
+            return None
+        
+        if len(uncovered) == 1:
+            return f"Built with {uncovered[0]}"
+        elif len(uncovered) == 2:
+            return f"Built with {uncovered[0]} and {uncovered[1]}"
+        else:
+            fw_str = ', '.join(uncovered[:4])
+            if len(uncovered) > 4:
+                fw_str += f", and {len(uncovered) - 4} more"
+            return f"Built with {fw_str}"
+    
+    def _generate_skills_bullet(self, skills: List[str], covered: List[str]) -> Optional[str]:
+        """Generate skills bullet (only uncovered skills)."""
+        uncovered = [s for s in skills if s not in covered]
+        if not uncovered:
+            return None
+        
+        if len(uncovered) <= 5:
+            skills_str = ', '.join(uncovered)
+        else:
+            skills_str = ', '.join(uncovered[:5]) + f", and {len(uncovered) - 5} more"
+        return f"Demonstrated skills in {skills_str}"
+    
+    def _generate_content_volume_bullet(self, summary: Any) -> Optional[str]:
+        """Generate bullet for content volume."""
+        if summary.total_documents == 1:
+            doc_type_plural = self._pluralize_doc_type(summary.primary_document_type)
+            return f"Authored {summary.total_words:,}-word {doc_type_plural[:-1]}"
+        else:
+            doc_type_plural = self._pluralize_doc_type(summary.primary_document_type)
+            return f"Authored {summary.total_words:,} words across {summary.total_documents} {doc_type_plural}"
+    
+    def _generate_content_type_bullet(self, summary: Any) -> Optional[str]:
+        """Generate bullet for document types."""
+        doc_types = summary.document_types
+        
+        if len(doc_types) == 1:
+            type_name = self._format_doc_type_name(summary.primary_document_type)
+            return f"Created {type_name}"
+        elif len(doc_types) > 1:
+            type_names = [self._format_doc_type_name(k) for k in doc_types.keys()]
+            return f"Created {self._format_list(type_names)}"
+        return None
+    
+    def _generate_topics_bullet(self, topics: List[str]) -> Optional[str]:
+        """Generate bullet for topics covered."""
+        if not topics:
+            return None
+        
+        if len(topics) == 1:
+            return f"Covered topic: {topics[0]}"
+        elif len(topics) == 2:
+            return f"Covered topics: {topics[0]} and {topics[1]}"
+        else:
+            topics_str = ', '.join(topics[:4])
+            if len(topics) > 4:
+                topics_str += f", and {len(topics) - 4} more"
+            return f"Covered topics including {topics_str}"
+    
+    def _generate_structural_features_bullet(self, summary: Any) -> Optional[str]:
+        """Generate bullet for structural features."""
+        features = []
+        if summary.has_citations:
+            features.append("citations")
+        if summary.has_code_examples:
+            features.append("code examples")
+        if summary.has_mathematical_content:
+            features.append("mathematical notation")
+        
+        if not features:
+            return None
+        
+        return f"Featured {self._format_list(features)}"
+    
+    def _generate_writing_quality_bullet(self, summary: Any) -> Optional[str]:
+        """Generate bullet for writing quality (only if advanced)."""
+        if summary.primary_complexity == 'advanced' and summary.vocabulary_richness > 0.6:
+            return (
+                f"Produced {summary.primary_complexity} complexity writing "
+                f"with {summary.vocabulary_richness:.1%} vocabulary richness"
+            )
+        return None
+    
+    def _generate_code_metrics_bullet(self, code_files: int) -> Optional[str]:
+        """Generate bullet for code file count."""
+        if code_files == 1:
+            return f"Developed {code_files} code file"
+        else:
+            return f"Developed {code_files} code files"
+    
+    def _generate_git_contribution_bullet(
+        self, 
+        project_data: Dict, 
+        user_name: Optional[str]
+    ) -> Optional[str]:
+        """Generate bullet for git contributions."""
+        contributors = project_data.get('contributors', [])
+        git_stats = self._extract_user_contributions(contributors, user_name)
+        
+        if 'user_commits' in git_stats:
+            return (
+                f"Contributed {git_stats['user_commit_percent']:.1f}% of commits "
+                f"({git_stats['user_commits']} commits, {git_stats['user_lines_added']:,} lines added)"
+            )
+        elif git_stats.get('total_commits', 0) > 0:
+            return f"Maintained version control with {git_stats['total_commits']} commits"
+        
+        return None
+    
+    def _generate_project_scale_bullet(self, project_data: Dict) -> Optional[str]:
+        """Generate bullet for project scale."""
+        files = project_data.get('files', {})
+        total_files = sum(len(files.get(k, [])) for k in ['code', 'content', 'image', 'unknown'])
+        
+        file_types = []
+        if files.get('code'):
+            file_types.append('code')
+        if files.get('content'):
+            file_types.append('content')
+        if files.get('image'):
+            file_types.append('image')
+        
+        if total_files > 20 and len(file_types) > 1:
+            return (
+                f"Managed project with {total_files} files across "
+                f"{self._format_list(file_types)} files"
+            )
+        return None
+    
+    def _format_list(self, items: List[str]) -> str:
+        """Format list with proper commas and 'and'."""
+        if len(items) == 1:
+            return items[0]
+        elif len(items) == 2:
+            return f"{items[0]} and {items[1]}"
+        else:
+            return f"{', '.join(items[:-1])}, and {items[-1]}"
+    
+    def _pluralize_doc_type(self, doc_type: str) -> str:
+        """Convert document type to plural form."""
+        plural_map = {
+            'research_paper': 'research papers',
+            'technical_documentation': 'technical documents',
+            'blog_post': 'blog posts',
+            'creative_writing': 'creative writing pieces',
+            'general_article': 'articles'
+        }
+        return plural_map.get(doc_type, f"{doc_type}s")
+    
+    def _format_doc_type_name(self, doc_type: str) -> str:
+        """Format document type name for display."""
+        name_map = {
+            'research_paper': 'research papers',
+            'technical_documentation': 'technical documentation',
+            'blog_post': 'blog posts',
+            'creative_writing': 'creative writing',
+            'general_article': 'articles'
+        }
+        return name_map.get(doc_type, doc_type.replace('_', ' '))
     
     def _extract_user_contributions(
         self, 
@@ -188,6 +414,11 @@ class ResumeItemGenerator:
         Returns:
             Dict with git statistics (user-specific if user_name provided, else aggregate)
         """
+        
+        
+        if not isinstance(contributors, list):
+            return {}
+        
         if not contributors:
             return {}
         
@@ -235,656 +466,6 @@ class ResumeItemGenerator:
             'contributor_count': len([c for c in contributors if c.get('commits', 0) > 0])
         }
     
-    def _extract_covered_items_from_text(self, text: str, frameworks: List[str], languages: List[str], skills: List[str]) -> Dict[str, List[str]]:
-        """
-        Extract which frameworks, languages, and skills are mentioned in formatted text.
-        
-        Args:
-            text: Formatted resume item text
-            frameworks: List of all frameworks in the project
-            languages: List of all languages in the project
-            skills: List of all skills in the project
-            
-        Returns:
-            Dict with 'frameworks', 'languages', 'skills' lists of items found in text
-        """
-        text_lower = text.lower()
-        covered = {
-            'frameworks': [],
-            'languages': [],
-            'skills': []
-        }
-        
-        # Check for frameworks (case-insensitive substring match)
-        for fw in frameworks:
-            if fw.lower() in text_lower:
-                covered['frameworks'].append(fw)
-        
-        # Check for languages (case-insensitive substring match)
-        for lang in languages:
-            if lang.lower() in text_lower:
-                covered['languages'].append(lang)
-        
-        # Check for skills (case-insensitive substring match)
-        for skill in skills:
-            if skill.lower() in text_lower:
-                covered['skills'].append(skill)
-        
-        return covered
-    
-    def _gather_contextual_items(
-        self, 
-        context: Dict, 
-        frameworks: List[str], 
-        languages: List[str], 
-        skills: List[str]
-    ) -> tuple[List[str], Dict[str, List[str]]]:
-        """
-        Gather all contextual templates and track which frameworks/languages/skills they cover.
-        
-        Args:
-            context: Template context with project data
-            frameworks: List of all frameworks in the project
-            languages: List of all languages in the project
-            skills: List of all skills in the project
-            
-        Returns:
-            Tuple of (list of contextual items, dict of covered items)
-        """
-        contextual_templates = self._get_contextual_templates(context)
-        contextual_items = []
-        covered_items = {
-            'frameworks': [],
-            'languages': [],
-            'skills': []
-        }
-        
-        for template in contextual_templates:
-            try:
-                item = template.format(**context)
-                # Only add if template was successfully filled (no empty placeholders)
-                if item and '{' not in item:
-                    contextual_items.append(item)
-                    # Extract what frameworks/languages/skills this item covers
-                    covered = self._extract_covered_items_from_text(item, frameworks, languages, skills)
-                    # Add to covered items (avoid duplicates)
-                    for key in ['frameworks', 'languages', 'skills']:
-                        for item_name in covered[key]:
-                            if item_name not in covered_items[key]:
-                                covered_items[key].append(item_name)
-            except (KeyError, Exception) as e:
-                # Skip templates with missing variables or formatting errors
-                logger.debug(f"Skipping contextual template due to error: {e}")
-                continue
-        
-        return contextual_items, covered_items
-    
-    def _generate_generic_items(
-        self,
-        template_set: List[str],
-        context: Dict,
-        covered_items: Dict[str, List[str]],
-        count: int,
-        frameworks: List[str],
-        languages: List[str],
-        skills: List[str]
-    ) -> List[str]:
-        """
-        Generate generic templates that avoid mentioning covered frameworks/languages/skills.
-        Also avoids repeating metrics/concepts among themselves.
-        
-        Args:
-            template_set: Base template set for the project type
-            context: Template context with project data
-            covered_items: Dict of frameworks/languages/skills already covered by contextual items
-            count: Number of generic items to generate
-            frameworks: List of all frameworks in the project
-            languages: List of all languages in the project
-            skills: List of all skills in the project
-            
-        Returns:
-            List of generic resume items
-        """
-        generic_items = []
-        used_concepts = set()
-        used_metrics = set()
-        
-        # Create a set of all covered items for quick lookup
-        all_covered = set()
-        for key in ['frameworks', 'languages', 'skills']:
-            all_covered.update(item.lower() for item in covered_items[key])
-        
-        for template in template_set:
-            if len(generic_items) >= count:
-                break
-                
-            try:
-                item = template.format(**context)
-                # Only add if template was successfully filled (no empty placeholders)
-                if item and '{' not in item:
-                    # Check if the formatted text mentions any covered frameworks/languages/skills
-                    item_lower = item.lower()
-                    mentions_covered = any(covered_item in item_lower for covered_item in all_covered)
-                    
-                    if mentions_covered:
-                        continue  # Skip templates that mention covered items
-                    
-                    # Extract metrics and concepts
-                    item_metrics = self._extract_metrics_mentioned(item, context)
-                    item_concepts = self._extract_concepts(item)
-                    
-                    # Check for concept overlap with other generic items
-                    has_overlap = self._has_concept_overlap(item, used_concepts)
-                    has_metric_repeat = self._has_metric_repetition(item_metrics, used_metrics)
-                    
-                    # Skip if it has overlap or metric repetition
-                    if has_overlap or has_metric_repeat:
-                        continue
-                    
-                    # Prefer items that don't mention dates, file counts, or other metrics
-                    # (minimize these to focus on project quality/meat)
-                    mentions_file_count = 'file_count_value' in item_metrics or 'file' in item_lower
-                    mentions_date = 'date_mentioned' in item_metrics or any(month in item for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
-                    mentions_commits = 'commit_count_value' in item_metrics or 'commit' in item_lower
-                    
-                    # Prefer items without metrics, but allow them if we need more items to reach count
-                    if mentions_file_count or mentions_date or mentions_commits:
-                        # Only skip if we already have enough items without metrics
-                        # This allows metrics if we're struggling to find items
-                        if len(generic_items) >= count - 1:
-                            continue
-                    
-                    # Add the item
-                    generic_items.append(item)
-                    used_concepts.update(item_concepts)
-                    used_metrics.update(item_metrics)
-                    
-            except (KeyError, Exception) as e:
-                # Skip templates with missing variables or formatting errors
-                logger.debug(f"Skipping generic template due to error: {e}")
-                continue
-        
-        return generic_items
-    
-    def _get_template_set(
-        self, 
-        project_type: str, 
-        is_collaborative: bool, 
-        has_git_stats: bool,
-        has_user_stats: bool = False
-    ) -> List[str]:
-        """
-        Select appropriate templates based on project characteristics.
-        
-        Args:
-            project_type: Project classification type (coding, writing, art, mixed, unknown)
-            is_collaborative: Whether project has multiple contributors
-            has_git_stats: Whether git statistics are available
-            has_user_stats: Whether user-specific git statistics are available
-            
-        Returns:
-            List of template strings to use
-        """
-        # Handle mixed types
-        if 'mixed:' in project_type:
-            # Split mixed type and get templates from each component
-            components = project_type.replace('mixed:', '').split('+')
-            templates = []
-            for comp in components:
-                comp_templates = self._get_templates_for_type(comp.strip(), is_collaborative, has_git_stats, has_user_stats)
-                templates.extend(comp_templates)
-            return templates[:5]  # Limit to 5 total
-        
-        return self._get_templates_for_type(project_type, is_collaborative, has_git_stats, has_user_stats)
-    
-    def _get_templates_for_type(
-        self, 
-        project_type: str, 
-        is_collaborative: bool, 
-        has_git_stats: bool,
-        has_user_stats: bool = False
-    ) -> List[str]:
-        """Get templates for a specific project type."""
-        templates = []
-        
-        if project_type == 'coding':
-            if is_collaborative and has_git_stats and has_user_stats:
-                # Collaborative coding project with user-specific git stats
-                templates = self.templates['coding_collaborative'].copy()
-            elif has_git_stats:
-                # Solo coding project with git stats (or collaborative without user stats)
-                templates = self.templates['coding_solo_stats'].copy()
-            else:
-                # Coding project without git stats
-                templates = self.templates['coding_generic'].copy()
-        elif project_type == 'writing':
-            templates = self.templates['writing'].copy()
-        elif project_type == 'art':
-            templates = self.templates['art'].copy()
-        else:
-            # Unknown or other types
-            templates = self.templates['generic'].copy()
-        
-        return templates
-    
-    def _add_contextual_templates(self, templates: List[str], context: Dict) -> List[str]:
-        """
-        Add contextual templates based on project specifics and prioritize them.
-        
-        Args:
-            templates: Base templates for project type
-            context: Template context with project data
-            
-        Returns:
-            Combined list of templates with contextual ones prioritized first
-        """
-        import random
-        
-        # Get contextual templates
-        contextual = self._get_contextual_templates(context)
-        
-        # Prioritize contextual templates by putting them FIRST
-        # This ensures they're tried before generic templates
-        all_templates = contextual + templates
-        
-        # Shuffle contextual templates among themselves for variety
-        # But keep them before generic templates
-        if contextual:
-            project_seed = hash(context.get('project_name', 'default'))
-            random.seed(project_seed)
-            random.shuffle(contextual)
-            # Shuffle base templates separately
-            random.shuffle(templates)
-            # Recombine: contextual first, then base
-            all_templates = contextual + templates
-        else:
-            # No contextual templates, just shuffle base templates
-            project_seed = hash(context.get('project_name', 'default'))
-            random.seed(project_seed)
-            random.shuffle(templates)
-            all_templates = templates
-        
-        return all_templates
-    
-    def _get_fallback_templates(self, project_type: str, context: Dict) -> List[str]:
-        """Get generic fallback templates when primary templates fail."""
-        date_range = context.get('date_range', '')
-        
-        fallbacks = [
-            "Worked on application development" + (f" from {date_range}" if date_range else ""),
-            "Contributed to software development",
-            "Participated in project implementation"
-        ]
-        
-        return fallbacks
-    
-    def _extract_concepts(self, text: str) -> set:
-        """
-        Extract key concepts from a resume item to track what's been mentioned.
-        
-        Args:
-            text: Resume bullet point text
-            
-        Returns:
-            Set of concept keywords found in the text
-        """
-        text_lower = text.lower()
-        concepts = set()
-        
-        # Define concept keywords to track
-        concept_keywords = {
-            'oop': ['object-oriented', 'object oriented', 'oop'],
-            'api': ['api', 'restful', 'rest api', 'endpoint'],
-            'database': ['database', 'sql', 'postgresql', 'mysql', 'mongodb'],
-            'frontend': ['frontend', 'front-end', 'ui', 'user interface'],
-            'backend': ['backend', 'back-end', 'server-side'],
-            'testing': ['test', 'testing', 'unit test', 'tdd'],
-            'deployment': ['deploy', 'deployment', 'ci/cd', 'devops'],
-            'architecture': ['architect', 'architecture', 'design pattern'],
-            'security': ['security', 'authentication', 'authorization'],
-            'performance': ['performance', 'optimization', 'scalable', 'efficient'],
-            'collaboration': ['team', 'collaborat', 'coordinat'],
-            'leadership': ['led', 'lead', 'manag', 'direct'],
-            'documentation': ['document', 'technical writing'],
-            'algorithms': ['algorithm', 'data structure'],
-            'web': ['web', 'http', 'browser'],
-            'mobile': ['mobile', 'ios', 'android'],
-            'cloud': ['cloud', 'aws', 'azure', 'gcp'],
-            'containerization': ['docker', 'kubernetes', 'container'],
-            'version_control': ['git', 'version control', 'commit history', 'branching'],
-            'agile': ['agile', 'scrum', 'sprint'],
-            'file_count': ['files', 'codebase', 'file count'],
-            'commit_count': ['commits', 'commit'],
-            'language_proficiency': ['proficiency', 'expertise', 'demonstrating', 'showcasing'],
-            'date_range': ['across', 'throughout', 'during'],
-            'independence': ['independently', 'solo', 'alone'],
-            'establishment': ['established', 'created', 'built', 'developed', 'crafted', 'delivered'],
-            'emphasis': ['emphasis on', 'focus on', 'focusing on'],
-            # Machine Learning & Data Science concepts
-            'machine_learning': ['machine learning', 'ml model', 'predictive model', 'training', 'tensorflow', 'pytorch', 'scikit-learn'],
-            'deep_learning': ['deep learning', 'neural network', 'deep neural', 'cnn', 'rnn', 'transformer'],
-            'data_science': ['data science', 'data analysis', 'data manipulation', 'pandas', 'numpy'],
-            'data_visualization': ['data visualization', 'matplotlib', 'seaborn', 'visualization'],
-            # Writing & Documentation concepts
-            'research': ['research', 'empirical', 'literature review', 'scholarly'],
-            'academic': ['academic', 'manuscript', 'peer-reviewed', 'paper'],
-            'technical_docs': ['api documentation', 'technical specification', 'user guide', 'sdk'],
-            'editorial': ['edited', 'copyedit', 'editorial', 'revised', 'content strategy'],
-            'methodology': ['methodology', 'analysis', 'statistical', 'findings'],
-            # Art & Design concepts
-            'graphic_design': ['graphic design', 'branding', 'visual identity', 'logo'],
-            'photo_editing': ['retouching', 'photo editing', 'color correction', 'compositing'],
-            'illustration': ['illustration', 'digital art', 'concept art', 'painting'],
-            'typography': ['typography', 'layout', 'composition'],
-            '3d': ['3d model', 'render', 'visualization', 'animation'],
-            'visual_design': ['visual design', 'aesthetic', 'cohesive'],
-            'ui_ux': ['user experience', 'ux', 'prototyp', 'wireframe'],
-        }
-        
-        for concept, keywords in concept_keywords.items():
-            if any(keyword in text_lower for keyword in keywords):
-                concepts.add(concept)
-        
-        return concepts
-    
-    def _has_concept_overlap(self, text: str, used_concepts: set) -> bool:
-        """
-        Check if a resume item overlaps too much with already used concepts.
-        
-        Args:
-            text: Resume bullet point text to check
-            used_concepts: Set of already used concepts
-            
-        Returns:
-            True if too much overlap, False otherwise
-        """
-        new_concepts = self._extract_concepts(text)
-        
-        if not new_concepts:
-            return False
-        
-        # Calculate overlap
-        overlap = new_concepts.intersection(used_concepts)
-        
-        # Stricter rules for common overlaps
-        # If this item has file_count + language_proficiency and we've already used those, reject
-        problematic_combos = [
-            {'file_count', 'language_proficiency'},
-            {'commit_count', 'date_range'},
-            {'establishment', 'file_count'},
-            {'establishment', 'commit_count'},
-            {'language_proficiency', 'establishment'},
-        ]
-        
-        for combo in problematic_combos:
-            if combo.issubset(new_concepts) and combo.issubset(used_concepts):
-                return True
-        
-        # Calculate overlap percentage
-        overlap_ratio = len(overlap) / len(new_concepts) if new_concepts else 0
-        
-        # More strict threshold: reject if more than 40% overlap
-        return overlap_ratio > 0.4
-    
-    def _extract_metrics_mentioned(self, text: str, context: Dict) -> set:
-        """
-        Extract which specific metrics/data points are mentioned in the text.
-        
-        Args:
-            text: Resume bullet point text
-            context: Template context with actual values
-            
-        Returns:
-            Set of metrics mentioned (e.g., 'file_count', 'commits', 'language_name')
-        """
-        metrics = set()
-        text_lower = text.lower()
-        
-        # Check for specific numeric values from context
-        code_files = context.get('code_files', 0)
-        total_commits = context.get('total_commits', 0)
-        primary_language = context.get('primary_language', '').lower()
-        
-        # Check if file count is mentioned
-        if code_files > 0 and (str(code_files) in text or 'file' in text_lower):
-            metrics.add('file_count_value')
-        
-        # Check if commit count is mentioned
-        if total_commits > 0 and (str(total_commits) in text or 'commit' in text_lower):
-            metrics.add('commit_count_value')
-        
-        # Check if specific language is mentioned by name
-        if primary_language and primary_language in text_lower:
-            metrics.add(f'language_{primary_language}')
-        
-        # Check if date range is mentioned
-        date_range = context.get('date_range', '')
-        if date_range and any(month in text for month in ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']):
-            metrics.add('date_mentioned')
-        
-        # Check for common phrases
-        phrase_patterns = {
-            'proficiency_showcase': ['proficiency', 'expertise', 'demonstrating'],
-            'comprehensive_phrase': ['comprehensive'],
-            'maintained_phrase': ['maintained'],
-            'established_phrase': ['established'],
-            'crafted_phrase': ['crafted'],
-            'delivered_phrase': ['delivered'],
-            'built_independently': ['independently', 'built'],
-        }
-        
-        for metric, patterns in phrase_patterns.items():
-            if all(pattern in text_lower for pattern in patterns):
-                metrics.add(metric)
-        
-        return metrics
-    
-    def _has_metric_repetition(self, new_metrics: set, used_metrics: set) -> bool:
-        """
-        Check if metrics are being repeated too much.
-        
-        Args:
-            new_metrics: Metrics in the new item
-            used_metrics: Metrics already used
-            
-        Returns:
-            True if too much repetition, False otherwise
-        """
-        if not new_metrics:
-            return False
-        
-        # If we're mentioning file_count + language name again, reject
-        if 'file_count_value' in new_metrics and 'file_count_value' in used_metrics:
-            # Check if also mentioning language
-            lang_metrics_new = {m for m in new_metrics if m.startswith('language_')}
-            lang_metrics_used = {m for m in used_metrics if m.startswith('language_')}
-            if lang_metrics_new and lang_metrics_used:
-                return True
-        
-        # If we're mentioning commits + date again, reject
-        if 'commit_count_value' in new_metrics and 'commit_count_value' in used_metrics:
-            if 'date_mentioned' in new_metrics and 'date_mentioned' in used_metrics:
-                return True
-        
-        # Don't repeat the same action phrases too much
-        action_metrics = {m for m in new_metrics if m.endswith('_phrase')}
-        used_actions = {m for m in used_metrics if m.endswith('_phrase')}
-        if action_metrics and action_metrics.issubset(used_actions):
-            return True
-        
-        return False
-    
-    def _format_date(self, timestamp: Optional[int]) -> str:
-        """
-        Format Unix timestamp to "MMM YYYY" format.
-        
-        Args:
-            timestamp: Unix timestamp (integer) or None
-            
-        Returns:
-            Formatted date string or empty string if timestamp is None/0
-        """
-        if not timestamp or timestamp == 0:
-            return ''
-        
-        try:
-            dt = datetime.fromtimestamp(timestamp)
-            return dt.strftime('%b %Y')
-        except (ValueError, OSError, OverflowError):
-            return ''
-    
-    def _format_date_range(
-        self, 
-        start: Optional[int], 
-        end: Optional[int]
-    ) -> str:
-        """
-        Format date range from start and end timestamps.
-        
-        Args:
-            start: Start date Unix timestamp or None
-            end: End date Unix timestamp or None
-            
-        Returns:
-            Formatted date range string (e.g., "Jan 2023 - Dec 2024") or empty string
-        """
-        start_str = self._format_date(start)
-        end_str = self._format_date(end)
-        
-        if start_str and end_str:
-            if start_str == end_str:
-                return start_str
-            return f"{start_str} - {end_str}"
-        elif start_str:
-            return f"{start_str} - Present"
-        elif end_str:
-            return f"Until {end_str}"
-        else:
-            return ''
-    
-    def _initialize_templates(self) -> Dict[str, List[str]]:
-        """
-        Initialize template sets for different project types.
-        
-        Returns:
-            Dictionary mapping template set names to lists of template strings
-        """
-        return {
-            'coding_collaborative': [
-                # Leadership and contribution focus
-                "Led development with {user_commit_percent}% of commits, contributing {user_lines_added:,} lines of code",
-                "Spearheaded architecture using {primary_language} and {frameworks}, coordinating with {contributor_count} team members",
-                "Drove technical implementation, delivering {user_commits} commits and mentoring team members",
-                "Architected application using {primary_language} and {frameworks}, coordinating with {contributor_count} team members",
-                "Implemented {skills}, delivering {user_commits} commits across {date_range}",
-                "Built scalable solution using {languages} and {frameworks}, leading a team of {contributor_count} developers",
-                "Developed application with focus on {skills}, contributing {user_lines_added:,} lines of code and {user_commits} commits",
-                "Orchestrated collaborative development, contributing {user_commit_percent}% of total codebase",
-                "Guided team through implementation, personally delivering {user_lines_added:,} lines across {user_commits} commits",
-                "Championed technical excellence, contributing {user_commit_percent}% of commits while utilizing {frameworks}",
-            ],
-            'coding_solo_stats': [
-                # Solo development with metrics
-                "Developed application using {primary_language} and {frameworks}, implementing {skills}",
-                "Built application independently, writing {total_commits} commits across {date_range}",
-                "Created application with {code_files} code files, utilizing {languages} and {frameworks}",
-                "Implemented solution focusing on {skills}, delivering {total_commits} commits",
-                "Designed and developed application using {primary_language}, demonstrating expertise in {skills}",
-                "Engineered application from concept to completion, implementing {skills} with {frameworks}",
-                "Constructed full-stack application using {languages}, completing {total_commits} commits",
-                "Delivered application with {code_files} code files, showcasing proficiency in {primary_language}",
-                "Executed end-to-end development, leveraging {frameworks} and {skills}",
-                "Produced application through {total_commits} iterative commits, utilizing {languages} and {frameworks}",
-                "Crafted solution with emphasis on {skills}, completing development across {date_range}",
-                "Established codebase with {code_files} files, demonstrating {primary_language} expertise",
-            ],
-            'coding_generic': [
-                # Coding projects without git stats - more variety
-                "Developed application using {primary_language} and {frameworks}, implementing {skills}",
-                "Built solution utilizing {languages} and {frameworks}",
-                "Created application with {code_files} code files, focusing on {skills}",
-                "Implemented application using {primary_language}, demonstrating {skills}",
-                "Designed and developed solution with {frameworks} and {languages}",
-                "Engineered application leveraging {primary_language} and {frameworks}",
-                "Constructed application with focus on {skills} and modern {frameworks}",
-                "Delivered application utilizing {languages} to implement {skills}",
-                "Produced software solution with {primary_language} and {frameworks}",
-                "Established application using {languages}, emphasizing {skills}",
-                "Executed development with {primary_language}, incorporating {frameworks}",
-                "Formulated solution demonstrating proficiency in {skills}",
-            ],
-            'writing': [
-                # General writing templates
-                "Created written content, producing {file_count} documents and articles",
-                "Developed written content, generating {file_count} text files",
-                "Authored content, producing {file_count} documents across {date_range}",
-                "Produced written materials, creating {file_count} content files",
-                "Wrote and edited content, delivering {file_count} documents",
-                "Composed comprehensive documentation, creating {file_count} files",
-                "Drafted technical content, producing {file_count} documents",
-                "Generated {file_count} written deliverables",
-                "Crafted documentation suite comprising {file_count} files",
-                "Compiled content library with {file_count} documents across {date_range}",
-                # Research & Academic writing
-                "Conducted research and authored content, developing comprehensive analysis across {file_count} documents",
-                "Synthesized research findings, producing scholarly content in {file_count} files",
-                "Performed literature review and analysis, documenting findings in {file_count} research files",
-                "Developed academic manuscript, creating {file_count} research documents with citations and methodology",
-                "Authored research paper, conducting empirical analysis and documenting results across {date_range}",
-                "Compiled bibliographic research, organizing {file_count} source documents and annotations",
-                # Technical documentation
-                "Engineered comprehensive technical documentation, creating {file_count} user guides and API references",
-                "Developed API documentation, producing {file_count} reference files and integration guides",
-                "Authored technical specifications, delivering {file_count} detailed documentation files",
-                "Created user manuals and guides, producing {file_count} instructional documents",
-                "Documented software architecture, generating {file_count} technical design files",
-                "Produced developer documentation, crafting {file_count} tutorial and reference files",
-                # Editorial & content strategy
-                "Edited and refined content, revising {file_count} documents for clarity and coherence",
-                "Developed content strategy, organizing {file_count} documents with consistent style guidelines",
-                "Copyedited materials, improving readability across {file_count} written pieces",
-                "Curated and organized content library, managing {file_count} editorial files",
-            ],
-            'art': [
-                # General design templates
-                "Designed visual assets, creating {file_count} graphics and visual elements",
-                "Developed visual content, producing {file_count} image files",
-                "Created artistic work, generating {file_count} design assets",
-                "Designed visuals, producing {file_count} creative assets across {date_range}",
-                "Produced visual designs, creating {file_count} image files",
-                "Crafted {file_count} graphic elements",
-                "Established visual identity with {file_count} design assets",
-                "Generated creative materials, producing {file_count} visual files",
-                "Conceptualized and executed {file_count} designs",
-                # Graphic design & branding
-                "Designed brand identity, developing {file_count} visual assets with cohesive aesthetic",
-                "Created graphic design suite, producing {file_count} marketing and branding materials",
-                "Developed typography and layout, crafting {file_count} design compositions",
-                "Engineered visual branding, creating {file_count} logo variations and style guide assets",
-                "Designed user interface mockups, producing {file_count} high-fidelity design files",
-                "Crafted print and digital designs, developing {file_count} publication-ready assets",
-                # Photo editing & retouching
-                "Performed photo retouching, editing and enhancing {file_count} image files",
-                "Executed color correction and grading, processing {file_count} photographs",
-                "Applied advanced compositing techniques, producing {file_count} edited images",
-                "Enhanced visual quality of imagery, retouching {file_count} photos with professional techniques",
-                "Conducted photo manipulation, creating {file_count} edited and refined images",
-                "Performed image restoration and enhancement, processing {file_count} visual files",
-                # Digital illustration & 3D
-                "Illustrated visuals, creating {file_count} custom digital artworks",
-                "Produced digital paintings, developing {file_count} original illustration files",
-                "Created 3D renders and visualizations, generating {file_count} dimensional assets",
-                "Designed vector graphics, producing {file_count} scalable illustration files",
-            ],
-            'generic': [
-                "Worked on application development",
-                "Contributed to software development",
-                "Participated in project implementation",
-                "Engaged in application development",
-                "Collaborated on software project",
-            ]
-        }
-    
     def _get_contextual_templates(self, context: Dict) -> List[str]:
         """
         Generate contextual templates based on specific skills, languages, and frameworks.
@@ -903,7 +484,6 @@ class ResumeItemGenerator:
         skills = context.get('skills', '').lower()
         
         # Framework/Technology explanation templates - help recruiters understand what they're used for
-        # Use template strings for consistency with base templates
         # Machine Learning / AI Frameworks
         if 'tensorflow' in frameworks:
             contextual.append("Utilized TensorFlow framework to implement machine learning models and neural network architectures")
@@ -1044,7 +624,7 @@ class ResumeItemGenerator:
                 "Built scalable web application with RESTful API architecture and efficient data management",
             ])
         
-        # Database templates - be specific to avoid matching "data science" or "data analysis"
+        # Database templates
         if any(skill in skills for skill in ['database', 'sql']) or any(fw in frameworks for fw in ['postgresql', 'mysql', 'mongodb', 'redis', 'sqlalchemy', 'sequelize', 'mongoose', 'prisma']):
             contextual.extend([
                 "Implemented robust database architecture, optimizing queries for performance and scalability",
@@ -1097,12 +677,10 @@ class ResumeItemGenerator:
                 "Developed application with modern JavaScript/ES6+ features and asynchronous programming patterns",
             ])
 
-        if  'typescript' in languages:
+        if 'typescript' in languages:
             contextual.extend([
                 "Built application utilizing TypeScript for type-safe code and improved maintainability",
             ])
-
-
         
         # Mobile development
         if any(fw in frameworks for fw in ['react native', 'flutter', 'swift', 'kotlin']):
@@ -1243,7 +821,8 @@ class ResumeItemGenerator:
 # Convenience function for easy import
 def generate_resume_items(
     project_data: Dict[str, Any], 
-    user_name: Optional[str] = None
+    user_name: Optional[str] = None,
+    content_summary: Optional[Any] = None
 ) -> Dict[str, Any]:
     """
     Generate resume bullet points for a project.
@@ -1254,10 +833,10 @@ def generate_resume_items(
     Args:
         project_data: Project data dictionary
         user_name: Optional username for user-specific stats
+        content_summary: Optional ProjectContentSummary from content analyzer
         
     Returns:
         Dict with items list and generated_at timestamp
     """
     generator = ResumeItemGenerator()
-    return generator.generate_resume_items(project_data, user_name)
-
+    return generator.generate_resume_items(project_data, user_name, content_summary)
