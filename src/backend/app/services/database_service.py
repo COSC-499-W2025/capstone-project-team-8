@@ -171,14 +171,12 @@ class ProjectDatabaseService:
             original_zip_name=upload_filename
         )
 
-        if project_summaries:
-            project_tag = project_data.get('id')
-            project.ai_summary = project_summaries.get(project_tag, "")
-            project.llm_consent = send_to_llm
-            if project.ai_summary:
-                project.ai_summary_generated_at = timezone.now()
-            project.save()
-        
+        project.ai_summary = project_data.get('ai_summary', '')
+        project.llm_consent = project_data.get('llm_consent', False)
+        if project.ai_summary:
+            project.ai_summary_generated_at = timezone.now()
+        project.save()
+
         return project
     
     def _save_project_languages(self, project: Project, project_data: Dict[str, Any]) -> None:
