@@ -136,6 +136,7 @@ Nov 24 - 30
 - Added focused unit tests for signup GitHub email handling and contributor matching; exercised the endpoint in Postman to verify ranked output matches expectations
 - Reviewed teammates’ PRs that expand project endpoint tests and the Azure LLM client, following their instructions and confirming test runs
 - Tested their PRs 
+- Reviewed PRs https://github.com/COSC-499-W2025/capstone-project-team-8/pull/179 & https://github.com/COSC-499-W2025/capstone-project-team-8/pull/178
 
 
 What went well:
