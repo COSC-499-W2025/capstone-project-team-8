@@ -24,31 +24,8 @@ jobs:
       - name: Wait for Database
         run: sleep 10
 
-      # Run tests in batches - each gets a fresh container
-      - name: Run Authentication Tests
-        run: docker compose run --rm backend python manage.py test tests.test_jwt_authentication tests.test_user_model
-
-      - name: Run Upload Tests
-        run: docker compose run --rm backend python manage.py test tests.test_upload_view tests.test_upload_folder tests.test_upload_consent_and_ordering tests.test_upload_skips_files tests.test_upload_github_filter
-
-      - name: Run Project Tests
-        run: docker compose run --rm backend python manage.py test tests.test_project_endpoints tests.test_project_summary tests.test_project_classifier tests.test_project_metadata
-
-      - name: Run Analyzer Tests
-        run: docker compose run --rm backend python manage.py test tests.test_file_analyzers tests.test_skill_analyzer tests.test_resume_skill_extractor
-
-      - name: Run Service Tests
-        run: docker compose run --rm backend python manage.py test tests.test_folder_upload_service tests.test_upload_folder_with_classifier
-
-      - name: Run Database Tests
-        run: docker compose run --rm backend python manage.py test tests.test_database_saving tests.test_models tests.test_content_reading
-
-      # Skip LLM Tests. Run Locally instead with: docker-compose exec backend python manage.py test tests.test_llm
-      #- name: Run LLM Tests
-      #  run: docker compose run --rm backend python manage.py test tests.test_llm tests.test_local_llm tests.test_prompt_loader
-
-      - name: Run Misc Tests
-        run: docker compose run --rm backend python manage.py test tests.test_chronological_ordering tests.test_collaborative_tag tests.test_zip_timestamps
+      - name: Run All Tests
+        run: docker compose run --rm backend python manage.py test
 
       - name: Cleanup
         if: always()
