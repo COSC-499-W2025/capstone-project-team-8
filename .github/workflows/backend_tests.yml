@@ -19,5 +19,5 @@ jobs:
         run: docker compose up --build --detach
 
       - name: Run Backend Tests
-        run: docker exec capstone_backend python manage.py test
+        run: docker exec capstone_backend python manage.py test --settings=src.test_settings
 
