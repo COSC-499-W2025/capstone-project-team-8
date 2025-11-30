@@ -37,6 +37,14 @@ This week things flowed like usual, we spent more time on bugfixes. We seem to n
 
 ![alt text](image-2.png)
 
+### Plan for next week:
+
+- Present Milestone 1
+- Watch other teams present their project
+- Reflect on other teams ideas and progress to see where we can improve
+- Prepare for Milestone 2
+
+
 
 ### In Progress Tasks
 
