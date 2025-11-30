@@ -64,7 +64,9 @@ class ProjectDatabaseService:
                     project_data=project_data,
                     overall_data=overall,
                     upload_filename=upload_filename,
-                    project_name_override=project_name_override
+                    project_name_override=project_name_override,
+                    project_summaries=analysis_data.get('project_summaries', {}),
+                    send_to_llm=analysis_data.get('send_to_llm', False)
                 )
                 created_projects.append(project)
                 
@@ -86,7 +88,9 @@ class ProjectDatabaseService:
         project_data: Dict[str, Any],
         overall_data: Dict[str, Any],
         upload_filename: str,
-        project_name_override: str
+        project_name_override: str,
+        project_summaries: Dict[int, str] = None,
+        send_to_llm: bool = False
     ) -> Project:
         """
         Create the main Project record.
@@ -166,6 +170,14 @@ class ProjectDatabaseService:
             upload_source='zip_file',
             original_zip_name=upload_filename
         )
+
+        if project_summaries:
+            project_tag = project_data.get('id')
+            project.ai_summary = project_summaries.get(project_tag, "")
+            project.llm_consent = send_to_llm
+            if project.ai_summary:
+                project.ai_summary_generated_at = timezone.now()
+            project.save()
         
         return project
     
