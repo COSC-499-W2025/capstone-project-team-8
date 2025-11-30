@@ -118,7 +118,8 @@ Reflection:
 This week I learned that it's important to keep a clean code structure from the start, since having the messy code might have delayed our progress by a little bit. Now that we have a refactored codebase, we are ready to implement some more complex features.
 
 ## Week 13 November 24-28
-(TODO log screenshot)
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/94a3dc69-60d2-49e5-ba47-96d5a6bfda10" />
+
 
 This week:
 - bug fix on fixing our file analyzer still scanning dependency folder PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/172 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/137
