@@ -25,7 +25,7 @@ jobs:
         run: sleep 10
 
       - name: Run All Tests
-        run: docker compose run --rm backend python manage.py test
+        run: docker compose run --rm backend python manage.py test --exclude-tag=llm
 
       - name: Cleanup
         if: always()
