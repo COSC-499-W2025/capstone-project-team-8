@@ -24,7 +24,6 @@ jobs:
             tests.test_project_endpoints \
             tests.test_project_summary \
             --settings=src.test_settings \
-            --parallel=1
 
       - name: Run Tests Batch 2 (Upload & Folder)
         run: |
@@ -34,7 +33,6 @@ jobs:
             tests.test_folder_upload_service \
             tests.test_upload_view \
             --settings=src.test_settings \
-            --parallel=1
 
       - name: Run Tests Batch 3 (Models & Database)
         run: |
@@ -43,7 +41,6 @@ jobs:
             tests.test_user_model \
             tests.test_database_saving \
             --settings=src.test_settings \
-            --parallel=1
 
       - name: Run Tests Batch 4 (Analysis & Classification)
         run: |
@@ -53,7 +50,6 @@ jobs:
             tests.test_skill_analyzer \
             tests.test_resume_skill_extractor \
             --settings=src.test_settings \
-            --parallel=1
 
       - name: Run Tests Batch 5 (Remaining)
         run: |
