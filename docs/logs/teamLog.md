@@ -33,6 +33,9 @@ This week things flowed like usual, we spent more time on bugfixes. We seem to n
 ### What didn't go well:
   We uncovered more schema and data consistency bugs, 'created_at' field for projects in our database caused issues with some pull requests and that specifically caused lots of headache until it was discovered. Alternative non-ai analysis took lots of time to implement and a series of 3 PRs for this. Database issues caused tests to fail and the fix was that we had to clear out our whole database
 
+### Test Report
+
+![alt text](image-2.png)
 
 
 ### In Progress Tasks
