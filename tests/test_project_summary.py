@@ -67,6 +67,9 @@ class TopProjectsSummaryTests(TestCase):
             code_files_count=18,
             git_repository=True,
             first_commit_date=now,
+            ai_summary="Led development of e-commerce platform using Django and React with 60% of commits.",
+            llm_consent=True,
+            ai_summary_generated_at=now
         )
         # Add files (1000 total lines)
         for i in range(10):
@@ -106,6 +109,9 @@ class TopProjectsSummaryTests(TestCase):
             code_files_count=12,
             git_repository=True,
             first_commit_date=now,
+            ai_summary="Contributed to mobile game using TypeScript with focus on game mechanics.",
+            llm_consent=True,
+            ai_summary_generated_at=now
         )
         for i in range(8):
             ProjectFile.objects.create(
@@ -139,6 +145,8 @@ class TopProjectsSummaryTests(TestCase):
             code_files_count=8,
             git_repository=True,
             first_commit_date=now,
+            ai_summary="",  # No summary - user didn't consent to LLM
+            llm_consent=False
         )
         for i in range(5):
             ProjectFile.objects.create(
@@ -175,8 +183,6 @@ class TopProjectsSummaryTests(TestCase):
         data = resp.json()
         
         self.assertIn("top_projects", data)
-        self.assertIn("count", data)
-        self.assertEqual(data["count"], 3)
         self.assertEqual(len(data["top_projects"]), 3)
     
     def test_projects_ranked_correctly(self):
@@ -213,12 +219,8 @@ class TopProjectsSummaryTests(TestCase):
         self.assertIn("Django", project["frameworks"])
         self.assertIn("React", project["frameworks"])
     
-    @patch('app.views.project_views.ai_analyze')
-    def test_summary_generation(self, mock_ai_analyze):
-        """Test that AI summary is generated for each project"""
-        # Mock the Azure OpenAI response
-        mock_ai_analyze.return_value = "Led development of e-commerce platform using Django and React."
-        
+    def test_stored_summary_returned(self):
+        """Test that pre-generated AI summary from database is returned"""
         self.client.force_authenticate(user=self.user)
         url = reverse("projects-ranked-summary")
         resp = self.client.get(url)
@@ -226,33 +228,32 @@ class TopProjectsSummaryTests(TestCase):
         data = resp.json()
         projects = data["top_projects"]
         
-        # Check that all projects have summaries
-        for project in projects:
-            self.assertIn("summary", project)
-            self.assertIn("summary_generated", project)
-            self.assertIsNotNone(project["summary"])
+        # Check that summaries match what's stored in database
+        self.assertEqual(
+            projects[0]["summary"], 
+            "Led development of e-commerce platform using Django and React with 60% of commits."
+        )
+        self.assertTrue(projects[0]["llm_consent"])
         
-        # Verify AI was called 3 times (once per project)
-        self.assertEqual(mock_ai_analyze.call_count, 3)
+        self.assertEqual(
+            projects[1]["summary"],
+            "Contributed to mobile game using TypeScript with focus on game mechanics."
+        )
+        self.assertTrue(projects[1]["llm_consent"])
+        
+        # Project 3 has no summary (no consent)
+        self.assertEqual(projects[2]["summary"], "No summary available")
+        self.assertFalse(projects[2]["llm_consent"])
     
-    @patch('app.views.project_views.ai_analyze')
-    def test_summary_handles_ai_failure(self, mock_ai_analyze):
-        """Test that endpoint handles AI service failures gracefully"""
-        # Mock AI failure
-        mock_ai_analyze.side_effect = Exception("AI service unavailable")
-        
-        self.client.force_authenticate(user=self.user)
-        url = reverse("projects-ranked-summary")
-        resp = self.client.get(url)
-        
-        # Should still return 200 with fallback message
-        self.assertEqual(resp.status_code, 200)
-        data = resp.json()
-        projects = data["top_projects"]
-        
-        # Check fallback message is present
-        for project in projects:
-            self.assertIn("Unable to generate summary", project["summary"])
+    def test_no_ai_calls_made(self):
+        """Test that API does not call AI service (summaries are pre-generated)"""
+        with patch('app.views.project_views.ai_analyze') as mock_ai:
+            self.client.force_authenticate(user=self.user)
+            url = reverse("projects-ranked-summary")
+            resp = self.client.get(url)
+            
+            # AI should NOT be called since we're using stored summaries
+            mock_ai.assert_not_called()
     
     def test_contribution_metrics_included(self):
         """Test that all contribution metrics are included"""
@@ -265,16 +266,17 @@ class TopProjectsSummaryTests(TestCase):
         
         # Check all required fields
         required_fields = [
-            'id', 'name', 'contribution_score', 'commit_percentage',
+            'project_id', 'name', 'contribution_score', 'commit_percentage',
             'lines_changed_percentage', 'total_commits', 'total_lines_changed',
             'total_project_lines', 'classification_type', 'languages', 
-            'frameworks', 'summary'
+            'frameworks', 'summary', 'llm_consent'
         ]
         
         for field in required_fields:
             self.assertIn(field, project, f"Missing field: {field}")
     
     def test_empty_projects_list(self):
+        """Test behavior when user has no projects"""
         new_user = User.objects.create_user(
             username="newuser",
             email="newuser@example.com",
@@ -285,10 +287,10 @@ class TopProjectsSummaryTests(TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        self.assertEqual(data["count"], 0)
         self.assertEqual(len(data["top_projects"]), 0)
 
     def test_user_isolation(self):
+        """Test that users only see their own projects"""
         other_user = User.objects.create_user(
             username="otheruser",
             email="otheruser@example.com",
@@ -298,7 +300,7 @@ class TopProjectsSummaryTests(TestCase):
         url = reverse("projects-ranked-summary")
         resp = self.client.get(url)
         data = resp.json()
-        self.assertEqual(data["count"], 0)
+        self.assertEqual(len(data["top_projects"]), 0)
 
 if __name__ == '__main__':
     import unittest
