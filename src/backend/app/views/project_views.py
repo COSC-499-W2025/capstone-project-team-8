@@ -284,37 +284,36 @@ class TopProjectsSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        """
-        Return the top 3 ranked projects with AI-generated summaries.
+        """Return top 3 ranked projects with pre-generated AI summaries."""
+        projects = self._get_ranked_projects_with_tech(request.user)[:3]
         
-        Uses Azure OpenAI to generate professional portfolio-ready summaries
-        based on contribution metrics, technologies, and project classification.
-        """
-        user = request.user
-        
-        # Get ranked projects
-        ranked_projects = self._get_ranked_projects_with_tech(user)
-        
-        # Take only top 3
-        top_3 = ranked_projects[:3]
-        
-        # Generate summaries
-        summaries = []
-        for project_data in top_3:
-            context = self._build_project_context(project_data)
-            summary = self._generate_summary(context)
+        results = []
+        for project_data in projects:
+            # Fetch the actual Project model instance to access ai_summary and llm_consent
+            project_obj = Project.objects.filter(id=project_data['id']).first()
             
-            result = {
-                **project_data,
-                'summary': summary,
-                'summary_generated': summary is not None
-            }
-            summaries.append(result)
+            results.append({
+                "project_id": project_data['id'],
+                "name": project_data['name'],
+                "project_tag": project_data['project_tag'],
+                "project_root_path": project_data['project_root_path'],
+                "classification_type": project_data['classification_type'],
+                "classification_confidence": project_data['classification_confidence'],
+                "git_repository": project_data['git_repository'],
+                "contribution_score": project_data['contribution_score'],
+                "commit_percentage": project_data['commit_percentage'],
+                "lines_changed_percentage": project_data['lines_changed_percentage'],
+                "total_commits": project_data['total_commits'],
+                "total_lines_changed": project_data['total_lines_changed'],
+                "total_project_lines": project_data['total_project_lines'],
+                "first_commit_date": project_data['first_commit_date'],
+                "languages": project_data['languages'],
+                "frameworks": project_data['frameworks'],
+                "summary": project_obj.ai_summary if project_obj and project_obj.ai_summary else "No summary available",
+                "llm_consent": project_obj.llm_consent if project_obj else False,
+            })
         
-        return JsonResponse({
-            'top_projects': summaries,
-            'count': len(summaries)
-        })
+        return JsonResponse({"top_projects": results}, status=200)
     
     def _get_ranked_projects_with_tech(self, user):
         """Get ranked projects with languages and frameworks."""
@@ -345,7 +344,10 @@ class TopProjectsSummaryView(APIView):
                         "total_project_lines": 0,
                         "languages": [],
                         "frameworks": [],
-                        "first_commit_date": None
+                        "first_commit_date": None,
+                        "project_root_path": project.project_root_path,
+                        "classification_confidence": float(project.classification_confidence or 0.0),
+                        "git_repository": False
                     })
                 continue
             
