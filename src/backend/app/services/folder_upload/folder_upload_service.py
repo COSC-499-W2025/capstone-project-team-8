@@ -58,7 +58,8 @@ class FolderUploadService:
     def process_zip(
         self,
         upload: UploadedFile,
-        github_username: Optional[str] = None
+        github_username: Optional[str] = None,
+        send_to_llm: bool = False
     ) -> Dict[str, Any]:
         """
         Main orchestrator method to process an uploaded ZIP file.
@@ -112,7 +113,13 @@ class FolderUploadService:
                 if tag not in project_timestamps or project_timestamps[tag] == 0:
                     project_timestamps[tag] = timestamp
             
-            # Step 8: Transform results
+            # Step 8: Generate AI summaries if consent given
+            project_summaries = self._generate_project_summaries(
+                projects, 
+                tmpdir_path, 
+                send_to_llm 
+            )
+
             response_data = transform_to_new_structure(
                 results,
                 projects,
@@ -120,7 +127,9 @@ class FolderUploadService:
                 project_classifications,
                 git_contrib_data,
                 project_timestamps,
-                github_username
+                github_username,
+                project_summaries,
+                send_to_llm
             )
             
             return response_data
@@ -307,3 +316,86 @@ class FolderUploadService:
             pass
         
         return project_timestamps
+
+    def _generate_project_summaries(self, projects, tmpdir_path, send_to_llm):
+        """
+        Generate AI summaries for projects if user consented to LLM.
+    
+        Args:
+            projects: Dict of project paths to tags
+            tmpdir_path: Path to extracted files
+            send_to_llm: Boolean indicating user consent for LLM processing
+        
+        Returns:
+            Dict mapping project tags to AI summary text
+        """
+        if not send_to_llm:
+            return {}
+    
+        from app.services.llm.azure_client import ai_analyze
+        from app.utils.prompt_loader import load_prompt_template
+        import logging
+    
+        logger = logging.getLogger(__name__)
+        summaries = {}
+    
+        for project_path, tag in projects.items():
+            try:
+                # Build context for this project (similar to TopProjectsSummaryView)
+                # You can reuse the logic to extract languages, frameworks, etc.
+                context = self._build_summary_context(project_path, tmpdir_path)
+            
+                context_str = f"""
+    Project Name: {context['project_name']}
+    Classification: {context['classification']}
+    Primary Languages: {context['languages']}
+    Frameworks: {context['frameworks']}
+    Contribution Score: {context['contribution_score']}
+    Commit Percentage: {context['commit_percentage']}
+    Lines Changed Percentage: {context['lines_changed_percentage']}
+    Total Commits: {context['total_commits']}
+    Date Range: {context['first_commit_date']}
+    """
+
+                # Load prompt template
+                prompt_template = load_prompt_template("project_contribution_summary")
+                prompt = prompt_template.build_prompt(context_str)
+            
+                # Generate summary
+                summary = ai_analyze(prompt)
+                summaries[tag] = summary
+            
+            except Exception as e:
+                logger.warning(f"Failed to generate summary for project {tag}: {e}")
+                summaries[tag] = ""
+    
+        return summaries
+    
+    def _build_summary_context(self, project_path, tmpdir_path):
+        """
+        Build context dict for AI summary prompt.
+    
+        Args:
+            project_path: Path to the project
+            tmpdir_path: Temp directory path
+        
+        Returns:
+            Dict with project context for prompt template
+        """
+        try:
+            rel_path = project_path.relative_to(tmpdir_path)
+            project_name = str(rel_path)
+        except:
+            project_name = project_path.name if hasattr(project_path, 'name') else "Project"
+        # Minimal context - can be enhanced later
+        return {
+            "project_name": project_name,
+            "classification": "coding",  # Will be overridden if classification data available
+            "languages": "Multiple",
+            "frameworks": "Unknown",
+            "contribution_score": "N/A",
+            "commit_percentage": "N/A",
+            "lines_changed_percentage": "N/A",
+            "total_commits": "N/A",
+            "first_commit_date": ""
+        }

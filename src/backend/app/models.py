@@ -243,6 +243,11 @@ class Project(models.Model):
         through='ProjectFramework',
         related_name='projects'
     )
+
+    # AI-generated summary (stored once during upload)
+    ai_summary = models.TextField(blank=True)
+    ai_summary_generated_at = models.DateTimeField(null=True, blank=True)
+    llm_consent = models.BooleanField(default=False)  # Track if user consented to LLM
     
     class Meta:
         db_table = 'projects'

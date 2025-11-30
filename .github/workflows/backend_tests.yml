@@ -15,9 +15,18 @@ jobs:
       - name: Set up Docker Compose
         uses: docker/setup-compose-action@v1
 
-      - name: Create Docker containers
-        run: docker compose up --build --detach
+      - name: Build Backend Container
+        run: docker compose build backend
 
-      - name: Run Backend Tests
-        run: docker exec capstone_backend python manage.py test
+      - name: Start Database Service
+        run: docker compose up -d db
 
+      - name: Wait for Database
+        run: sleep 10
+
+      - name: Run All Tests
+        run: docker compose run --rm backend python manage.py test --exclude-tag=llm
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v

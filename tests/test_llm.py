@@ -1,8 +1,9 @@
 import unittest
 from app.services.llm import ai_analyze
+from django.test import TestCase, tag
 
-
-class TestAzureLLM(unittest.TestCase):
+@tag('llm')
+class TestAzureLLM(TestCase):
     """Simple tests for Azure OpenAI client"""
 
     def test_basic_completion(self):
