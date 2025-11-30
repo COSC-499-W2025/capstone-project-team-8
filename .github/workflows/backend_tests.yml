@@ -18,13 +18,5 @@ jobs:
       - name: Create Docker containers
         run: docker compose up --build --detach
 
-      - name: Test Individual Files to Find Memory Leak
-        run: |
-          echo "Testing project_endpoints..."
-          docker exec capstone_backend python manage.py test tests.test_project_endpoints --settings=src.test_settings || echo "FAILED"
-    
-          echo "Testing project_summary..."
-          docker exec capstone_backend python manage.py test tests.test_project_summary --settings=src.test_settings || echo "FAILED"
-    
-          echo "Testing project_classifier..."
-          docker exec capstone_backend python manage.py test tests.test_project_classifier --settings=src.test_settings || echo "FAILED"
+      - name: Run Backend Tests
+        run: docker exec capstone_backend python manage.py test
