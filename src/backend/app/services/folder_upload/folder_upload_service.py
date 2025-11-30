@@ -333,7 +333,7 @@ class FolderUploadService:
             return {}
     
         from app.services.llm.azure_client import ai_analyze
-        from app.services.analysis.prompt_loader import load_prompt_template
+        from app.utils.prompt_loader import load_prompt_template
         import logging
     
         logger = logging.getLogger(__name__)
@@ -345,9 +345,21 @@ class FolderUploadService:
                 # You can reuse the logic to extract languages, frameworks, etc.
                 context = self._build_summary_context(project_path, tmpdir_path)
             
+                context_str = f"""
+    Project Name: {context['project_name']}
+    Classification: {context['classification']}
+    Primary Languages: {context['languages']}
+    Frameworks: {context['frameworks']}
+    Contribution Score: {context['contribution_score']}
+    Commit Percentage: {context['commit_percentage']}
+    Lines Changed Percentage: {context['lines_changed_percentage']}
+    Total Commits: {context['total_commits']}
+    Date Range: {context['first_commit_date']}
+    """
+
                 # Load prompt template
                 prompt_template = load_prompt_template("project_contribution_summary")
-                prompt = prompt_template.format(**context)
+                prompt = prompt_template.build_prompt(context_str)
             
                 # Generate summary
                 summary = ai_analyze(prompt)
@@ -358,3 +370,32 @@ class FolderUploadService:
                 summaries[tag] = ""
     
         return summaries
+    
+    def _build_summary_context(self, project_path, tmpdir_path):
+        """
+        Build context dict for AI summary prompt.
+    
+        Args:
+            project_path: Path to the project
+            tmpdir_path: Temp directory path
+        
+        Returns:
+            Dict with project context for prompt template
+        """
+        try:
+            rel_path = project_path.relative_to(tmpdir_path)
+            project_name = str(rel_path)
+        except:
+            project_name = project_path.name if hasattr(project_path, 'name') else "Project"
+        # Minimal context - can be enhanced later
+        return {
+            "project_name": project_name,
+            "classification": "coding",  # Will be overridden if classification data available
+            "languages": "Multiple",
+            "frameworks": "Unknown",
+            "contribution_score": "N/A",
+            "commit_percentage": "N/A",
+            "lines_changed_percentage": "N/A",
+            "total_commits": "N/A",
+            "first_commit_date": ""
+        }
