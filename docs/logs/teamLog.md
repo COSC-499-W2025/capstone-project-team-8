@@ -35,7 +35,7 @@ This week things flowed like usual, we spent more time on bugfixes. We seem to n
 
 ### Test Report
 
-![alt text](image-2.png)
+![alt text](data/image-1.png)
 
 ### Plan for next week:
 
