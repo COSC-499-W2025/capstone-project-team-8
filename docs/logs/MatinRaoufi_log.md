@@ -132,6 +132,8 @@ Reflection: I learned the importance of a single responsibility principle and ho
 
 Nov 24 - 30
 
+![alt text](image-3.png)
+
 - Implemented project ranking by contributor impact, wiring the new scoring logic into `/api/projects/ranked/` and updating database matching heuristics (Issue [#108](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/108), PR [#186](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/186))
 - Added focused unit tests for signup GitHub email handling and contributor matching; exercised the endpoint in Postman to verify ranked output matches expectations
 - Reviewed teammates’ PRs that expand project endpoint tests and the Azure LLM client, following their instructions and confirming test runs
