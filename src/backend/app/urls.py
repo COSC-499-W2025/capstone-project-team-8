@@ -3,7 +3,7 @@ from .views.uploadFolderView import UploadFolderView
 from .views.auth import LoginView, SignupView
 from .views.token import CustomTokenObtainPairView, CustomTokenRefreshView, TokenLogoutView
 from .views.project_views import ProjectsListView, ProjectDetailView, ProjectStatsView, RankedProjectsView, TopProjectsSummaryView
-
+from .views.user_views import UserMeView, PublicUserView
 
 urlpatterns = [
     # Upload and analysis
