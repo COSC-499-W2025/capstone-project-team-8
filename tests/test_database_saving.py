@@ -23,7 +23,8 @@ django.setup()
 from django.test import TestCase, Client
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth import get_user_model
-from app.models import Project, ProgrammingLanguage, Framework
+from app.models import Project, ProgrammingLanguage, Framework, Contributor, ProjectContribution
+from app.services.database_service import ProjectDatabaseService
 from rest_framework import status
 
 User = get_user_model()
@@ -243,3 +244,57 @@ class DatabaseSavingTests(TestCase):
         print(f"   - Unauthenticated request: {unauthenticated_response.status_code} (blocked)")
         print(f"   - Analysis performed: {data.get('scan_performed', False)}")
         print(f"   - Projects found: {len(data.get('projects', []))}")
+
+
+class ContributorMatchingTests(TestCase):
+    """Ensure contributor records link back to users via email heuristics"""
+
+    def setUp(self):
+        self.service = ProjectDatabaseService()
+        unique = str(uuid.uuid4())[:8]
+        self.primary_email = f"primary_{unique}@example.com"
+        self.github_email = f"github_{unique}@users.noreply.github.com"
+
+        self.user = User.objects.create_user(
+            username=f"matin_{unique}",
+            email=self.primary_email,
+            password="testpass123",
+            github_username="matin0014",
+            github_email=self.github_email
+        )
+
+        self.project = Project.objects.create(
+            user=self.user,
+            name="Contributor Match Project",
+            classification_type="coding"
+        )
+
+    def test_find_match_by_primary_email(self):
+        matched = self.service._find_matching_user("matin0014", self.primary_email)
+        self.assertEqual(matched, self.user)
+
+    def test_find_match_by_github_email(self):
+        matched = self.service._find_matching_user("matin0014", self.github_email)
+        self.assertEqual(matched, self.user)
+
+    def test_find_match_from_email_list(self):
+        raw_emails = f"noreply@example.com, {self.github_email}"
+        matched = self.service._find_matching_user("matin0014", raw_emails)
+        self.assertEqual(matched, self.user)
+
+    def test_save_project_contributors_links_user(self):
+        Contributor.objects.all().delete()
+        self.service._save_project_contributors(self.project, {
+            "contributors": [{
+                "name": "matin0014",
+                "email": f"{self.github_email}, {self.primary_email}",
+                "commits": 3,
+                "lines_added": 120,
+                "lines_deleted": 10,
+                "percent_commits": 100.0
+            }]
+        })
+
+        contributor = Contributor.objects.get(name="matin0014")
+        self.assertEqual(contributor.user, self.user)
+        self.assertTrue(ProjectContribution.objects.filter(project=self.project, contributor=contributor).exists())

@@ -10,6 +10,7 @@ from datetime import datetime
 from django.db import transaction
 from django.utils import timezone
 import datetime as dt
+import re
 
 from app.models import (
     User, Project, ProgrammingLanguage, Framework,
@@ -365,12 +366,18 @@ class ProjectDatabaseService:
             if not name:
                 continue
             
+            matched_user = self._find_matching_user(name, email, project.user)
+            
             # Get or create contributor
             contributor, created = Contributor.objects.get_or_create(
                 name=name,
                 email=email,
-                defaults={'user': self._find_matching_user(name, email)}
+                defaults={'user': matched_user}
             )
+            
+            if not created and matched_user and contributor.user_id != matched_user.id:
+                contributor.user = matched_user
+                contributor.save(update_fields=['user'])
             
             # Create contribution record
             ProjectContribution.objects.create(
@@ -382,7 +389,7 @@ class ProjectDatabaseService:
                 percent_of_commits=contributor_info.get('percent_commits', 0.0)
             )
     
-    def _find_matching_user(self, name: str, email: str) -> Optional[User]:
+    def _find_matching_user(self, name: str, email: str, project_user: Optional[User] = None) -> Optional[User]:
         """
         Try to match a contributor to an existing User account.
         
@@ -393,23 +400,60 @@ class ProjectDatabaseService:
         Returns:
             User instance if match found, None otherwise
         """
-        if not email:
-            return None
+        emails_to_check = self._extract_emails(email)
         
-        # Try exact email match first
-        try:
-            return User.objects.get(email=email)
-        except User.DoesNotExist:
-            pass
-        
-        # Try GitHub username match
-        if name:
-            try:
-                return User.objects.get(github_username__iexact=name)
-            except User.DoesNotExist:
-                pass
+        normalized_name = name.strip() if name else None
+
+        # Prefer linking to the uploading user when identities align
+        if project_user:
+            project_emails = {project_user.email.lower()}
+            if project_user.github_email:
+                project_emails.add(project_user.github_email.lower())
+            for candidate in emails_to_check:
+                if candidate.lower() in project_emails:
+                    return project_user
+            if normalized_name and project_user.github_username and project_user.github_username.lower() == normalized_name.lower():
+                return project_user
+
+        for candidate in emails_to_check:
+            primary_match = User.objects.filter(email__iexact=candidate).first()
+            if primary_match:
+                return primary_match
+
+            github_matches = User.objects.filter(github_email__iexact=candidate)
+            if normalized_name:
+                github_matches = github_matches.filter(github_username__iexact=normalized_name)
+            github_match = github_matches.first()
+            if github_match:
+                return github_match
+
+            # Fallback: if no exact github_username match, allow first github_email match
+            if not normalized_name:
+                loose_github_match = User.objects.filter(github_email__iexact=candidate).first()
+                if loose_github_match:
+                    return loose_github_match
+
+        # Try GitHub username match if no email matches
+        if normalized_name:
+            username_match = User.objects.filter(github_username__iexact=normalized_name).first()
+            if username_match:
+                return username_match
         
         return None
+
+    def _extract_emails(self, raw_email: str) -> List[str]:
+        """Split raw email field into individual addresses."""
+        if not raw_email:
+            return []
+        
+        # Split on commas, semicolons, whitespace, and newlines
+        parts = re.split(r'[\s,;]+', raw_email)
+        emails = []
+        for part in parts:
+            candidate = part.strip()
+            if candidate and '@' in candidate:
+                emails.append(candidate)
+        return emails
     
     # Helper methods for categorization
     def _get_language_category(self, language: str) -> str:
