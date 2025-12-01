@@ -332,9 +332,8 @@ def transform_to_new_structure(
     if 0 in project_data:
         sorted_tags.append(0)
     
-
     # Add timestamp and AI fields to project data if available
-
+    # Add timestamps to project data if available
     projects_list = []
     for tag in sorted_tags:
         project = project_data[tag]
@@ -345,10 +344,8 @@ def transform_to_new_structure(
         # Attach AI summary and consent (stored once at upload time)
         project["ai_summary"] = project_summaries.get(tag, "") or project.get("ai_summary", "")
         project["llm_consent"] = bool(send_to_llm)
-      
         if tag in project_end_timestamps and project_end_timestamps[tag] > 0:
             project["end_date"] = project_end_timestamps[tag]
-
         projects_list.append(project)
     
     payload = {
