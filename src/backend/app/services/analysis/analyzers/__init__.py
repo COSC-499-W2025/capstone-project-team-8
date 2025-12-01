@@ -15,6 +15,11 @@ from .content_analyzer import (
     DocumentAnalysis,
     ProjectContentSummary
 )
+from .content_skills_extractor import (
+    extract_skills_from_document,
+    extract_skills_from_project_content,
+    integrate_content_skills
+)
 
 from .content_skills_extractor import (
     extract_skills_from_document,
