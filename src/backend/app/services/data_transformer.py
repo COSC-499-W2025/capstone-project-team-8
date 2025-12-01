@@ -18,7 +18,7 @@ def transform_to_new_structure(
         github_username=None,
         project_summaries=None,
         send_to_llm=False,
-        filter_username=None
+        filter_username=None,
         project_end_timestamps=None,
 
         ):
