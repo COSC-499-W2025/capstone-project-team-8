@@ -19,6 +19,8 @@ def transform_to_new_structure(
         project_summaries=None,
         send_to_llm=False,
         filter_username=None
+        project_end_timestamps=None,
+
         ):
     """
     Transform the collected data into the new JSON structure.
@@ -33,6 +35,9 @@ def transform_to_new_structure(
         github_username: Optional full name/username/email local-part filter (for metrics only)
         project_summaries: Optional dict {project_tag: summary_text}
         send_to_llm: Whether user consented to LLM processing (True/False)
+        filter_username: Optional full name or username (for metrics only)
+        project_end_timestamps: Dict mapping project tags to end date Unix timestamps (optional)
+
         
     Returns:
         Dict with the new structure: {source, projects, overall, user_contributions?, username_entered?}
@@ -41,8 +46,12 @@ def transform_to_new_structure(
     
     if project_timestamps is None:
         project_timestamps = {}
+
     if project_summaries is None:
         project_summaries = {}
+
+    if project_end_timestamps is None:
+        project_end_timestamps = {}
 
     # Initialize project data structure
     project_data = {}
@@ -323,16 +332,23 @@ def transform_to_new_structure(
     if 0 in project_data:
         sorted_tags.append(0)
     
+
     # Add timestamp and AI fields to project data if available
+
     projects_list = []
     for tag in sorted_tags:
         project = project_data[tag]
         # Attach created_at timestamp
         if tag in project_timestamps and project_timestamps[tag] > 0:
             project["created_at"] = project_timestamps[tag]
+
         # Attach AI summary and consent (stored once at upload time)
         project["ai_summary"] = project_summaries.get(tag, "") or project.get("ai_summary", "")
         project["llm_consent"] = bool(send_to_llm)
+      
+        if tag in project_end_timestamps and project_end_timestamps[tag] > 0:
+            project["end_date"] = project_end_timestamps[tag]
+
         projects_list.append(project)
     
     payload = {
