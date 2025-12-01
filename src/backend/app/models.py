@@ -232,7 +232,7 @@ class Project(models.Model):
     # Allow storing timestamps derived from external JSON rather than auto-populating.
     # Make nullable so migrations won't fail for existing rows; views/serializers can
     # set these values from your JSON payload.
-    created_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(null=True, blank=True, default=timezone.now)
     updated_at = models.DateTimeField(null=True, blank=True)
     
     # Relationships

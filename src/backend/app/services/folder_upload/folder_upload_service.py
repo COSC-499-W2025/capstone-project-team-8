@@ -122,20 +122,23 @@ class FolderUploadService:
             project_summaries = self._generate_project_summaries(
                 projects, 
                 tmpdir_path, 
-                send_to_llm 
+                send_to_llm,
+                project_classifications,
+                git_contrib_data
             )
             
             # Step 9: Transform results
             response_data = transform_to_new_structure(
-                results,
-                projects,
-                projects_rel,
-                project_classifications,
-                git_contrib_data,
-                project_timestamps,
-                github_username,
-                send_to_llm,
-                project_summaries,
+                results=results,
+                projects=projects,
+                projects_rel=projects_rel,
+                project_classifications=project_classifications,
+                git_contrib_data=git_contrib_data,
+                project_timestamps=project_timestamps,
+                github_username=github_username,
+                project_summaries=project_summaries,
+                send_to_llm=send_to_llm,
+                filter_username=None,
                 project_end_timestamps=zip_end_timestamps
             )
             
@@ -377,5 +380,167 @@ class FolderUploadService:
                 summaries[tag] = ""
     
         return summaries
+    
+    def _get_zip_file_end_timestamps(
+        self,
+        zip_path: Path,
+        projects: Dict[Path, int],
+        tmpdir_path: Path
+    ) -> Dict[int, int]:
+        """
+        Extract end timestamps (newest file) from ZIP file metadata.
+        
+        Args:
+            zip_path: Path to the ZIP file
+            projects: Dict mapping project root paths to tag IDs
+            tmpdir_path: Path to the temporary extraction directory
+            
+        Returns:
+            Dict mapping project tag to Unix timestamp (newest file in that project)
+        """
+        import zipfile
+        from datetime import datetime
+        
+        project_end_timestamps = {}
+        
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                for root_path, tag in projects.items():
+                    if tag == 0:
+                        continue
+                    
+                    try:
+                        rel_root = root_path.relative_to(tmpdir_path)
+                        project_prefix = str(rel_root).replace('\\', '/')
+                    except ValueError:
+                        continue
+                    
+                    newest_time = None
+                    
+                    for zip_info in zf.infolist():
+                        if zip_info.is_dir():
+                            continue
+                        
+                        file_path = zip_info.filename.replace('\\', '/')
+                        
+                        if file_path.startswith(project_prefix + '/') or file_path == project_prefix:
+                            try:
+                                dt = datetime(*zip_info.date_time)
+                                timestamp = int(dt.timestamp())
+                                
+                                if newest_time is None or timestamp > newest_time:
+                                    newest_time = timestamp
+                            except (ValueError, OSError):
+                                continue
+                    
+                    if newest_time is not None:
+                        project_end_timestamps[tag] = newest_time
+                        
+        except Exception:
+            pass
+        
+        return project_end_timestamps
+
+    def _build_summary_context(self, project_path, tmpdir_path, tag, project_classifications=None, git_contrib_data=None):
+        """
+        Build context dict for AI summary prompt.
+    
+        Args:
+            project_path: Path to the project
+            tmpdir_path: Temp directory path
+            tag: Project tag number
+            project_classifications: Dict of project classifications (optional)
+            git_contrib_data: Dict of git contribution data (optional)
+        
+        Returns:
+            Dict with project context for prompt template
+        """
+        try:
+            rel_path = project_path.relative_to(tmpdir_path)
+            project_name = str(rel_path)
+        except:
+            project_name = project_path.name if hasattr(project_path, 'name') else "Project"
+        
+        # Extract classification data if available
+        classification = "unknown"
+        languages = []
+        frameworks = []
+    
+        if project_classifications:
+            project_key = f"project_{tag}"
+            project_class = project_classifications.get(project_key, {})
+            classification = project_class.get("classification", "unknown")
+            languages = project_class.get("languages", [])
+            frameworks = project_class.get("frameworks", [])
+    
+        # Format languages and frameworks
+        languages_str = ", ".join(languages) if languages else "None detected"
+        frameworks_str = ", ".join(frameworks) if frameworks else "None detected"
+    
+        # Extract contribution data if available
+        contribution_score = "N/A"
+        commit_percentage = "N/A"
+        lines_changed_percentage = "N/A"
+        total_commits = 0
+        first_commit_date = ""
+    
+        if git_contrib_data:
+            project_key = f"project_{tag}"
+            contrib_data = git_contrib_data.get(project_key, {})
+        
+            if "contributors" in contrib_data:
+                # Get total commits
+                total_commits = sum(
+                    stats.get("commits", 0) 
+                    for stats in contrib_data["contributors"].values()
+                )
+            
+                # Get total lines changed
+                total_lines_added = sum(
+                    stats.get("lines_added", 0) 
+                    for stats in contrib_data["contributors"].values()
+                )
+                total_lines_deleted = sum(
+                    stats.get("lines_deleted", 0) 
+                    for stats in contrib_data["contributors"].values()
+                )
+                total_lines_changed = total_lines_added + total_lines_deleted
+            
+                # If there are contributors, use the first (primary) contributor's stats
+                if contrib_data["contributors"]:
+                    # Sort contributors by commits
+                    sorted_contributors = sorted(
+                        contrib_data["contributors"].items(),
+                        key=lambda x: x[1].get("commits", 0),
+                        reverse=True
+                    )
+                    primary_contributor = sorted_contributors[0][1]
+                
+                    commit_percentage = f"{primary_contributor.get('percent_of_commits', 0):.1f}"
+                
+                    primary_lines_changed = (
+                        primary_contributor.get("lines_added", 0) + 
+                        primary_contributor.get("lines_deleted", 0)
+                    )
+                    if total_lines_changed > 0:
+                        lines_changed_pct = (primary_lines_changed / total_lines_changed) * 100
+                        lines_changed_percentage = f"{lines_changed_pct:.1f}"
+                
+                    # Calculate contribution score (40% commits + 60% lines)
+                    commit_score = float(commit_percentage) * 0.4 if commit_percentage != "N/A" else 0
+                    lines_score = float(lines_changed_percentage) * 0.6 if lines_changed_percentage != "N/A" else 0
+                    contribution_score = f"{commit_score + lines_score:.1f}"
+    
+        return {
+            "project_name": project_name,
+            "classification": classification,
+            "languages": languages_str,
+            "frameworks": frameworks_str,
+            "contribution_score": contribution_score,
+            "commit_percentage": commit_percentage,
+            "lines_changed_percentage": lines_changed_percentage,
+            "total_commits": str(total_commits) if total_commits > 0 else "N/A",
+            "first_commit_date": first_commit_date
+        }
     
     
