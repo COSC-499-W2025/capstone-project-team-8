@@ -9,6 +9,8 @@ import tempfile
 import zipfile
 import os
 from app.services.analysis.analyzers.skill_analyzer import analyze_project
+from app.services.analysis.analyzers.last_updated import compute_projects_last_updated
+import datetime
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -68,6 +70,7 @@ class UploadFolderView(APIView):
 
         # Try to produce skill analysis by extracting the uploaded zip to a temp dir.
         analysis_result = None
+        last_updated_info = None
         try:
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmp_zip_path = os.path.join(tmpdir, getattr(upload, "name", "upload.zip") or "upload.zip")
@@ -83,6 +86,17 @@ class UploadFolderView(APIView):
                         zf.extractall(extract_dir)
                     # Run skill analyzer on the extracted content
                     analysis_result = analyze_project(extract_dir)
+
+                    # Compute last-updated timestamps for discovered projects (best-effort)
+                    try:
+                        # Use zip metadata timestamps (ZipInfo.date_time) instead of filesystem mtimes
+                        with zipfile.ZipFile(tmp_zip_path, "r") as zf_for_meta:
+                            last_updated_info = compute_projects_last_updated(zip_file=zf_for_meta)
+                    except Exception as e:
+                        # non-fatal: record analyzer failure info in analysis_result
+                        if not isinstance(analysis_result, dict):
+                            analysis_result = {}
+                        analysis_result.setdefault("last_updated_error", str(e))
                 except zipfile.BadZipFile:
                     # Not a zip or corrupted; leave analysis_result as None
                     analysis_result = {"error": "uploaded file is not a valid zip or extraction failed"}
@@ -95,6 +109,12 @@ class UploadFolderView(APIView):
         try:
             service = FolderUploadService()
             response_payload = service.process_zip(upload, github_username)
+
+            # Merge last_updated_info into the payload so the DB service can persist it
+            if last_updated_info is not None:
+                response_payload.setdefault("analysis_meta", {})
+                response_payload["analysis_meta"]["last_updated"] = last_updated_info
+
             if request.user.is_authenticated:
                 try:
                     db_service = ProjectDatabaseService()
@@ -109,6 +129,98 @@ class UploadFolderView(APIView):
                         {"id": project.id, "name": project.name} 
                         for project in projects
                     ]
+
+                    # If we computed last-updated info, try to apply it to saved DB projects.
+                    db_update_warnings = []
+                    applied_updates = []
+                    if last_updated_info:
+                        # Build lookups from analyzer output:
+                        tag_lookup = {}   # project_tag (int) -> iso
+                        root_lookup = {}  # normalized project_root (str) -> iso
+
+                        def _norm_root_key(s: str) -> str:
+                            if s is None:
+                                return ""
+                            # normalize posix-ish project root keys used by analyzer
+                            k = s.strip()
+                            if k in (".", "", "./"):
+                                return "."
+                            k = k.lstrip("./")
+                            if k.endswith("/"):
+                                k = k[:-1]
+                            return k
+
+                        for p in last_updated_info.get("projects", []):
+                            iso = p.get("last_updated")
+                            tag = p.get("project_tag")
+                            root = p.get("project_root")
+                            if tag is not None:
+                                try:
+                                    tag_lookup[int(tag)] = iso
+                                except Exception:
+                                    pass
+                            if root is not None:
+                                root_lookup[_norm_root_key(root)] = iso
+
+                        # Also allow mapping via response_payload['projects'] if present (helps match names/tags)
+                        payload_project_map = {}
+                        for pp in response_payload.get("projects", []) or []:
+                            # project entries may contain project_tag and project_root
+                            t = pp.get("project_tag")
+                            r = pp.get("project_root")
+                            if t is not None:
+                                payload_project_map[int(t)] = _norm_root_key(r or "")
+
+                        for project in projects:
+                            try:
+                                matched_iso = None
+                                # 1) Match by project_tag if available
+                                if getattr(project, "project_tag", None) is not None:
+                                    pt = project.project_tag
+                                    if pt in tag_lookup and tag_lookup[pt]:
+                                        matched_iso = tag_lookup[pt]
+                                # 2) Match via response payload mapping (tag -> root) then root_lookup
+                                if not matched_iso and getattr(project, "project_tag", None) is not None:
+                                    pt = project.project_tag
+                                    root_key = payload_project_map.get(pt)
+                                    if root_key and root_key in root_lookup and root_lookup[root_key]:
+                                        matched_iso = root_lookup[root_key]
+                                # 3) Match by project_root_path (normalize)
+                                if not matched_iso and getattr(project, "project_root_path", None):
+                                    ppath_key = _norm_root_key(project.project_root_path)
+                                    if ppath_key in root_lookup and root_lookup[ppath_key]:
+                                        matched_iso = root_lookup[ppath_key]
+                                # 4) Match by project name as last resort
+                                if not matched_iso and project.name:
+                                    nkey = _norm_root_key(project.name)
+                                    if nkey in root_lookup and root_lookup[nkey]:
+                                        matched_iso = root_lookup[nkey]
+
+                                if matched_iso:
+                                    # parse ISO robustly and set updated_at
+                                    try:
+                                        dt = datetime.datetime.fromisoformat(matched_iso)
+                                    except Exception:
+                                        try:
+                                            dt = datetime.datetime.strptime(matched_iso, "%Y-%m-%dT%H:%M:%S")
+                                            dt = dt.replace(tzinfo=datetime.timezone.utc)
+                                        except Exception:
+                                            dt = None
+                                    if dt is not None:
+                                        if dt.tzinfo is None:
+                                            dt = dt.replace(tzinfo=datetime.timezone.utc)
+                                        project.updated_at = dt
+                                        project.save(update_fields=["updated_at"])
+                                        applied_updates.append({"project_id": project.id, "updated_at": matched_iso})
+                            except Exception as e:
+                                db_update_warnings.append(f"Failed to update project {getattr(project,'id', 'unknown')} updated_at: {str(e)}")
+                    if applied_updates:
+                        response_payload["last_updated_applied"] = applied_updates
+                    if db_update_warnings:
+                        response_payload.setdefault("database_warning", "")
+                        if response_payload["database_warning"]:
+                            response_payload["database_warning"] += " | "
+                        response_payload["database_warning"] += " | ".join(db_update_warnings)
                     
                 except Exception as db_error:
                     response_payload["database_warning"] = f"Analysis completed but failed to save to database: {str(db_error)}"
@@ -119,6 +231,10 @@ class UploadFolderView(APIView):
             if analysis_result is not None:
                 # Avoid clobbering existing keys; attach under "skill_analysis"
                 response_payload["skill_analysis"] = analysis_result
+
+            # Attach last-updated info to the response payload (if available)
+            if last_updated_info is not None:
+                response_payload["last_updated"] = last_updated_info
 
             # Build ordered payload with consent metadata
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
