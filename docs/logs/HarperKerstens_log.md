@@ -141,3 +141,36 @@ This weeks development went surprisingly well. After last week where I spent the
 
 ### Reflection:
     This week went well overall. I was a little worried about the progress I would be able to make due to requirements from other classes. However, things went smoothly during the time I spent on the project which alieviated some of my stress. Development went well which is always a good feeling. I'm looking forward to next week as we get closer to Milestone 1s due date. We are making good progress as a team and things are shaping up nicely.
+
+
+ ## Novermber 23-29
+ 
+- Created routes for project datamanagement (get all projects, get project by ID, delete project)
+- Fixed database date storage issue to allow for chronological ordering of projects
+- Began implementation of chronological skill analysis based off project upload dates
+- received help from team members in fixing the databse date issue
+
+ 
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/178 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/170 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/191 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/190 |
+
+### What went well
+    This week one thing that went well was my implementation of routes regarding the projects stored in database. I was able to get all the routes I wanted such as getting all projects, getting a project by its ID, and deleting a project. All of these were faily painless to implement once I figure out how to get things going.
+
+### What didn't go well
+    One thing that didn't go well this week was implementing the chronological skill analysis. I had a plan on how to do it but once I started I realized there was an error with how project dates were being stored in the database. This logic I was going to require on for my new implmentations. I ended up spending lots of time fixing the date issue and then I ran out of time to implement the chronological skill analysis this week pushing it to next week.
+
+
+
+### What's next
+    Whats next is building off of what I fixed this week to implement the chronological skill analysis. Once that is done most major features for milestone 1 will be completed and I will begin working on polishing features and fixing bugs that arise.
+
+
+### Reflection:
+    Overalll I am happy with my progress this week. Although I didn't get everything done that I wanted to, fixing the database issue was very high priority once we discoverd it. Fixing this will allow for easier development in the future and there should be no more issues that arise in this regard. I'm excited to build chronological skill ordering next week as it's development should be relatively painless following this week.
+
