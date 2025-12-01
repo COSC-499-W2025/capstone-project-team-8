@@ -28,7 +28,7 @@ If your branch or environment isn't working, try these steps in order:
 	```
 7. **Run all tests to verify setup:**
 	```powershell
-	docker-compose exec backend python manage.py test
+	docker-compose exec backend python -m unittest discover -s /app/tests -p "test_*.py" -v
 	```
 
 If you still have issues, check your `.env` files, database connection, and Docker logs for errors.
