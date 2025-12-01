@@ -145,12 +145,12 @@ This weeks development went surprisingly well. After last week where I spent the
 
  ## Novermber 23-29
  
+ <img width="1077" height="634" alt="November23-29" src="https://github.com/user-attachments/assets/5569fdc7-e1cb-4b0a-b8c8-2ab58e833633" />
+
 - Created routes for project datamanagement (get all projects, get project by ID, delete project)
 - Fixed database date storage issue to allow for chronological ordering of projects
 - Began implementation of chronological skill analysis based off project upload dates
 - received help from team members in fixing the databse date issue
-
- 
 
 
 ### Completed PRs
