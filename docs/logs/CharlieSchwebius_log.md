@@ -134,3 +134,37 @@ NEXT WEEK: Non-AI Analysis functionality (Resume Items++)
 This week was very productive. The resume skills extraction feature is a major addition to our project's non-AI analysis capabilities. Some of my teammates had issues with the heuristic project classifier I developed previously, so I will definitely help them with their issues in the coming week.
 
 NEXT WEEK: Generate actual resume bullet points based on new generated data + Help tune heuristic classifier
+
+## Week 13 (Nov 24 - Nov 30)
+
+<img width="1877" height="1097" alt="image" src="https://github.com/user-attachments/assets/fb651ad0-8f72-496c-92d9-762cf4a320ab" />
+
+#### What I did:
+
+- Implemented code to properly read PDF files
+- Implemented code to analyze the content of text-based files
+- Implemented code to enhance the non-AI resume skill generation feature, accounting for new text analysis
+- Implemented code to generate a resume item (bullet points) without AI, based on new and old analysis features (skills, languages, frameworks, text analysis)
+- Tested functionality of all 3 PRs
+- Reviewed and tested teammates PRs 
+
+#### My PR's: 
+
+#188: implement PDF reading, Content analyzer for non-ai text document analysis 
+#189: Content based resume skills
+#194: Non ai resume item 
+
+#### WHAT WENT WELL: 
+- PDF reading functionality wasn't difficult to implement with the assistance of Python packages
+- Resume skill feature is now more comprehensive, and actually generates results for text-based projects (novels, research papers, blogs, etc.)
+- We now satisfy the alternative analysis requirement
+
+#### WHAT DIDN'T
+- Initially, I was only implementing a resume item feature, but gaping holes in our non-AI analysis became too big to ignore
+- As a result, I had to restart after completing an initial implementation of the resume item generator.
+- Implementation of these new features was incredibly time-consuming, preventing my work on the other 4 classes I am taking 
+
+  #### REFLECTION
+At this point, I think we are in a very good place for the end of milestone 1. Hiccups this week could have been avoided with better planning, so ultimately that's something to remember for milestones 2 and 3. I am happy with the current implementation of the non-AI analyses, but there are definitely refinements to be made as I've discovered through this week's development.
+
+NEXT WEEK: Bug fixes and milestone wrap-up

@@ -8,6 +8,70 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 13
+
+### Our Goals this week:
+Our goals for this week were to continue progressing towards Milestone 1 & 
+finish our tasks as soon as possible to dedicate time towards our presentation for milestone one. Specifically, we focused on:
+- Rank project importance based off user contributions
+- Deliver the Azure hosted LLM deployment
+- Build user API endpoints
+- Bugfix the exclusion of directories during analysis
+- Fix database date persistence issues
+- Ship API endpoints for projects stored in the database
+- Summarize top ranked projects for reporting
+- Implement PDF reading and content analysis for non-AI workflows
+- Add content-based resume skill extraction for writing projects
+- Provide a non-AI alternative resume item generator
+
+### Reflection
+This week things flowed like usual, we spent more time on bugfixes. We seem to notice more need for refactoring and bugfixes as we progress and some of us spent time with eachother to work through the fixes and we had to contact eachother for help more often with implementation and PR reviews. We feel good about our Milestone progress and about getting things done quicker this week to work on our Milestone 1 presentation
+
+### What went well:
+  Collaboration stayed strong even as the work shifted toward stabilization. Pair-debugging helped unblock database date issues, the ranked projects flow landed without major regressions, and the Azure-hosted LLM stood up on schedule alongside new API endpoints.
+
+### What didn't go well:
+  We uncovered more schema and data consistency bugs, 'created_at' field for projects in our database caused issues with some pull requests and that specifically caused lots of headache until it was discovered. Alternative non-ai analysis took lots of time to implement and a series of 3 PRs for this. Database issues caused tests to fail and the fix was that we had to clear out our whole database
+
+### Test Report
+
+![alt text](data/image-1.png)
+
+### Plan for next week:
+
+- Present Milestone 1
+- Watch other teams present their project
+- Reflect on other teams ideas and progress to see where we can improve
+- Prepare for Milestone 2
+
+### Burn up chart
+
+<img width="1780" height="1033" alt="image" src="https://github.com/user-attachments/assets/ef26d5b0-753e-45b2-9812-51fb2a8b7734" />
+
+
+### In Progress Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+| NA   |     NA      |    NA   |
+
+
+### Completed Tasks
+
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| Rank project importance based off user contributions | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/108 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/186 |
+| Azure hosted LLM | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/176 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/179 |
+| User API endpoints | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/169 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/180 |
+| Bugfix exclude directories | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/137 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/172 |
+| Fix database date save | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/190 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/191 |
+| API endpoints for projects in the database | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/170 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/178 |
+| Summarize top rank projects | jordany78 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/109 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/193 |
+| Implement PDF reading & Content analyzer for Non-AI Analysis | cschwebi | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/187 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/188 |
+| Add content-based resume skill extraction for writing projects | cschwebi | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/195 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/189 |
+| Non AI alternative resume item | cschwebi | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/82 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/194 |
+
+
 ## Week 11 (Reading Week) & 12: Nov 10 - 22
 
 ### Our Goals for this week:

@@ -96,3 +96,38 @@ Next week I'll start issue https://github.com/COSC-499-W2025/capstone-project-te
 
 ### Reflection:
 Need to spread out the work to build a better routing. I find it easy to continue to work on the issue until it's done but the hardest part is getting started. Overall I feel satisfied with my work this week and made progress from last week.
+
+## Week 13 November 24th - November 28th:
+<img width="1072" height="626" alt="image" src="https://github.com/user-attachments/assets/d9f2f16d-13bf-403c-bfbc-b01d2a9aa222" /></br>
+### Recap:
+- Finished summarizing top ranked projects
+- Learnt about the new AzureLLM for my PR
+- Reviewed multiple PRs which I needed for my PR
+- Researched and leart how to use Postman
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/193  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/109 |
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/186 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/108 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/179 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/176 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/180 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/169 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/180 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/169 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/188 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/187 |
+
+
+### What went well
+Learnt a lot about the new LLM and Postman. Both of these tools will definitely improve my project efficiency. Implemented a way to summarize the top 3 ranked projects which is a big step for completing Milestone #1. I got nice feedback from Kyle M, which helped me improve the quality of my PR.
+
+### What didn't go well
+Had to postpone my work a bit since it relied on PR [#179](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/179) and [#186](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/186). This led me to working on the project late and not managing my time well.
+
+### What's next
+Next week, we'll be presenting our Milestone #1 progress to the class. I'm excited to see where others are at and how well we're doing.
+
+### Reflection:
+While I didn't stick to my new routine plan of short coding sessions everyday, instead of coding for an hour, I could've been researching/studying the things I needed to finish my PR before hand, so when it came down to actually working on it, I didn't need to spend as much time in one day. Overall happy with mine and the teams progress.
