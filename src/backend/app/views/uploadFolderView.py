@@ -108,7 +108,7 @@ class UploadFolderView(APIView):
         # Delegate to service layer for business logic
         try:
             service = FolderUploadService()
-            response_payload = service.process_zip(upload, github_username)
+            response_payload = service.process_zip(upload, github_username, send_to_llm)
 
             # Merge last_updated_info into the payload so the DB service can persist it
             if last_updated_info is not None:

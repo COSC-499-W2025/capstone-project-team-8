@@ -110,7 +110,9 @@ class ProjectDatabaseService:
                     project_data=project_data,
                     overall_data=overall,
                     upload_filename=upload_filename,
-                    project_name_override=project_name_override
+                    project_name_override=project_name_override,
+                    project_summaries=analysis_data.get('project_summaries', {}),
+                    send_to_llm=analysis_data.get('send_to_llm', False)
                 )
                 created_projects.append(project)
                 
@@ -132,7 +134,9 @@ class ProjectDatabaseService:
         project_data: Dict[str, Any],
         overall_data: Dict[str, Any],
         upload_filename: str,
-        project_name_override: str
+        project_name_override: str,
+        project_summaries: Dict[int, str] = None,
+        send_to_llm: bool = False
     ) -> Project:
         """
         Create the main Project record.
@@ -254,7 +258,13 @@ class ProjectDatabaseService:
             , created_at=created_at_dt
             , updated_at=updated_at_dt
         )
-        
+
+        project.ai_summary = project_data.get('ai_summary', '')
+        project.llm_consent = project_data.get('llm_consent', False)
+        if project.ai_summary:
+            project.ai_summary_generated_at = timezone.now()
+        project.save()
+
         return project
     
     def _save_project_languages(self, project: Project, project_data: Dict[str, Any]) -> None:
