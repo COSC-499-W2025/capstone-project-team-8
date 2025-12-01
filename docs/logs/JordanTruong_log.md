@@ -116,6 +116,8 @@ Need to spread out the work to build a better routing. I find it easy to continu
 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/186 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/108 |
 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/179 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/176 |
 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/180 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/169 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/180 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/169 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/188 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/187 |
 
 
 ### What went well
