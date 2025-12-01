@@ -21,6 +21,13 @@ from .content_skills_extractor import (
     integrate_content_skills
 )
 
+from .content_skills_extractor import (
+    extract_skills_from_document,
+    extract_skills_from_project_content,
+    integrate_content_skills
+)
+
+
 __all__ = [
     'analyze_image',
     'analyze_content', 
@@ -46,4 +53,5 @@ __all__ = [
     'extract_skills_from_document',
     'extract_skills_from_project_content',
     'integrate_content_skills',
+
 ]
