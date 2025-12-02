@@ -1,7 +1,12 @@
 name: Backend Workflow
 
 on:
-  - pull_request
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   backend-tests:
@@ -9,24 +14,50 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      # Checkout code
       - name: Checkout under $GITHUB_WORKSPACE
         uses: actions/checkout@v4
 
+      # Set up Docker Compose
       - name: Set up Docker Compose
         uses: docker/setup-compose-action@v1
 
-      - name: Build Backend Container
-        run: docker compose build backend
+      # Cache Docker layers for faster rebuilds
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.build-cache
+          key: docker-${{ github.ref_name }}
+          restore-keys: |
+            docker-
 
+      # Build backend container
+      - name: Build Backend Container
+        run: |
+          docker build \
+            --cache-from=/tmp/.build-cache \
+            --cache-to=type=local,dest=/tmp/.build-cache \
+            -t backend-test \
+            -f backend/Dockerfile .
+
+      # Start DB
       - name: Start Database Service
         run: docker compose up -d db
 
+      # Wait for DB to be ready
       - name: Wait for Database
-        run: sleep 10
+        run: |
+          for i in {1..20}; do
+            docker compose exec -T db pg_isready && exit 0
+            sleep 1
+          done
+          exit 1
 
+      # Run tests
       - name: Run All Tests
         run: docker compose run --rm backend python manage.py test --exclude-tag=llm
 
+      # Cleanup
       - name: Cleanup
         if: always()
         run: docker compose down -v
