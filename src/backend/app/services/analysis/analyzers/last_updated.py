@@ -43,6 +43,36 @@ def _zipinfo_datetime_to_iso(zinfo: zipfile.ZipInfo) -> Optional[str]:
         return None
 
 
+def extract_all_file_timestamps(zip_file: zipfile.ZipFile) -> Dict[str, float]:
+	"""
+	Extract timestamps for all files in a ZIP.
+	
+	Args:
+		zip_file: Open ZipFile object
+	
+	Returns:
+		Dict mapping relative file paths (posix format) -> unix timestamp
+		Example: {"project/src/main.py": 1697614794, "README.md": 1697614794}
+	"""
+	file_timestamps = {}
+	for zinfo in zip_file.infolist():
+		# Skip directories
+		if zinfo.filename.endswith('/'):
+			continue
+		
+		# Normalize to posix path (forward slashes)
+		path_posix = zinfo.filename.replace('\\', '/')
+		
+		# Extract timestamp
+		try:
+			dt = datetime.datetime(*zinfo.date_time, tzinfo=datetime.timezone.utc)
+			timestamp = dt.timestamp()
+			file_timestamps[path_posix] = timestamp
+		except Exception:
+			continue
+	
+	return file_timestamps
+
 def compute_projects_last_updated(
     root: Optional[str] = None, zip_file: Optional[zipfile.ZipFile] = None
 ) -> Dict[str, Any]:
