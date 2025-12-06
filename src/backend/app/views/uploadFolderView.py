@@ -8,6 +8,7 @@ from app.services.database_service import ProjectDatabaseService
 import tempfile
 import zipfile
 import os
+from pathlib import Path
 from app.services.analysis.analyzers.skill_analyzer import analyze_project, generate_chronological_skill_detection
 from app.services.analysis.analyzers.last_updated import compute_projects_last_updated
 import datetime
@@ -84,19 +85,57 @@ class UploadFolderView(APIView):
                 try:
                     with zipfile.ZipFile(tmp_zip_path, "r") as zf:
                         zf.extractall(extract_dir)
-                    # Run skill analyzer on the extracted content
-                    analysis_result = analyze_project(extract_dir)
-
-                    # Compute last-updated timestamps for discovered projects (best-effort)
+                    
+                    # Compute last-updated timestamps for discovered projects FIRST
+                    last_updated_info = None
+                    project_metadata = {}
                     try:
                         # Use zip metadata timestamps (ZipInfo.date_time) instead of filesystem mtimes
                         with zipfile.ZipFile(tmp_zip_path, "r") as zf_for_meta:
                             last_updated_info = compute_projects_last_updated(zip_file=zf_for_meta)
+                        
+                        # Convert last_updated_info to project_metadata format for skill_analyzer
+                        if last_updated_info and "projects" in last_updated_info:
+                            for proj in last_updated_info["projects"]:
+                                tag = proj.get("project_tag")
+                                last_updated_iso = proj.get("last_updated")
+                                project_root = proj.get("project_root")
+                                
+                                if tag is not None and last_updated_iso:
+                                    try:
+                                        dt = datetime.datetime.fromisoformat(last_updated_iso.replace('Z', '+00:00'))
+                                        timestamp = dt.timestamp()
+                                        root_abs = str(Path(extract_dir) / project_root) if project_root and project_root != "." else extract_dir
+                                        project_metadata[tag] = {
+                                            "root": root_abs,
+                                            "timestamp": timestamp
+                                        }
+                                    except Exception:
+                                        pass
+                            
+                            # Add a root project (tag 0) for files at the root level using overall timestamp
+                            # This ensures root-level files get the correct ZIP metadata timestamp instead of extraction time
+                            overall_iso = last_updated_info.get("overall_last_updated")
+                            if overall_iso:
+                                try:
+                                    dt = datetime.datetime.fromisoformat(overall_iso.replace('Z', '+00:00'))
+                                    timestamp = dt.timestamp()
+                                    project_metadata[0] = {
+                                        "root": extract_dir,
+                                        "timestamp": timestamp
+                                    }
+                                except Exception:
+                                    pass
                     except Exception as e:
-                        # non-fatal: record analyzer failure info in analysis_result
-                        if not isinstance(analysis_result, dict):
-                            analysis_result = {}
-                        analysis_result.setdefault("last_updated_error", str(e))
+                        # non-fatal: record analyzer failure info but continue
+                        pass
+                    
+                    # Run skill analyzer with project metadata for chronological ranking
+                    try:
+                        analysis_result = analyze_project(extract_dir, project_metadata=project_metadata if project_metadata else None)
+                    except Exception as e:
+                        analysis_result = {"error": f"skill analysis failed: {str(e)}"}
+                    
                 except zipfile.BadZipFile:
                     # Not a zip or corrupted; leave analysis_result as None
                     analysis_result = {"error": "uploaded file is not a valid zip or extraction failed"}
