@@ -147,3 +147,22 @@ Next week:
 
 Reflection:
 We have made a lot of progress since our last week. Ever since we got the refactor done and started using our database, our development has been a lot smoother. We will present our project and prepare for milestone 2. I'm happy with the progress we have made for the first term.
+
+## Week 14 December 1-5
+(TODO: add screenshot)
+
+
+This week:
+(TODO)
+
+What went well:
+(TODO)
+
+What went wrong:
+(TODO)
+
+Next week:
+(TODO)
+
+Reflection:
+(TODO)
