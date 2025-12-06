@@ -142,6 +142,48 @@ class FolderUploadService:
                 project_end_timestamps=zip_end_timestamps
             )
             
+            # Step 10: Generate resume items (bullet points) for each project
+            from app.services.resume_item_generator import ResumeItemGenerator
+            from app.services.analysis.analyzers.content_analyzer import analyze_project_content
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            generator = ResumeItemGenerator()
+
+            for project in response_data.get('projects', []):
+                try:
+                    # Extract content files for content analysis
+                    content_files = []
+                    files = project.get('files', {})
+                    for content_file in files.get('content', []):
+                        if 'text' in content_file:
+                            content_files.append({
+                                'path': content_file.get('path', ''),
+                                'text': content_file.get('text', '')
+                            })
+
+                    # Analyze content if content files are available
+                    content_summary = None
+                    if content_files:
+                        try:
+                            content_summary = analyze_project_content(content_files)
+                        except Exception as e:
+                            # Log but don't fail - resume generation can work without content analysis
+                            logger.debug(f"Content analysis failed for project {project.get('id')}: {e}")
+
+                    # Generate resume items with content summary
+                    resume_items = generator.generate_resume_items(project, github_username, content_summary)
+                    project['resume_items'] = resume_items
+                    
+                    # Also add bullet_points as a simple list for database storage
+                    if 'items' in resume_items:
+                        project['bullet_points'] = resume_items['items']
+                except Exception as e:
+                    # Log error but don't break the flow
+                    logger.warning(f"Failed to generate resume items for project {project.get('id')}: {e}")
+                    project['resume_items'] = {'items': [], 'generated_at': 0}
+                    project['bullet_points'] = []
+            
             return response_data
     
     def _build_projects_rel(
