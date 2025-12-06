@@ -174,3 +174,27 @@ This weeks development went surprisingly well. After last week where I spent the
 ### Reflection:
     Overalll I am happy with my progress this week. Although I didn't get everything done that I wanted to, fixing the database issue was very high priority once we discoverd it. Fixing this will allow for easier development in the future and there should be no more issues that arise in this regard. I'm excited to build chronological skill ordering next week as it's development should be relatively painless following this week.
 
+ ## Novermber 30-December 6
+ 
+
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| |  |
+|  |  |
+
+### What went well
+TODO
+
+### What didn't go well
+TODO
+
+
+
+### What's next
+TODO
+
+### Reflection:
+ TODO
