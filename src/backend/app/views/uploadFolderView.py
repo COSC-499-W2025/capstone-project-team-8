@@ -10,7 +10,7 @@ import zipfile
 import os
 from pathlib import Path
 from app.services.analysis.analyzers.skill_analyzer import analyze_project, generate_chronological_skill_detection
-from app.services.analysis.analyzers.last_updated import compute_projects_last_updated
+from app.services.analysis.analyzers.last_updated import compute_projects_last_updated, extract_all_file_timestamps
 import datetime
 
 
@@ -89,10 +89,13 @@ class UploadFolderView(APIView):
                     # Compute last-updated timestamps for discovered projects FIRST
                     last_updated_info = None
                     project_metadata = {}
+                    file_timestamps = {}
                     try:
                         # Use zip metadata timestamps (ZipInfo.date_time) instead of filesystem mtimes
                         with zipfile.ZipFile(tmp_zip_path, "r") as zf_for_meta:
                             last_updated_info = compute_projects_last_updated(zip_file=zf_for_meta)
+                            # Extract all individual file timestamps from ZIP
+                            file_timestamps = extract_all_file_timestamps(zf_for_meta)
                         
                         # Convert last_updated_info to project_metadata format for skill_analyzer
                         if last_updated_info and "projects" in last_updated_info:
@@ -130,9 +133,13 @@ class UploadFolderView(APIView):
                         # non-fatal: record analyzer failure info but continue
                         pass
                     
-                    # Run skill analyzer with project metadata for chronological ranking
+                    # Run skill analyzer with project metadata and file timestamps for chronological ranking
                     try:
-                        analysis_result = analyze_project(extract_dir, project_metadata=project_metadata if project_metadata else None)
+                        analysis_result = analyze_project(
+                            extract_dir, 
+                            project_metadata=project_metadata if project_metadata else None,
+                            file_timestamps=file_timestamps if file_timestamps else None
+                        )
                     except Exception as e:
                         analysis_result = {"error": f"skill analysis failed: {str(e)}"}
                     

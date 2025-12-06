@@ -196,19 +196,21 @@ def _should_skip(path: Path) -> bool:
 		return True
 	return False
 
-def analyze_project(root_path: str, max_files: int = 10000, project_metadata: Optional[Dict[int, Dict[str, object]]] = None) -> Dict:
+def analyze_project(root_path: str, max_files: int = 10000, project_metadata: Optional[Dict[int, Dict[str, object]]] = None, file_timestamps: Optional[Dict[str, float]] = None) -> Dict:
 	"""
 	Walk the root_path and return a JSON-serializable dict describing:
 	  - total_matches: total skill detections
 	  - skills: mapping skill -> { count, percentage, languages: {lang: count} }
-	  - chronological_skills: skills ranked by most recent project timestamp where skill was found
+	  - chronological_skills: skills ranked by individual file timestamps (from ZIP metadata if available)
 	
 	Args:
 		root_path: Path to scan for files and skills
 		max_files: Maximum files to scan (default 10000)
 		project_metadata: Optional dict mapping project_tag (int) -> {"timestamp": unix_timestamp, "root": project_root_path}
-						 If provided, skills are ranked by project's timestamp instead of file mtime.
-						 Projects without timestamps are placed last.
+						 Used for project_tag association only, not for skill timestamps.
+		file_timestamps: Optional dict mapping relative file paths -> unix_timestamp
+						 If provided, uses these timestamps (from ZIP metadata) instead of filesystem mtime.
+						 Keys should be relative to root_path.
 	
 	Returns:
 		Dict with total_files_scanned, total_skill_matches, skills, and chronological_skills
@@ -278,9 +280,22 @@ def analyze_project(root_path: str, max_files: int = 10000, project_metadata: Op
 			if project_tag is None and 0 in project_tag_to_timestamp:
 				project_tag = 0
 			
-			# Get timestamp: prefer project metadata timestamp if available, else file mtime
-			if project_tag is not None and project_tag in project_tag_to_timestamp:
-				timestamp = project_tag_to_timestamp[project_tag]
+			# Get individual file timestamp
+			# Prefer ZIP metadata timestamp if available, else use filesystem mtime
+			timestamp = None
+			if file_timestamps:
+				# Try to find this file's timestamp in the mapping
+				try:
+					rel_path = fp.relative_to(root)
+					# Try both forward and backward slashes for Windows/Unix compatibility
+					rel_path_str = str(rel_path).replace('\\', '/')
+					if rel_path_str in file_timestamps:
+						timestamp = file_timestamps[rel_path_str]
+					else:
+						# Fallback to filesystem
+						timestamp = fp.stat().st_mtime
+				except Exception:
+					timestamp = fp.stat().st_mtime if fp.exists() else 0
 			else:
 				try:
 					timestamp = fp.stat().st_mtime
@@ -295,7 +310,7 @@ def analyze_project(root_path: str, max_files: int = 10000, project_metadata: Op
 				skill_lang_counts[s][language] += 1
 				total_matches += 1
 				
-				# Track most recent timestamp for each skill
+				# Track most recent timestamp for each skill (by individual file timestamp)
 				if s not in skill_latest_timestamp or timestamp > skill_latest_timestamp[s][0]:
 					skill_latest_timestamp[s] = (timestamp, str(fp), project_tag)
 
