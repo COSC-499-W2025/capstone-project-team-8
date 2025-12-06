@@ -112,6 +112,10 @@ class FolderUploadService:
                 if tag not in project_timestamps or project_timestamps[tag] == 0:
                     project_timestamps[tag] = timestamp
             
+            # Step 7b: Get end timestamps (newest files) for non-git projects from ZIP metadata
+            zip_end_timestamps = self._get_zip_file_end_timestamps(archive_path, projects, tmpdir_path)
+            # TODO: In future, could get git last commit timestamps here and merge (git takes priority)
+            
             # Step 8: Transform results
             response_data = transform_to_new_structure(
                 results,
@@ -120,8 +124,47 @@ class FolderUploadService:
                 project_classifications,
                 git_contrib_data,
                 project_timestamps,
-                github_username
+                github_username,
+                project_end_timestamps=zip_end_timestamps
             )
+            
+            # Step 9: Generate resume items for each project
+            from app.services.resume_item_generator import ResumeItemGenerator
+            from app.services.analysis.analyzers.content_analyzer import analyze_project_content
+            generator = ResumeItemGenerator()
+            
+            for project in response_data.get('projects', []):
+                try:
+                    # Extract content files for content analysis
+                    content_files = []
+                    files = project.get('files', {})
+                    for content_file in files.get('content', []):
+                        if 'text' in content_file:
+                            content_files.append({
+                                'path': content_file.get('path', ''),
+                                'text': content_file.get('text', '')
+                            })
+                    
+                    # Analyze content if content files are available
+                    content_summary = None
+                    if content_files:
+                        try:
+                            content_summary = analyze_project_content(content_files)
+                        except Exception as e:
+                            # Log but don't fail - resume generation can work without content analysis
+                            import logging
+                            logger = logging.getLogger(__name__)
+                            logger.debug(f"Content analysis failed for project {project.get('id')}: {e}")
+                    
+                    # Generate resume items with content summary
+                    resume_items = generator.generate_resume_items(project, github_username, content_summary)
+                    project['resume_items'] = resume_items
+                except Exception as e:
+                    # Log error but don't break the flow
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"Failed to generate resume items for project {project.get('id')}: {e}")
+                    project['resume_items'] = {'items': [], 'generated_at': 0}
             
             return response_data
     
@@ -301,6 +344,77 @@ class FolderUploadService:
                     
                     if oldest_time is not None:
                         project_timestamps[tag] = oldest_time
+                        
+        except Exception:
+            # If anything fails, just return empty dict
+            pass
+        
+        return project_timestamps
+    
+    def _get_zip_file_end_timestamps(
+        self,
+        zip_path: Path,
+        projects: Dict[Path, int],
+        tmpdir_path: Path
+    ) -> Dict[int, int]:
+        """
+        Extract end timestamps from ZIP file metadata for non-git projects.
+        Finds the newest (most recent) file in each project directory based on ZIP metadata.
+        
+        Args:
+            zip_path: Path to the ZIP file
+            projects: Dict mapping project root paths to tag IDs
+            tmpdir_path: Path to the temporary extraction directory
+            
+        Returns:
+            Dict mapping project tag to Unix timestamp (newest file in that project)
+        """
+        import zipfile
+        from datetime import datetime
+        
+        project_timestamps = {}
+        
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zf:
+                # Group by project tag
+                for root_path, tag in projects.items():
+                    # Skip tag 0 (unorganized non-git files)
+                    if tag == 0:
+                        continue
+                    
+                    # Calculate relative path from tmpdir
+                    try:
+                        rel_root = root_path.relative_to(tmpdir_path)
+                        project_prefix = str(rel_root).replace('\\', '/')
+                    except ValueError:
+                        continue
+                    
+                    newest_time = None
+                    
+                    # Find newest file in this project
+                    for zip_info in zf.infolist():
+                        if zip_info.is_dir():
+                            continue
+                        
+                        # Normalize path separators
+                        file_path = zip_info.filename.replace('\\', '/')
+                        
+                        # Check if file belongs to this project
+                        if file_path.startswith(project_prefix + '/') or file_path == project_prefix:
+                            try:
+                                # Convert date_time tuple to Unix timestamp
+                                # date_time is (year, month, day, hour, minute, second)
+                                dt = datetime(*zip_info.date_time)
+                                timestamp = int(dt.timestamp())
+                                
+                                if newest_time is None or timestamp > newest_time:
+                                    newest_time = timestamp
+                            except (ValueError, OSError):
+                                # Skip files with invalid timestamps
+                                continue
+                    
+                    if newest_time is not None:
+                        project_timestamps[tag] = newest_time
                         
         except Exception:
             # If anything fails, just return empty dict

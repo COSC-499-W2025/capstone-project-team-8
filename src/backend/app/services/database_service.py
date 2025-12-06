@@ -10,6 +10,7 @@ from datetime import datetime
 from django.db import transaction
 from django.utils import timezone
 import datetime as dt
+import re
 
 from app.models import (
     User, Project, ProgrammingLanguage, Framework,
@@ -56,8 +57,54 @@ class ProjectDatabaseService:
         
         created_projects = []
         
+        # Build last-updated lookups from analysis_data if provided
+        last_updated_meta = {}
+        lu = analysis_data.get("analysis_meta", {}).get("last_updated") if isinstance(analysis_data.get("analysis_meta"), dict) else None
+        if lu:
+            # lu expected shape: {"projects": [{"project_root": "...", "project_tag": int, "last_updated": "ISO"}, ...], "overall_last_updated": "..."}"
+            try:
+                for entry in lu.get("projects", []) if isinstance(lu.get("projects", []), list) else []:
+                    tag = entry.get("project_tag")
+                    root = entry.get("project_root")
+                    iso = entry.get("last_updated")
+                    if tag is not None and iso:
+                        last_updated_meta.setdefault("by_tag", {})[int(tag)] = iso
+                    if root is not None and iso:
+                        # normalize root key similar to view/transformer
+                        rk = root.strip()
+                        if rk in ("", ".", "./"):
+                            rk = "."
+                        else:
+                            rk = rk.lstrip("./").rstrip("/")
+                        last_updated_meta.setdefault("by_root", {})[rk] = iso
+            except Exception:
+                # non-fatal: ignore malformed timestamps
+                last_updated_meta = {}
+
         with transaction.atomic():
             for project_data in projects:
+                # Attach matched last-updated ISO onto project_data for _create_project to consume
+                try:
+                    matched_iso = None
+                    pid = project_data.get("id")
+                    root = str(project_data.get("root", "") or "")
+                    # 1) by tag
+                    if pid is not None and "by_tag" in last_updated_meta:
+                        matched_iso = last_updated_meta["by_tag"].get(int(pid))
+                    # 2) by root
+                    if not matched_iso and root and "by_root" in last_updated_meta:
+                        rk = root.strip()
+                        if rk in ("", ".", "./"):
+                            rk = "."
+                        else:
+                            rk = rk.lstrip("./").rstrip("/")
+                        matched_iso = last_updated_meta["by_root"].get(rk)
+                    if matched_iso:
+                        project_data["_last_updated_iso"] = matched_iso
+                except Exception:
+                    # ignore matching errors and continue
+                    pass
+
                 project = self._create_project(
                     user=user,
                     project_data=project_data,
@@ -131,13 +178,51 @@ class ProjectDatabaseService:
         
         # Parse timestamps
         created_at_timestamp = project_data.get('created_at')
+        created_at_dt = None
         first_commit_date = None
         if created_at_timestamp:
             try:
-                first_commit_date = dt.datetime.fromtimestamp(created_at_timestamp, tz=timezone.UTC)
+                # Assume Unix seconds timestamp; produce tz-aware UTC datetime
+                created_at_dt = dt.datetime.fromtimestamp(float(created_at_timestamp), tz=dt.timezone.utc)
+                # Keep existing behavior: also use the timestamp for first_commit_date if desired
+                first_commit_date = created_at_dt
             except (ValueError, TypeError, AttributeError):
-                pass
-        
+                created_at_dt = None
+                first_commit_date = None
+
+        # Ensure created_at is set: default to now when payload didn't include a created_at
+        if created_at_dt is None:
+            created_at_dt = timezone.now()
+
+        # Prefer explicit last-updated ISO from analyzer for updated_at if present
+        updated_at_dt = None
+        last_updated_iso = project_data.get("_last_updated_iso") or project_data.get("last_updated")
+        if last_updated_iso:
+            try:
+                # Try robust parsing (datetime.fromisoformat preserves timezone if present)
+                parsed = None
+                try:
+                    parsed = dt.datetime.fromisoformat(last_updated_iso)
+                except Exception:
+                    # try common fallback without microseconds/timezone
+                    try:
+                        parsed = dt.datetime.strptime(last_updated_iso, "%Y-%m-%dT%H:%M:%S")
+                        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+                    except Exception:
+                        parsed = None
+                if parsed:
+                    if parsed.tzinfo is None:
+                        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+                    updated_at_dt = parsed
+                else:
+                    updated_at_dt = None
+            except Exception:
+                updated_at_dt = None
+
+        # If no updated_at from payload, updated_at will be created_at_dt or now
+        if updated_at_dt is None:
+            updated_at_dt = created_at_dt or timezone.now()
+
         # Determine if this is a git repository
         project_id = project_data.get('id', 0)
         contributors = project_data.get('contributors', [])
@@ -164,6 +249,10 @@ class ProjectDatabaseService:
             first_commit_date=first_commit_date,
             upload_source='zip_file',
             original_zip_name=upload_filename
+            # Explicitly set created_at/updated_at from the incoming JSON timestamp when available.
+            # These fields are nullable in the model so existing rows remain compatible.
+            , created_at=created_at_dt
+            , updated_at=updated_at_dt
         )
         
         return project
@@ -365,12 +454,18 @@ class ProjectDatabaseService:
             if not name:
                 continue
             
+            matched_user = self._find_matching_user(name, email, project.user)
+            
             # Get or create contributor
             contributor, created = Contributor.objects.get_or_create(
                 name=name,
                 email=email,
-                defaults={'user': self._find_matching_user(name, email)}
+                defaults={'user': matched_user}
             )
+            
+            if not created and matched_user and contributor.user_id != matched_user.id:
+                contributor.user = matched_user
+                contributor.save(update_fields=['user'])
             
             # Create contribution record
             ProjectContribution.objects.create(
@@ -382,7 +477,7 @@ class ProjectDatabaseService:
                 percent_of_commits=contributor_info.get('percent_commits', 0.0)
             )
     
-    def _find_matching_user(self, name: str, email: str) -> Optional[User]:
+    def _find_matching_user(self, name: str, email: str, project_user: Optional[User] = None) -> Optional[User]:
         """
         Try to match a contributor to an existing User account.
         
@@ -393,23 +488,60 @@ class ProjectDatabaseService:
         Returns:
             User instance if match found, None otherwise
         """
-        if not email:
-            return None
+        emails_to_check = self._extract_emails(email)
         
-        # Try exact email match first
-        try:
-            return User.objects.get(email=email)
-        except User.DoesNotExist:
-            pass
-        
-        # Try GitHub username match
-        if name:
-            try:
-                return User.objects.get(github_username__iexact=name)
-            except User.DoesNotExist:
-                pass
+        normalized_name = name.strip() if name else None
+
+        # Prefer linking to the uploading user when identities align
+        if project_user:
+            project_emails = {project_user.email.lower()}
+            if project_user.github_email:
+                project_emails.add(project_user.github_email.lower())
+            for candidate in emails_to_check:
+                if candidate.lower() in project_emails:
+                    return project_user
+            if normalized_name and project_user.github_username and project_user.github_username.lower() == normalized_name.lower():
+                return project_user
+
+        for candidate in emails_to_check:
+            primary_match = User.objects.filter(email__iexact=candidate).first()
+            if primary_match:
+                return primary_match
+
+            github_matches = User.objects.filter(github_email__iexact=candidate)
+            if normalized_name:
+                github_matches = github_matches.filter(github_username__iexact=normalized_name)
+            github_match = github_matches.first()
+            if github_match:
+                return github_match
+
+            # Fallback: if no exact github_username match, allow first github_email match
+            if not normalized_name:
+                loose_github_match = User.objects.filter(github_email__iexact=candidate).first()
+                if loose_github_match:
+                    return loose_github_match
+
+        # Try GitHub username match if no email matches
+        if normalized_name:
+            username_match = User.objects.filter(github_username__iexact=normalized_name).first()
+            if username_match:
+                return username_match
         
         return None
+
+    def _extract_emails(self, raw_email: str) -> List[str]:
+        """Split raw email field into individual addresses."""
+        if not raw_email:
+            return []
+        
+        # Split on commas, semicolons, whitespace, and newlines
+        parts = re.split(r'[\s,;]+', raw_email)
+        emails = []
+        for part in parts:
+            candidate = part.strip()
+            if candidate and '@' in candidate:
+                emails.append(candidate)
+        return emails
     
     # Helper methods for categorization
     def _get_language_category(self, language: str) -> str:

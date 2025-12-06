@@ -16,6 +16,7 @@ def transform_to_new_structure(
         git_contrib_data,
         project_timestamps=None,
         filter_username=None,
+        project_end_timestamps=None,
         ):
     """
     Transform the collected data into the new JSON structure.
@@ -28,12 +29,15 @@ def transform_to_new_structure(
         git_contrib_data: Dict of git contribution data per project
         project_timestamps: Dict mapping project tags to Unix timestamps (optional)
         filter_username: Optional full name or username (for metrics only)
+        project_end_timestamps: Dict mapping project tags to end date Unix timestamps (optional)
         
     Returns:
         Dict with the new structure: {source, projects, overall, user_contributions?, username_entered?}
     """
     if project_timestamps is None:
         project_timestamps = {}
+    if project_end_timestamps is None:
+        project_end_timestamps = {}
     # Initialize project data structure
     project_data = {}
     for tag, root_str in projects_rel.items():
@@ -318,12 +322,14 @@ def transform_to_new_structure(
     if 0 in project_data:
         sorted_tags.append(0)
     
-    # Add timestamp to project data if available
+    # Add timestamps to project data if available
     projects_list = []
     for tag in sorted_tags:
         project = project_data[tag]
         if tag in project_timestamps and project_timestamps[tag] > 0:
             project["created_at"] = project_timestamps[tag]
+        if tag in project_end_timestamps and project_end_timestamps[tag] > 0:
+            project["end_date"] = project_end_timestamps[tag]
         projects_list.append(project)
     
     payload = {

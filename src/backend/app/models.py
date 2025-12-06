@@ -64,6 +64,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     # Social media links
     github_username = models.CharField(max_length=100, blank=True, db_index=True)
+    github_email = models.EmailField(max_length=255, blank=True)
     linkedin_url = models.URLField(max_length=255, blank=True)
     portfolio_url = models.URLField(max_length=255, blank=True)
     twitter_username = models.CharField(max_length=100, blank=True)
@@ -228,8 +229,11 @@ class Project(models.Model):
     original_zip_name = models.CharField(max_length=255, blank=True)
     
     # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Allow storing timestamps derived from external JSON rather than auto-populating.
+    # Make nullable so migrations won't fail for existing rows; views/serializers can
+    # set these values from your JSON payload.
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(null=True, blank=True)
     
     # Relationships
     languages = models.ManyToManyField(

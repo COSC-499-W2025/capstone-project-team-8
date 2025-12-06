@@ -9,6 +9,8 @@ import tempfile
 import zipfile
 import os
 from app.services.analysis.analyzers.skill_analyzer import analyze_project, generate_chronological_skill_detection
+from app.services.analysis.analyzers.last_updated import compute_projects_last_updated
+import datetime
 
 
 # These are the categories that a file will be classified as based off its extension
@@ -68,6 +70,7 @@ class UploadFolderView(APIView):
 
         # Try to produce skill analysis by extracting the uploaded zip to a temp dir.
         analysis_result = None
+        last_updated_info = None
         try:
             with tempfile.TemporaryDirectory() as tmpdir:
                 tmp_zip_path = os.path.join(tmpdir, getattr(upload, "name", "upload.zip") or "upload.zip")
@@ -83,6 +86,17 @@ class UploadFolderView(APIView):
                         zf.extractall(extract_dir)
                     # Run skill analyzer on the extracted content
                     analysis_result = analyze_project(extract_dir)
+
+                    # Compute last-updated timestamps for discovered projects (best-effort)
+                    try:
+                        # Use zip metadata timestamps (ZipInfo.date_time) instead of filesystem mtimes
+                        with zipfile.ZipFile(tmp_zip_path, "r") as zf_for_meta:
+                            last_updated_info = compute_projects_last_updated(zip_file=zf_for_meta)
+                    except Exception as e:
+                        # non-fatal: record analyzer failure info in analysis_result
+                        if not isinstance(analysis_result, dict):
+                            analysis_result = {}
+                        analysis_result.setdefault("last_updated_error", str(e))
                 except zipfile.BadZipFile:
                     # Not a zip or corrupted; leave analysis_result as None
                     analysis_result = {"error": "uploaded file is not a valid zip or extraction failed"}
@@ -95,6 +109,12 @@ class UploadFolderView(APIView):
         try:
             service = FolderUploadService()
             response_payload = service.process_zip(upload, github_username)
+
+            # Merge last_updated_info into the payload so the DB service can persist it
+            if last_updated_info is not None:
+                response_payload.setdefault("analysis_meta", {})
+                response_payload["analysis_meta"]["last_updated"] = last_updated_info
+
             if request.user.is_authenticated:
                 try:
                     db_service = ProjectDatabaseService()
@@ -109,6 +129,98 @@ class UploadFolderView(APIView):
                         {"id": project.id, "name": project.name} 
                         for project in projects
                     ]
+
+                    # If we computed last-updated info, try to apply it to saved DB projects.
+                    db_update_warnings = []
+                    applied_updates = []
+                    if last_updated_info:
+                        # Build lookups from analyzer output:
+                        tag_lookup = {}   # project_tag (int) -> iso
+                        root_lookup = {}  # normalized project_root (str) -> iso
+
+                        def _norm_root_key(s: str) -> str:
+                            if s is None:
+                                return ""
+                            # normalize posix-ish project root keys used by analyzer
+                            k = s.strip()
+                            if k in (".", "", "./"):
+                                return "."
+                            k = k.lstrip("./")
+                            if k.endswith("/"):
+                                k = k[:-1]
+                            return k
+
+                        for p in last_updated_info.get("projects", []):
+                            iso = p.get("last_updated")
+                            tag = p.get("project_tag")
+                            root = p.get("project_root")
+                            if tag is not None:
+                                try:
+                                    tag_lookup[int(tag)] = iso
+                                except Exception:
+                                    pass
+                            if root is not None:
+                                root_lookup[_norm_root_key(root)] = iso
+
+                        # Also allow mapping via response_payload['projects'] if present (helps match names/tags)
+                        payload_project_map = {}
+                        for pp in response_payload.get("projects", []) or []:
+                            # project entries may contain project_tag and project_root
+                            t = pp.get("project_tag")
+                            r = pp.get("project_root")
+                            if t is not None:
+                                payload_project_map[int(t)] = _norm_root_key(r or "")
+
+                        for project in projects:
+                            try:
+                                matched_iso = None
+                                # 1) Match by project_tag if available
+                                if getattr(project, "project_tag", None) is not None:
+                                    pt = project.project_tag
+                                    if pt in tag_lookup and tag_lookup[pt]:
+                                        matched_iso = tag_lookup[pt]
+                                # 2) Match via response payload mapping (tag -> root) then root_lookup
+                                if not matched_iso and getattr(project, "project_tag", None) is not None:
+                                    pt = project.project_tag
+                                    root_key = payload_project_map.get(pt)
+                                    if root_key and root_key in root_lookup and root_lookup[root_key]:
+                                        matched_iso = root_lookup[root_key]
+                                # 3) Match by project_root_path (normalize)
+                                if not matched_iso and getattr(project, "project_root_path", None):
+                                    ppath_key = _norm_root_key(project.project_root_path)
+                                    if ppath_key in root_lookup and root_lookup[ppath_key]:
+                                        matched_iso = root_lookup[ppath_key]
+                                # 4) Match by project name as last resort
+                                if not matched_iso and project.name:
+                                    nkey = _norm_root_key(project.name)
+                                    if nkey in root_lookup and root_lookup[nkey]:
+                                        matched_iso = root_lookup[nkey]
+
+                                if matched_iso:
+                                    # parse ISO robustly and set updated_at
+                                    try:
+                                        dt = datetime.datetime.fromisoformat(matched_iso)
+                                    except Exception:
+                                        try:
+                                            dt = datetime.datetime.strptime(matched_iso, "%Y-%m-%dT%H:%M:%S")
+                                            dt = dt.replace(tzinfo=datetime.timezone.utc)
+                                        except Exception:
+                                            dt = None
+                                    if dt is not None:
+                                        if dt.tzinfo is None:
+                                            dt = dt.replace(tzinfo=datetime.timezone.utc)
+                                        project.updated_at = dt
+                                        project.save(update_fields=["updated_at"])
+                                        applied_updates.append({"project_id": project.id, "updated_at": matched_iso})
+                            except Exception as e:
+                                db_update_warnings.append(f"Failed to update project {getattr(project,'id', 'unknown')} updated_at: {str(e)}")
+                    if applied_updates:
+                        response_payload["last_updated_applied"] = applied_updates
+                    if db_update_warnings:
+                        response_payload.setdefault("database_warning", "")
+                        if response_payload["database_warning"]:
+                            response_payload["database_warning"] += " | "
+                        response_payload["database_warning"] += " | ".join(db_update_warnings)
                     
                 except Exception as db_error:
                     response_payload["database_warning"] = f"Analysis completed but failed to save to database: {str(db_error)}"
@@ -119,170 +231,6 @@ class UploadFolderView(APIView):
             if analysis_result is not None:
                 # Avoid clobbering existing keys; attach under "skill_analysis"
                 response_payload["skill_analysis"] = analysis_result
-
-            # --- NEW: build chronological skill detection if possible ---
-            try:
-                def _parse_tag(tag_val):
-                    # Normalize tag values to integers: 1, "1", "project_1" -> 1
-                    if tag_val is None:
-                        return None
-                    try:
-                        return int(tag_val)
-                    except Exception:
-                        pass
-                    if isinstance(tag_val, str):
-                        if tag_val.isdigit():
-                            return int(tag_val)
-                        # match "project_123"
-                        if tag_val.startswith("project_"):
-                            try:
-                                return int(tag_val.split("_", 1)[1])
-                            except Exception:
-                                return None
-                    return None
-
-                def _parse_timestamp(raw):
-                    # Accept ints, digit-strings, or ISO datetimes
-                    if raw is None:
-                        return None
-                    if isinstance(raw, (int, float)):
-                        try:
-                            return int(raw)
-                        except Exception:
-                            return None
-                    if isinstance(raw, str):
-                        s = raw.strip()
-                        if s.isdigit():
-                            try:
-                                return int(s)
-                            except Exception:
-                                return None
-                        # try ISO parse (very small, may fail for some formats)
-                        try:
-                            from datetime import datetime
-                            dt = datetime.fromisoformat(s)
-                            return int(dt.timestamp())
-                        except Exception:
-                            return None
-                    return None
-
-                project_skills = {}
-                # Collect skills from "results"
-                results = response_payload.get("results")
-                if isinstance(results, list):
-                    for item in results:
-                        if not isinstance(item, dict):
-                            continue
-                        tag_candidate = item.get("project_tag") or item.get("project_id") or item.get("tag") or item.get("id")
-                        tag = _parse_tag(tag_candidate)
-                        # try fallback keys that might contain "project_1"
-                        if tag is None:
-                            # sometimes results use string keys like "project_1"
-                            possible_keys = [k for k in item.keys() if isinstance(k, str) and k.startswith("project_")]
-                            if possible_keys:
-                                tag = _parse_tag(possible_keys[0])
-                        if tag is None:
-                            continue
-
-                        skills = None
-                        if "skills" in item and isinstance(item["skills"], dict):
-                            skills = list(item["skills"].keys())
-                        elif "detected_skills" in item and isinstance(item["detected_skills"], list):
-                            skills = item["detected_skills"]
-                        elif "skill_analysis" in item and isinstance(item["skill_analysis"], dict):
-                            sa = item["skill_analysis"]
-                            if isinstance(sa.get("skills"), dict):
-                                skills = list(sa.get("skills").keys())
-                            elif isinstance(sa, dict) and "skills" in sa and isinstance(sa["skills"], list):
-                                skills = sa["skills"]
-                        if skills:
-                            project_skills[tag] = skills
-
-                # Collect skills from "projects" list
-                if not project_skills:
-                    projects_list = response_payload.get("projects")
-                    if isinstance(projects_list, list):
-                        for p in projects_list:
-                            if not isinstance(p, dict):
-                                continue
-                            tag = _parse_tag(p.get("project_tag") or p.get("project_id") or p.get("tag") or p.get("id"))
-                            if tag is None:
-                                continue
-                            skills = None
-                            if "skills" in p and isinstance(p["skills"], dict):
-                                skills = list(p["skills"].keys())
-                            elif "skill_analysis" in p and isinstance(p["skill_analysis"], dict):
-                                sa = p["skill_analysis"]
-                                if isinstance(sa.get("skills"), dict):
-                                    skills = list(sa.get("skills").keys())
-                            if skills:
-                                project_skills[tag] = skills
-
-                # Fallback: if we only ran analyze_project earlier, attach its skills to tag 0
-                if not project_skills and analysis_result and isinstance(analysis_result, dict) and "skills" in analysis_result:
-                    project_skills[0] = list(analysis_result.get("skills", {}).keys())
-
-                # Build project_timestamps robustly from multiple possible payload locations
-                project_timestamps = {}
-
-                # 1) direct mapping
-                if "project_timestamps" in response_payload and isinstance(response_payload["project_timestamps"], dict):
-                    for k, v in response_payload["project_timestamps"].items():
-                        parsed_k = _parse_tag(k)
-                        if parsed_k is None:
-                            continue
-                        ts = _parse_timestamp(v)
-                        # allow zero timestamps too (may be valid); if parsing fails set None
-                        project_timestamps[parsed_k] = ts if ts is not None else 0
-
-                # 2) git contributions structure: keys like "project_1"
-                if not project_timestamps:
-                    git_contrib = response_payload.get("git_contributions") or response_payload.get("git_contrib") or response_payload.get("git_contributions_data")
-                    if isinstance(git_contrib, dict):
-                        for key, val in git_contrib.items():
-                            if not isinstance(val, dict):
-                                continue
-                            tag = _parse_tag(key)
-                            if tag is None:
-                                # maybe nested entry contains a tag
-                                tag = _parse_tag(val.get("project_tag") or val.get("project_id") or val.get("tag"))
-                            # common timestamp fields
-                            ts_candidate = val.get("timestamp") or val.get("first_commit_ts") or val.get("created_at") or val.get("created") or val.get("first_seen")
-                            ts = _parse_timestamp(ts_candidate)
-                            if tag is not None:
-                                project_timestamps[tag] = ts if ts is not None else 0
-
-                # 3) per-item timestamps inside results/projects
-                if results and isinstance(results, list):
-                    for item in results:
-                        if not isinstance(item, dict):
-                            continue
-                        tag = _parse_tag(item.get("project_tag") or item.get("project_id") or item.get("tag") or item.get("id"))
-                        ts = _parse_timestamp(item.get("timestamp") or item.get("created_at") or item.get("first_commit_ts"))
-                        if tag is not None and ts is not None:
-                            project_timestamps.setdefault(tag, ts)
-
-                if isinstance(response_payload.get("projects"), list):
-                    for p in response_payload.get("projects"):
-                        if not isinstance(p, dict):
-                            continue
-                        tag = _parse_tag(p.get("project_tag") or p.get("project_id") or p.get("tag") or p.get("id"))
-                        ts = _parse_timestamp(p.get("timestamp") or p.get("created_at") or p.get("first_commit_ts"))
-                        if tag is not None and ts is not None:
-                            project_timestamps.setdefault(tag, ts)
-
-                # If still empty, leave as empty dict; generator will treat unknown timestamps as None
-                if project_skills:
-                    # ensure integer keys for skills mapping too
-                    project_skills = {int(k): v for k, v in project_skills.items()}
-
-                    chrono = generate_chronological_skill_detection(project_skills, project_timestamps)
-                    response_payload["chronological_skill_detection"] = chrono
-
-            except Exception:
-                # Non-fatal: don't block response if chronology fails
-                pass
-            # --- END new chronology logic ---
 
             # Build ordered payload with consent metadata
             ordered_payload = {"send_to_llm": bool(send_to_llm), "scan_performed": True}
