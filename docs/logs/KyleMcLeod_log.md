@@ -153,16 +153,25 @@ We have made a lot of progress since our last week. Ever since we got the refact
 
 
 This week:
-(TODO)
+- bug fix on main not having JSON bullet points ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/203 PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/204
+- saved bullet points to database ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/202 PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/207
+- github workflow modification so main runs tests ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/206 PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/205
+- video walkthrough demo (10 mins)
+- team contract
 
 What went well:
-(TODO)
+- video demo software is working great for recording walkthroughs
+- reviewed teammates PR's and provided feedback
+- lots of collaboration in our team discord
 
 What went wrong:
-(TODO)
+- we had a brief problem with merging all our PR's last week so our main branch was missing features
+- we resolved the issues this week and made sure main is up to date with all features
 
 Next week:
-(TODO)
+- winter break
+- would be nice to do some design mocks next week to get an idea of how the front end will look & the requirements
+
 
 Reflection:
-(TODO)
+This is the final week of the semester before winter break and we have successfully completed all milestone tasks. For the next term, we will refine our analysis and make sure we are getting accurate insights.
