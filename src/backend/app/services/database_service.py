@@ -263,6 +263,12 @@ class ProjectDatabaseService:
         project.llm_consent = project_data.get('llm_consent', False)
         if project.ai_summary:
             project.ai_summary_generated_at = timezone.now()
+        
+        # Save resume bullet points if available
+        bullet_points = project_data.get('bullet_points', [])
+        if bullet_points:
+            project.resume_bullet_points = bullet_points
+        
         project.save()
 
         return project
