@@ -4,6 +4,7 @@ from .views.auth import LoginView, SignupView
 from .views.token import CustomTokenObtainPairView, CustomTokenRefreshView, TokenLogoutView
 from .views.user_views import UserMeView, PublicUserView
 from .views.project_views import ProjectsListView, ProjectDetailView, ProjectStatsView, RankedProjectsView
+from .views.resume_views import ResumeTemplatesView, ResumePreviewView
 
 
 urlpatterns = [
@@ -15,6 +16,10 @@ urlpatterns = [
     path("projects/stats/", ProjectStatsView.as_view(), name="projects-stats"),
     path("projects/ranked/", RankedProjectsView.as_view(), name="projects-ranked"),
     path("projects/<int:pk>/", ProjectDetailView.as_view(), name="projects-detail"),
+
+    # Resume endpoints
+    path("resume/templates/", ResumeTemplatesView.as_view(), name="resume-templates"),
+    path("resume/preview/", ResumePreviewView.as_view(), name="resume-preview"),
     
     # Authentication
     path("signup/", SignupView.as_view(), name="signup"),
