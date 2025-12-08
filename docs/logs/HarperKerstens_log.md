@@ -174,3 +174,32 @@ This weeks development went surprisingly well. After last week where I spent the
 ### Reflection:
     Overalll I am happy with my progress this week. Although I didn't get everything done that I wanted to, fixing the database issue was very high priority once we discoverd it. Fixing this will allow for easier development in the future and there should be no more issues that arise in this regard. I'm excited to build chronological skill ordering next week as it's development should be relatively painless following this week.
 
+ ## Novermber 30-December 6
+ 
+ <img width="1067" height="628" alt="November30-Dec6" src="https://github.com/user-attachments/assets/7e3075dd-5c59-43ca-a4d5-477e76445967" />
+
+- Created Team contract for project
+- Presented project progress to class
+- Implemented chronological skill analysis based off project upload dates
+- Tested and debugged new feature
+- Reviewed team members code and provided feedback
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/173 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/199   |
+
+
+### What went well
+    This week the chronological skill analysis was the highlight for what went well. I was able to successfully implement the feature and it works as intended. It was sastisfying to see it come together especially after being delayed in the previous week with its implementation.
+
+### What didn't go well
+    Nothing in particular went poorly this week. I was able to complete all my tasks without any major issues. There were some minor bugs that came up during testing of the new feature but they were quickly resolved.
+
+
+### What's next
+    The next steps will be to begin looking towards milestone 2 as we polished off near everything we wanted to for this milestone. I will begin looking into what features we want to implement next and start planning for their development.
+
+### Reflection:
+    This week went well overall. I was able to complete everything I set out to do without any major issues. The chronological skill analysis was a big win for me personally as it was a feature I was excited to implement. I'm looking forward to moving onto milestone 2 and continuing development on the project.

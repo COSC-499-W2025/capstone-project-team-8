@@ -8,6 +8,64 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 14
+
+### Our Goals this week:
+  This week our main goal was to finalize everything for Milestone 1. This included polishing off any remaining tasks, presenting our presentation, preparing our video presentation and creating the Team Contract.
+
+- Rank project importance based off user contributions
+- Complete Video Presentation for Milestone 1
+- Finalize Team Contract for Milestone 1
+- Implement Chronological Skill report
+- Finish off any remaining bugfixes for Milestone 1
+### Reflection
+  This week was a good finishing week for Milestone 1. We were able to finalize everything we needed to and present our project to the class. The team worked well together to aid in developing the final features and finding some rough edges to polish off. Overall, we are happy with our project for Milestone 1 and are looking forward to Milestone 2.
+
+### What went well:
+  The team worked very well together in assisting with the group deliverables. Independent tasks were completed quickly, allowing us to focus on said group deliverables. The presentation went smoothly and we were able to showcase our project well.
+
+
+### What didn't go well:
+  We ran into some minor bugs while implementing the chronological skill report, but these were quickly resolved with team collaboration. Overall, there were minimal issues this week.
+
+
+### Test Report
+
+![alt text](data/image-1.png)
+
+### Plan for next week:
+
+- Get some needed rest after Milestone 1
+- Look forward to Milestone 2
+
+
+
+### Burn up chart
+
+<img width="1790" height="993" alt="image" src="https://github.com/user-attachments/assets/ff51ea68-4e18-46f7-8644-68fc280aa974" />
+
+
+### In Progress Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+| NA   |     NA      |    NA   |
+
+
+### Completed Tasks
+
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+|Chronological Skill Return | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/173 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/199 |
+| BugFix Reimplement Previous Feature | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/203| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/204 |
+| Run Tests on Main Branch | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/206 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/205 |
+| Save non-ai Bullet Points | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/202  |  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/207 |
+| Fix Project 0 appearing | cschwebi | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/197 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/208  |
+| Resume templates & preview endpoints | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/171 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/209 |
+| |  |  |  |
+
+
+
 ## Week 13
 
 ### Our Goals this week:

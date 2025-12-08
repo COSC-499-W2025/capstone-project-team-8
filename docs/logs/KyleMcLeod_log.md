@@ -147,3 +147,32 @@ Next week:
 
 Reflection:
 We have made a lot of progress since our last week. Ever since we got the refactor done and started using our database, our development has been a lot smoother. We will present our project and prepare for milestone 2. I'm happy with the progress we have made for the first term.
+
+## Week 14 December 1-5
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/460e928e-b2d2-42f0-b723-a0fa635afdd9" />
+
+
+
+This week:
+- bug fix on main not having JSON bullet points ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/203 PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/204
+- saved bullet points to database ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/202 PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/207
+- github workflow modification so main runs tests ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/206 PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/205
+- video walkthrough demo (10 mins)
+- team contract
+
+What went well:
+- video demo software is working great for recording walkthroughs
+- reviewed teammates PR's and provided feedback
+- lots of collaboration in our team discord
+
+What went wrong:
+- we had a brief problem with merging all our PR's last week so our main branch was missing features
+- we resolved the issues this week and made sure main is up to date with all features
+
+Next week:
+- winter break
+- would be nice to do some design mocks next week to get an idea of how the front end will look & the requirements
+
+
+Reflection:
+This is the final week of the semester before winter break and we have successfully completed all milestone tasks. For the next term, we will refine our analysis and make sure we are getting accurate insights.

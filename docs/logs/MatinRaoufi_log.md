@@ -132,7 +132,7 @@ Reflection: I learned the importance of a single responsibility principle and ho
 
 Nov 24 - 30
 
-![alt text](image-3.png)
+![alt text](data/image-3.png)
 
 - Implemented project ranking by contributor impact, wiring the new scoring logic into `/api/projects/ranked/` and updating database matching heuristics (Issue [#108](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/108), PR [#186](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/186))
 - Added focused unit tests for signup GitHub email handling and contributor matching; exercised the endpoint in Postman to verify ranked output matches expectations
@@ -159,6 +159,27 @@ Next week:
 Reflection:
 - We have made a lot of progress and utilized lots of different tools at our disposal, happy with the teams communications and work contributions so far
 - Reviewing complex PRs highlighted the value of reproducible test instructions—especially when external services (Azure, Docker) are involved
+
+Dec 1 - 7
+
+![alt text](image.png)
+
+- Implemented the initial resume API slice (Issue [#171](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/171), PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/209 exposing `/api/resume/templates/` and `/api/resume/preview/`
+- Added unit tests (`tests.test_resume_endpoints`) and verified the new endpoints manually with Postman
+- Reviewed teammates’ PRs https://github.com/COSC-499-W2025/capstone-project-team-8/pull/208 https://github.com/COSC-499-W2025/capstone-project-team-8/pull/204
+
+
+What went well:
+- TDD kept the slice focused—tests drove the empty scaffolding and ensured the API contract was stable before wiring to the service
+- Postman verification was quick thanks to the auth workflow we already had documented
+- Reviews led to quick fixes in our project summary endpoint and documentation, strengthening team coordination
+
+What didn’t go well:
+- Rebasing onto `main` surfaced repeated conflicts in `urls.py`, costing extra time to juggle the new routes alongside fresh merges
+- The resume context is still stubbed, had to pause deeper work to keep the PR small and reviewable
+
+Next week:
+- We're on break—if there’s free time I’ll use it to do bonus work. 
 
 
 

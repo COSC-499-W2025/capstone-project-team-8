@@ -168,3 +168,29 @@ NEXT WEEK: Generate actual resume bullet points based on new generated data + He
 At this point, I think we are in a very good place for the end of milestone 1. Hiccups this week could have been avoided with better planning, so ultimately that's something to remember for milestones 2 and 3. I am happy with the current implementation of the non-AI analyses, but there are definitely refinements to be made as I've discovered through this week's development.
 
 NEXT WEEK: Bug fixes and milestone wrap-up
+
+## Week 14 (Dec 1 - Dec 7)
+
+<img width="1886" height="1101" alt="image" src="https://github.com/user-attachments/assets/d4236df3-17b2-41ea-a274-83becb173f85" />
+
+#### What I did:
+
+- Fixed bug that ALWAYS created a fallback project, which would also save in the database
+- Reviewed and tested teammates' PRs
+- Proofread and reviewed Team Contract
+
+#### My PR's: 
+
+#208: Fix project 0 appearing unnecessarily
+
+#### WHAT WENT WELL: 
+- The bug fix was small and did not interrupt existing test functionality
+- Caught some grammatical errors in the Team Contract
+
+#### WHAT DIDN'T
+- Poor time management led me to submit my pull request later than desired.
+
+  #### REFLECTION
+At this point, I think we are well set for milestone 1. Lots of bug fixes and refinements this week really help perfect our current implementation. Unfortunately, I have a recurring theme of late PRs, which is something I MUST change for milestone 2.
+
+NEXT WEEK: Bug fixes and milestone wrap-up
