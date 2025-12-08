@@ -42,7 +42,7 @@
 
 ### Burn up chart
 
-
+<img width="1790" height="993" alt="image" src="https://github.com/user-attachments/assets/ff51ea68-4e18-46f7-8644-68fc280aa974" />
 
 
 ### In Progress Tasks
