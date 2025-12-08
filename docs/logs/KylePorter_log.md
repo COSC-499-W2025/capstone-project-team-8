@@ -49,3 +49,9 @@
 
 ### What went well
 Finished 2 PRs.
+
+## Week 14 Dec 1st - 7th:
+<img width="1618" height="954" alt="20251207_22h17m43s_grim" src="https://github.com/user-attachments/assets/4b462c8d-574d-4f6d-b192-21e7d45ba4cc" />
+
+### Recap
+- Revied teamates code
