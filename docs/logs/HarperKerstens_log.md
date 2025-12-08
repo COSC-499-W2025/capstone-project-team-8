@@ -176,6 +176,8 @@ This weeks development went surprisingly well. After last week where I spent the
 
  ## Novermber 30-December 6
  
+ <img width="1067" height="628" alt="November30-Dec6" src="https://github.com/user-attachments/assets/7e3075dd-5c59-43ca-a4d5-477e76445967" />
+
 - Created Team contract for project
 - Presented project progress to class
 - Implemented chronological skill analysis based off project upload dates
