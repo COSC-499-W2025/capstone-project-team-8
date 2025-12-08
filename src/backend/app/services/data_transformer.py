@@ -253,14 +253,13 @@ def transform_to_new_structure(
         if ".git/" in r.get("path", "") or r.get("path", "").endswith("/.git"):
             continue
         
-
-            total_files += 1
-            if file_type == "code":
-                total_code_files += 1
-            elif file_type == "content":
-                total_text_files += 1
-            elif file_type == "image":
-                total_image_files += 1
+        total_files += 1
+        if file_type == "code":
+            total_code_files += 1
+        elif file_type == "content":
+            total_text_files += 1
+        elif file_type == "image":
+            total_image_files += 1
     
     overall = {
         "classification": overall_classification.get("classification", "unknown"),
