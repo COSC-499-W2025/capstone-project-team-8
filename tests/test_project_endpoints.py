@@ -76,6 +76,40 @@ class ProjectEndpointsTests(TestCase):
         proj = data["projects"][0]
         self.assertEqual(proj["name"], "Alice Project")
         self.assertEqual(int(proj.get("project_tag", 0)), 1)
+    
+    def test_projects_list_includes_resume_bullet_points(self):
+        """Test that resume_bullet_points field is included in projects list response"""
+        # Add bullet points to the project
+        test_bullets = [
+            "Developed feature X using Python and Django",
+            "Implemented RESTful API endpoints",
+            "Collaborated with team of 5 developers"
+        ]
+        self.p1.resume_bullet_points = test_bullets
+        self.p1.save()
+        
+        self.client.force_authenticate(user=self.user1)
+        url = reverse("projects-list")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        
+        # Verify resume_bullet_points field exists
+        proj = data["projects"][0]
+        self.assertIn("resume_bullet_points", proj)
+        self.assertEqual(proj["resume_bullet_points"], test_bullets)
+    
+    def test_projects_list_handles_empty_bullet_points(self):
+        """Test that projects with no bullet points return empty list"""
+        self.client.force_authenticate(user=self.user1)
+        url = reverse("projects-list")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        
+        proj = data["projects"][0]
+        self.assertIn("resume_bullet_points", proj)
+        self.assertEqual(proj["resume_bullet_points"], [])
 
     def test_project_detail_patch_and_delete(self):
         detail_url = reverse("projects-detail", args=[self.p1.id])
@@ -105,6 +139,26 @@ class ProjectEndpointsTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         with self.assertRaises(Project.DoesNotExist):
             Project.objects.get(pk=self.p1.id)
+    
+    def test_project_detail_includes_resume_bullet_points(self):
+        """Test that project detail endpoint returns resume_bullet_points"""
+        # Add bullet points to the project
+        test_bullets = [
+            "Led development of core features",
+            "Optimized database queries for 50% performance improvement",
+            "Mentored junior developers"
+        ]
+        self.p1.resume_bullet_points = test_bullets
+        self.p1.save()
+        
+        self.client.force_authenticate(user=self.user1)
+        detail_url = reverse("projects-detail", args=[self.p1.id])
+        resp = self.client.get(detail_url)
+        
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertIn("resume_bullet_points", data)
+        self.assertEqual(data["resume_bullet_points"], test_bullets)
 
     def test_stats_aggregation(self):
         self.client.force_authenticate(user=self.user1)
@@ -409,3 +463,39 @@ class RankedProjectsTests(TestCase):
         actual_score = high_contrib["contribution_score"]
         
         self.assertAlmostEqual(actual_score, expected_score, places=1)
+
+    def test_ranked_projects_includes_resume_bullet_points(self):
+        """Test that ranked projects endpoint returns resume_bullet_points"""
+        # Add bullet points to projects
+        bullets_p1 = [
+            "Architected scalable microservices system",
+            "Reduced API response time by 70%"
+        ]
+        bullets_p2 = [
+            "Implemented CI/CD pipeline with Docker",
+            "Automated testing framework"
+        ]
+        
+        self.p1.resume_bullet_points = bullets_p1
+        self.p1.save()
+        self.p2.resume_bullet_points = bullets_p2
+        self.p2.save()
+        
+        self.client.force_authenticate(user=self.user)
+        url = reverse("projects-ranked")
+        resp = self.client.get(url)
+        
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        projects = data["projects"]
+        
+        # Verify each project has resume_bullet_points
+        for project in projects:
+            self.assertIn("resume_bullet_points", project)
+        
+        # Verify specific bullet points
+        high_contrib = next(p for p in projects if p["name"] == "High Contribution Project")
+        self.assertEqual(high_contrib["resume_bullet_points"], bullets_p1)
+        
+        medium_contrib = next(p for p in projects if p["name"] == "Medium Contribution Project")
+        self.assertEqual(medium_contrib["resume_bullet_points"], bullets_p2)
