@@ -157,7 +157,8 @@ class ProjectDatabaseService:
         else:
             # Generate name from root path or use default
             root = project_data.get('root', '')
-            if root and root != '(non-git-files)':
+            # Check for both old and new name for backward compatibility
+            if root and root not in ('(non-git-files)', '(non-project files)'):
                 # Clean up root path for display
                 project_name = root.strip('./').replace('/', ' - ') or 'Uploaded Project'
             else:
@@ -235,7 +236,7 @@ class ProjectDatabaseService:
         is_git_repo = (
             bool(project_id) and project_id > 0 and
             bool(contributors) and len(contributors) > 0 and
-            root != '(non-git-files)'
+            root not in ('(non-git-files)', '(non-project files)')
         )
         
         project = Project.objects.create(

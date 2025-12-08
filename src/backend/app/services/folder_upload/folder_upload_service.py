@@ -7,6 +7,7 @@ Single Responsibility: Orchestration only.
 
 import tempfile
 import importlib
+import shutil
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 
@@ -102,6 +103,51 @@ class FolderUploadService:
                 projects, 
                 tmpdir_path
             )
+            
+            # Step 5.5: Classify unorganized files (project 0) if any exist
+            unorganized_files = [
+                r for r in results 
+                if r.get("project_tag") is None 
+                and not ("/.git/" in r.get("path", "") or r.get("path", "").endswith("/.git") or r.get("path", "").startswith(".git/"))
+            ]
+            
+            if unorganized_files:
+                # Create a temporary directory with only unorganized files
+                with tempfile.TemporaryDirectory() as unorg_tmpdir:
+                    unorg_tmpdir_path = Path(unorg_tmpdir)
+                    for r in unorganized_files:
+                        file_path = r.get("path", "")
+                        if file_path:
+                            try:
+                                source_path = tmpdir_path / file_path
+                                if source_path.exists():
+                                    # Maintain directory structure
+                                    dest_path = unorg_tmpdir_path / file_path
+                                    dest_path.parent.mkdir(parents=True, exist_ok=True)
+                                    if source_path.is_file():
+                                        shutil.copy2(source_path, dest_path)
+                                    elif source_path.is_dir():
+                                        shutil.copytree(source_path, dest_path, dirs_exist_ok=True)
+                            except Exception:
+                                # Skip files that can't be copied
+                                continue
+                    
+                    # Classify the unorganized files directory
+                    try:
+                        project_0_classification = self.project_classifier.classify_project(unorg_tmpdir_path)
+                        project_classifications["project_0"] = {
+                            **project_0_classification,
+                            "project_root": "(non-project files)",
+                            "project_tag": 0
+                        }
+                    except Exception as e:
+                        project_classifications["project_0"] = {
+                            "classification": "unknown",
+                            "confidence": 0.0,
+                            "error": str(e),
+                            "project_root": "(non-project files)",
+                            "project_tag": 0
+                        }
             
             # Step 6: Get Git contributors and timestamps
             git_contrib_data, project_timestamps = self._get_git_contributors(projects)

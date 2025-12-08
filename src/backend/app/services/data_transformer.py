@@ -80,7 +80,7 @@ def transform_to_new_structure(
     if has_unorganized_files:
         project_data[0] = {
             "id": 0,
-            "root": "(non-git-files)",  # TODO: Rename to "(unorganized-files)" in future version
+            "root": "(non-project files)",
             "classification": {},
             "files": {
                 "code": [],
@@ -136,11 +136,23 @@ def transform_to_new_structure(
                 # For unknown files, just add the filename
                 project_data[project_tag]["files"]["unknown"].append(filename)
     
+    # Remove project 0 if it has no files (all files were assigned to projects)
+    if 0 in project_data:
+        total_files_in_project_0 = (
+            len(project_data[0]["files"]["code"]) +
+            len(project_data[0]["files"]["content"]) +
+            len(project_data[0]["files"]["image"]) +
+            len(project_data[0]["files"]["unknown"])
+        )
+        if total_files_in_project_0 == 0:
+            del project_data[0]
+    
     # Add classification data to each project
     for tag in project_data:
-        # Unorganized files (id=0) use overall classification
+        # Unorganized files (id=0) should use their own classification if available
         if tag == 0:
-            classification = project_classifications.get("overall", {})
+            # Try to get project_0 classification, fall back to overall if not available
+            classification = project_classifications.get("project_0") or project_classifications.get("overall", {})
         else:
             project_key = f"project_{tag}"
             classification = project_classifications.get(project_key, {})
@@ -163,6 +175,21 @@ def transform_to_new_structure(
                     "code": features.get("code_count", 0),
                     "text": features.get("text_count", 0),
                     "image": features.get("image_count", 0)
+                }
+            
+            # For project 0, override features to only count files actually in this project
+            if tag == 0:
+                project_files = project_data[tag]["files"]
+                class_obj["features"] = {
+                    "total_files": (
+                        len(project_files["code"]) +
+                        len(project_files["content"]) +
+                        len(project_files["image"]) +
+                        len(project_files["unknown"])
+                    ),
+                    "code": len(project_files["code"]),
+                    "text": len(project_files["content"]),
+                    "image": len(project_files["image"])
                 }
             
             # Add languages if available (for coding projects)
@@ -218,13 +245,14 @@ def transform_to_new_structure(
     total_text_files = 0
     total_image_files = 0
     
-    # Count all files (including those not in any project)
+    # Count only files that are in projects (exclude unorganized files)
     for r in results:
         file_type = r.get("type", "unknown")
+        project_tag = r.get("project_tag")
         # Skip .git files from the count
         if ".git/" in r.get("path", "") or r.get("path", "").endswith("/.git"):
             continue
-            
+        
         total_files += 1
         if file_type == "code":
             total_code_files += 1
@@ -329,8 +357,20 @@ def transform_to_new_structure(
         key=lambda tag: (project_timestamps.get(tag, float('inf')), tag)
     )
     
+    # Only add project 0 if it exists and has files
     if 0 in project_data:
-        sorted_tags.append(0)
+        # Double-check it has files before adding
+        total_files_in_project_0 = (
+            len(project_data[0]["files"]["code"]) +
+            len(project_data[0]["files"]["content"]) +
+            len(project_data[0]["files"]["image"]) +
+            len(project_data[0]["files"]["unknown"])
+        )
+        if total_files_in_project_0 > 0:
+            sorted_tags.append(0)
+        else:
+            # Remove it if it somehow still exists but has no files
+            del project_data[0]
     
     # Add timestamp and AI fields to project data if available
     # Add timestamps to project data if available
