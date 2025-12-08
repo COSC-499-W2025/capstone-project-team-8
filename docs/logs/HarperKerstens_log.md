@@ -176,25 +176,28 @@ This weeks development went surprisingly well. After last week where I spent the
 
  ## Novermber 30-December 6
  
-
+- Created Team contract for project
+- Presented project progress to class
+- Implemented chronological skill analysis based off project upload dates
+- Tested and debugged new feature
+- Reviewed team members code and provided feedback
 
 
 ### Completed PRs
 | Pull Request | Issues addressed |
 |---|---|
-| |  |
-|  |  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/173 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/199   |
+
 
 ### What went well
-TODO
+    This week the chronological skill analysis was the highlight for what went well. I was able to successfully implement the feature and it works as intended. It was sastisfying to see it come together especially after being delayed in the previous week with its implementation.
 
 ### What didn't go well
-TODO
-
+    Nothing in particular went poorly this week. I was able to complete all my tasks without any major issues. There were some minor bugs that came up during testing of the new feature but they were quickly resolved.
 
 
 ### What's next
-TODO
+    The next steps will be to begin looking towards milestone 2 as we polished off near everything we wanted to for this milestone. I will begin looking into what features we want to implement next and start planning for their development.
 
 ### Reflection:
- TODO
+    This week went well overall. I was able to complete everything I set out to do without any major issues. The chronological skill analysis was a big win for me personally as it was a feature I was excited to implement. I'm looking forward to moving onto milestone 2 and continuing development on the project.
