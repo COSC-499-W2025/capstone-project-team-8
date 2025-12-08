@@ -131,3 +131,29 @@ Next week, we'll be presenting our Milestone #1 progress to the class. I'm excit
 
 ### Reflection:
 While I didn't stick to my new routine plan of short coding sessions everyday, instead of coding for an hour, I could've been researching/studying the things I needed to finish my PR before hand, so when it came down to actually working on it, I didn't need to spend as much time in one day. Overall happy with mine and the teams progress.
+
+## Week 14 December 1st - December 5th:
+<img width="1077" height="630" alt="image" src="https://github.com/user-attachments/assets/4360c08c-37c9-424b-8013-383fb743cab4" /></br>
+
+### Recap:
+- Contributed to creating/presenting presentation
+- Reviewed 3 PR's
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/209 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/171 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/207 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/202 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/205 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/206 |
+
+### What went well
+Our team was able to meet up and finish reviewing leftover PR's before starting our presentation. This was really effective as we were able to ask questions in real time and help each other out with any issues that occured when reviewing.
+
+### What didn't go well
+I couldn't get a PR going this week due to a busy last week of classes. That was partially my fault for not preparing sooner.
+
+### What's next
+Christmas/New years break! Then on Monday, discuss with the team our plan for Milestone #2.
+
+### Reflection:
+Because of the busy week, I couldn't stick to the plan, but new year new me, I'll start Milestone #2 stronger and better.
