@@ -149,7 +149,8 @@ Reflection:
 We have made a lot of progress since our last week. Ever since we got the refactor done and started using our database, our development has been a lot smoother. We will present our project and prepare for milestone 2. I'm happy with the progress we have made for the first term.
 
 ## Week 14 December 1-5
-(TODO: add screenshot)
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/460e928e-b2d2-42f0-b723-a0fa635afdd9" />
+
 
 
 This week:
