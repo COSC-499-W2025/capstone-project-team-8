@@ -56,16 +56,13 @@
 
 | Task | Assigned To | Issue # | Pull Request |
 |------|-------------|---------|--------------|
-| |  |  | |
-|  |  | | |
-|  |  |  |  |
-|  | |  |  |
-|  |  |  |  |
+|Chronological Skill Return | harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/173 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/199 |
+| BugFix Reimplement Previous Feature | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/203| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/204 |
+| Run Tests on Main Branch | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/206 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/205 |
+| Save non-ai Bullet Points | kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/202  |  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/207 |
+| Fix Project 0 appearing | cschwebi | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/197 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/208  |
 | |  |  |  |
-|  |  |  |  |
-|  |  |  |  |
-|  |  | |  |
-|  |  |  |  |
+
 
 
 ## Week 13
