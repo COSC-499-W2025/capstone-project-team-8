@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, List, Any
 
 from app.services.classifiers import classify_file
-from app.services.utils import read_docx
+from app.services.utils import read_docx, read_pdf
 
 
 class FileScannerService:
@@ -96,6 +96,8 @@ class FileScannerService:
                         real_path = tmpdir_path / Path(res.get("path"))
                         if real_path.suffix.lower() == ".docx":
                             text = read_docx(real_path)
+                        elif real_path.suffix.lower() == ".pdf":
+                            text = read_pdf(real_path)
                         else:
                             text = real_path.read_text(errors="ignore")
                         

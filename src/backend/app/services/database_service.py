@@ -57,14 +57,62 @@ class ProjectDatabaseService:
         
         created_projects = []
         
+        # Build last-updated lookups from analysis_data if provided
+        last_updated_meta = {}
+        lu = analysis_data.get("analysis_meta", {}).get("last_updated") if isinstance(analysis_data.get("analysis_meta"), dict) else None
+        if lu:
+            # lu expected shape: {"projects": [{"project_root": "...", "project_tag": int, "last_updated": "ISO"}, ...], "overall_last_updated": "..."}"
+            try:
+                for entry in lu.get("projects", []) if isinstance(lu.get("projects", []), list) else []:
+                    tag = entry.get("project_tag")
+                    root = entry.get("project_root")
+                    iso = entry.get("last_updated")
+                    if tag is not None and iso:
+                        last_updated_meta.setdefault("by_tag", {})[int(tag)] = iso
+                    if root is not None and iso:
+                        # normalize root key similar to view/transformer
+                        rk = root.strip()
+                        if rk in ("", ".", "./"):
+                            rk = "."
+                        else:
+                            rk = rk.lstrip("./").rstrip("/")
+                        last_updated_meta.setdefault("by_root", {})[rk] = iso
+            except Exception:
+                # non-fatal: ignore malformed timestamps
+                last_updated_meta = {}
+
         with transaction.atomic():
             for project_data in projects:
+                # Attach matched last-updated ISO onto project_data for _create_project to consume
+                try:
+                    matched_iso = None
+                    pid = project_data.get("id")
+                    root = str(project_data.get("root", "") or "")
+                    # 1) by tag
+                    if pid is not None and "by_tag" in last_updated_meta:
+                        matched_iso = last_updated_meta["by_tag"].get(int(pid))
+                    # 2) by root
+                    if not matched_iso and root and "by_root" in last_updated_meta:
+                        rk = root.strip()
+                        if rk in ("", ".", "./"):
+                            rk = "."
+                        else:
+                            rk = rk.lstrip("./").rstrip("/")
+                        matched_iso = last_updated_meta["by_root"].get(rk)
+                    if matched_iso:
+                        project_data["_last_updated_iso"] = matched_iso
+                except Exception:
+                    # ignore matching errors and continue
+                    pass
+
                 project = self._create_project(
                     user=user,
                     project_data=project_data,
                     overall_data=overall,
                     upload_filename=upload_filename,
-                    project_name_override=project_name_override
+                    project_name_override=project_name_override,
+                    project_summaries=analysis_data.get('project_summaries', {}),
+                    send_to_llm=analysis_data.get('send_to_llm', False)
                 )
                 created_projects.append(project)
                 
@@ -86,7 +134,9 @@ class ProjectDatabaseService:
         project_data: Dict[str, Any],
         overall_data: Dict[str, Any],
         upload_filename: str,
-        project_name_override: str
+        project_name_override: str,
+        project_summaries: Dict[int, str] = None,
+        send_to_llm: bool = False
     ) -> Project:
         """
         Create the main Project record.
@@ -132,13 +182,51 @@ class ProjectDatabaseService:
         
         # Parse timestamps
         created_at_timestamp = project_data.get('created_at')
+        created_at_dt = None
         first_commit_date = None
         if created_at_timestamp:
             try:
-                first_commit_date = dt.datetime.fromtimestamp(created_at_timestamp, tz=timezone.UTC)
+                # Assume Unix seconds timestamp; produce tz-aware UTC datetime
+                created_at_dt = dt.datetime.fromtimestamp(float(created_at_timestamp), tz=dt.timezone.utc)
+                # Keep existing behavior: also use the timestamp for first_commit_date if desired
+                first_commit_date = created_at_dt
             except (ValueError, TypeError, AttributeError):
-                pass
-        
+                created_at_dt = None
+                first_commit_date = None
+
+        # Ensure created_at is set: default to now when payload didn't include a created_at
+        if created_at_dt is None:
+            created_at_dt = timezone.now()
+
+        # Prefer explicit last-updated ISO from analyzer for updated_at if present
+        updated_at_dt = None
+        last_updated_iso = project_data.get("_last_updated_iso") or project_data.get("last_updated")
+        if last_updated_iso:
+            try:
+                # Try robust parsing (datetime.fromisoformat preserves timezone if present)
+                parsed = None
+                try:
+                    parsed = dt.datetime.fromisoformat(last_updated_iso)
+                except Exception:
+                    # try common fallback without microseconds/timezone
+                    try:
+                        parsed = dt.datetime.strptime(last_updated_iso, "%Y-%m-%dT%H:%M:%S")
+                        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+                    except Exception:
+                        parsed = None
+                if parsed:
+                    if parsed.tzinfo is None:
+                        parsed = parsed.replace(tzinfo=dt.timezone.utc)
+                    updated_at_dt = parsed
+                else:
+                    updated_at_dt = None
+            except Exception:
+                updated_at_dt = None
+
+        # If no updated_at from payload, updated_at will be created_at_dt or now
+        if updated_at_dt is None:
+            updated_at_dt = created_at_dt or timezone.now()
+
         # Determine if this is a git repository
         project_id = project_data.get('id', 0)
         contributors = project_data.get('contributors', [])
@@ -165,8 +253,18 @@ class ProjectDatabaseService:
             first_commit_date=first_commit_date,
             upload_source='zip_file',
             original_zip_name=upload_filename
+            # Explicitly set created_at/updated_at from the incoming JSON timestamp when available.
+            # These fields are nullable in the model so existing rows remain compatible.
+            , created_at=created_at_dt
+            , updated_at=updated_at_dt
         )
-        
+
+        project.ai_summary = project_data.get('ai_summary', '')
+        project.llm_consent = project_data.get('llm_consent', False)
+        if project.ai_summary:
+            project.ai_summary_generated_at = timezone.now()
+        project.save()
+
         return project
     
     def _save_project_languages(self, project: Project, project_data: Dict[str, Any]) -> None:

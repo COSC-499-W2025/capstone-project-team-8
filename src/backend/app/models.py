@@ -229,8 +229,11 @@ class Project(models.Model):
     original_zip_name = models.CharField(max_length=255, blank=True)
     
     # Timestamps
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    # Allow storing timestamps derived from external JSON rather than auto-populating.
+    # Make nullable so migrations won't fail for existing rows; views/serializers can
+    # set these values from your JSON payload.
+    created_at = models.DateTimeField(null=True, blank=True, default=timezone.now)
+    updated_at = models.DateTimeField(null=True, blank=True)
     
     # Relationships
     languages = models.ManyToManyField(
@@ -243,6 +246,11 @@ class Project(models.Model):
         through='ProjectFramework',
         related_name='projects'
     )
+
+    # AI-generated summary (stored once during upload)
+    ai_summary = models.TextField(blank=True)
+    ai_summary_generated_at = models.DateTimeField(null=True, blank=True)
+    llm_consent = models.BooleanField(default=False)  # Track if user consented to LLM
     
     class Meta:
         db_table = 'projects'
