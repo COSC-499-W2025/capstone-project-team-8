@@ -253,8 +253,7 @@ def transform_to_new_structure(
         if ".git/" in r.get("path", "") or r.get("path", "").endswith("/.git"):
             continue
         
-        # Only count files that are assigned to a project (not unorganized)
-        if project_tag is not None and project_tag != 0:
+
             total_files += 1
             if file_type == "code":
                 total_code_files += 1
