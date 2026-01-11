@@ -87,10 +87,17 @@ def extract_contributor_metrics(
             metrics[author]["lines_added"] += commit['lines_added']
             metrics[author]["lines_deleted"] += commit['lines_deleted']
             
-            # Track first and last commits
+            # Track first and last commits (compare dates to handle any commit order)
+            commit_date = commit['commit_date']
             if metrics[author]["first_commit"] is None:
-                metrics[author]["first_commit"] = commit['commit_date']
-            metrics[author]["last_commit"] = commit['commit_date']
+                metrics[author]["first_commit"] = commit_date
+                metrics[author]["last_commit"] = commit_date
+            else:
+                # Always keep the earliest as first_commit and latest as last_commit
+                if commit_date < metrics[author]["first_commit"]:
+                    metrics[author]["first_commit"] = commit_date
+                if commit_date > metrics[author]["last_commit"]:
+                    metrics[author]["last_commit"] = commit_date
             
             # Classify commit by activity type
             activity_type = _classify_commit_activity(commit)
