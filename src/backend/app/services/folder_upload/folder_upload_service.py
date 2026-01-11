@@ -8,6 +8,7 @@ Single Responsibility: Orchestration only.
 import tempfile
 import importlib
 import shutil
+import zipfile
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 
@@ -17,6 +18,7 @@ from .zip_validator import ZipValidator
 from .zip_extractor import ZipExtractor
 from .project_discovery_service import ProjectDiscoveryService
 from .file_scanner_service import FileScannerService
+from .enhanced_file_scanner import EnhancedFileScannerService
 from app.services.data_transformer import transform_to_new_structure
 
 
@@ -46,6 +48,7 @@ class FolderUploadService:
         self.extractor = ZipExtractor()
         self.project_discovery = ProjectDiscoveryService()
         self.file_scanner = FileScannerService()
+        self.enhanced_file_scanner = EnhancedFileScannerService()  # For enhanced hashing
         
         # Lazy import project classifier
         self.project_classifier = importlib.import_module("app.services.classifiers.project_classifier")
@@ -94,8 +97,27 @@ class FolderUploadService:
             # Build relative projects mapping
             projects_rel = self._build_projects_rel(projects, tmpdir_path)
             
-            # Step 4: Scan files
-            results = self.file_scanner.scan(tmpdir_path, projects, projects_rel)
+            # Step 4: Scan files with enhanced hashing for deduplication
+            # Save ZIP path for enhanced scanner
+            zip_file_path = tmpdir_path / "upload.zip"
+            
+            # Use enhanced scanner if ZIP is available, otherwise fall back to standard scanner
+            try:
+                if zip_file_path.exists():
+                    results = self.enhanced_file_scanner.scan_with_hashing(
+                        tmpdir_path=tmpdir_path,
+                        zip_path=zip_file_path,
+                        projects=projects,
+                        projects_rel=projects_rel
+                    )
+                else:
+                    # Fallback to standard scanner
+                    results = self.file_scanner.scan(tmpdir_path, projects, projects_rel)
+            except Exception as e:
+                # If enhanced scanner fails, fall back to standard
+                import logging
+                logging.warning(f"Enhanced file scanner failed: {str(e)}. Falling back to standard scanner.")
+                results = self.file_scanner.scan(tmpdir_path, projects, projects_rel)
             
             # Step 5: Classify projects
             project_classifications = self._classify_projects(
