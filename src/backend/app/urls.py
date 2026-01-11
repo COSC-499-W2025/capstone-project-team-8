@@ -10,7 +10,7 @@ from .views.project_views import (
     TopProjectsSummaryView,
 )
 from .views.user_views import UserMeView, PublicUserView
-from .views.resume_views import ResumeTemplatesView, ResumePreviewView
+from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView
 
 urlpatterns = [
     # Upload and analysis
@@ -26,6 +26,7 @@ urlpatterns = [
     # Resume endpoints
     path("resume/templates/", ResumeTemplatesView.as_view(), name="resume-templates"),
     path("resume/preview/", ResumePreviewView.as_view(), name="resume-preview"),
+    path("resume/generate/latex/", GenerateLatexResumeView.as_view(), name="resume-generate-latex"),
     
     # Authentication
     path("signup/", SignupView.as_view(), name="signup"),
