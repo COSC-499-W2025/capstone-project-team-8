@@ -250,27 +250,7 @@ def _classify_commit_activity(commit: Dict[str, Any]) -> str:
     message = commit['commit_message'].lower()
     file_exts = commit['file_extensions']
     
-    # Keywords for activity classification
-    TEST_KEYWORDS = ['test', 'spec', 'mock', 'fixture', '__tests__', '.test.', '.spec.']
-    DOC_KEYWORDS = ['doc', 'readme', 'guide', 'manual', 'wiki', 'changelog', 'contributing']
-    DESIGN_KEYWORDS = ['design', 'ui', 'ux', 'style', 'theme', 'layout', 'component']
-    CONFIG_KEYWORDS = ['config', 'setup', 'docker', 'env', 'build', 'ci', '.yml', '.yaml', '.json', 'package.json']
-    
-    # Check message first (strongest signal)
-    for keyword in TEST_KEYWORDS:
-        if keyword in message:
-            return "test"
-    for keyword in DOC_KEYWORDS:
-        if keyword in message:
-            return "documentation"
-    for keyword in DESIGN_KEYWORDS:
-        if keyword in message:
-            return "design"
-    for keyword in CONFIG_KEYWORDS:
-        if keyword in message:
-            return "configuration"
-    
-    # Check file types
+    # Check file types FIRST (strongest signal)
     test_exts = {'.test.ts', '.test.js', '.spec.ts', '.spec.js', '.test.py'}
     doc_exts = {'.md', '.rst', '.txt', '.doc', '.docx'}
     design_exts = {'.css', '.scss', '.less', '.fig', '.sketch', '.psd'}
@@ -289,6 +269,26 @@ def _classify_commit_activity(commit: Dict[str, Any]) -> str:
         return "design"
     if has_config:
         return "configuration"
+    
+    # Keywords for activity classification (fallback if no file type match)
+    TEST_KEYWORDS = ['test', 'spec', 'mock', 'fixture', '__tests__', '.test.', '.spec.']
+    DOC_KEYWORDS = ['doc', 'readme', 'guide', 'manual', 'wiki', 'changelog', 'contributing']
+    DESIGN_KEYWORDS = ['design', 'ui', 'ux', 'style', 'theme', 'layout', 'component']
+    CONFIG_KEYWORDS = ['config', 'setup', 'docker', 'env', 'build', 'ci', 'package.json']
+    
+    # Check message keywords (weaker signal)
+    for keyword in TEST_KEYWORDS:
+        if keyword in message:
+            return "test"
+    for keyword in DOC_KEYWORDS:
+        if keyword in message:
+            return "documentation"
+    for keyword in DESIGN_KEYWORDS:
+        if keyword in message:
+            return "design"
+    for keyword in CONFIG_KEYWORDS:
+        if keyword in message:
+            return "configuration"
     
     # Default to code
     return "code"
