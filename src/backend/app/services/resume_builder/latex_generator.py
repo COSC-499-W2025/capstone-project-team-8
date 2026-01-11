@@ -319,12 +319,6 @@ class JakesResumeGenerator:
             fw_list = ", ".join([self._escape_latex(fw.name) for fw in frameworks])
             latex += f"     \\textbf{{Frameworks \\& Libraries}}{{: {fw_list}}} \\\\\n"
         
-        # Add placeholder for other skills
-        latex += "     \\textbf{Developer Tools}{: Git, Docker, VS Code, Jupyter Notebook} \\\\\n"
-        
-        latex += "    }}\n"
-        latex += " \\end{itemize}\n"
-        
         return latex
     
     def _build_footer(self) -> str:
