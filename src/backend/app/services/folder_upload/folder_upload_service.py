@@ -55,6 +55,12 @@ class FolderUploadService:
             self.git_finder = importlib.import_module("app.services.analysis.analyzers.git_contributions")
         except Exception:
             self.git_finder = None
+        
+        # Try to import contribution metrics analyzer
+        try:
+            self.contribution_metrics = importlib.import_module("app.services.analysis.analyzers.contribution_metrics")
+        except Exception:
+            self.contribution_metrics = None
     
     def process_zip(
         self,
@@ -331,7 +337,59 @@ class FolderUploadService:
             for root_path, tag in projects.items():
                 try:
                     contrib_result = self.git_finder.get_git_contributors(root_path)
-                    git_contrib_data[f"project_{tag}"] = contrib_result
+                    
+                    # Enrich contributor data with metrics if available
+                    if self.contribution_metrics and contrib_result and "contributors" in contrib_result:
+                        try:
+                            # Extract metrics once per project (not per contributor)
+                            metrics = self.contribution_metrics.extract_contributor_metrics(root_path, [])
+                            
+                            # Enrich each contributor with metrics
+                            enriched_contributors = {}
+                            for contributor_name, contributor_stats in contrib_result.get("contributors", {}).items():
+                                # Look up metrics by name (various formats)
+                                matched_metrics = None
+                                
+                                # Direct name match
+                                if contributor_name in metrics:
+                                    matched_metrics = metrics[contributor_name]
+                                else:
+                                    # Try case-insensitive and partial matches
+                                    for metric_name, metric_data in metrics.items():
+                                        if metric_name.lower() == contributor_name.lower():
+                                            matched_metrics = metric_data
+                                            break
+                                
+                                # Merge metrics into contributor if found
+                                if matched_metrics:
+                                    if 'activity_types' in matched_metrics:
+                                        contributor_stats['activity_types'] = matched_metrics['activity_types']
+                                    if 'contribution_duration_days' in matched_metrics:
+                                        contributor_stats['contribution_duration_days'] = matched_metrics['contribution_duration_days']
+                                    if 'contribution_duration_months' in matched_metrics:
+                                        contributor_stats['contribution_duration_months'] = matched_metrics['contribution_duration_months']
+                                    if 'first_commit' in matched_metrics:
+                                        contributor_stats['first_commit'] = matched_metrics['first_commit']
+                                    if 'last_commit' in matched_metrics:
+                                        contributor_stats['last_commit'] = matched_metrics['last_commit']
+                                    if 'file_type_distribution' in matched_metrics:
+                                        contributor_stats['file_type_distribution'] = matched_metrics['file_type_distribution']
+                                    if 'primary_languages' in matched_metrics:
+                                        contributor_stats['primary_languages'] = matched_metrics['primary_languages']
+                                
+                                enriched_contributors[contributor_name] = contributor_stats
+                            
+                            # Preserve total_commits if present
+                            enriched_result = {"contributors": enriched_contributors}
+                            if "total_commits" in contrib_result:
+                                enriched_result["total_commits"] = contrib_result["total_commits"]
+                            
+                            git_contrib_data[f"project_{tag}"] = enriched_result
+                        except Exception as e:
+                            # Fall back to basic contributor data if enrichment fails
+                            git_contrib_data[f"project_{tag}"] = contrib_result
+                    else:
+                        git_contrib_data[f"project_{tag}"] = contrib_result
                 except Exception as e:
                     git_contrib_data[f"project_{tag}"] = {"error": str(e)}
                 

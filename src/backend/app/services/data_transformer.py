@@ -223,6 +223,23 @@ def transform_to_new_structure(
                     }
                     if "email" in stats and stats["email"]:
                         contributor["email"] = stats["email"]
+                    
+                    # Include enriched metrics if available
+                    if "activity_types" in stats:
+                        contributor["activity_types"] = stats["activity_types"]
+                    if "contribution_duration_days" in stats:
+                        contributor["contribution_duration_days"] = stats["contribution_duration_days"]
+                    if "contribution_duration_months" in stats:
+                        contributor["contribution_duration_months"] = stats["contribution_duration_months"]
+                    if "first_commit" in stats:
+                        contributor["first_commit"] = stats["first_commit"]
+                    if "last_commit" in stats:
+                        contributor["last_commit"] = stats["last_commit"]
+                    if "file_type_distribution" in stats:
+                        contributor["file_type_distribution"] = stats["file_type_distribution"]
+                    if "primary_languages" in stats:
+                        contributor["primary_languages"] = stats["primary_languages"]
+                    
                     contributors_list.append(contributor)
                 contributors_list.sort(key=lambda x: x["commits"], reverse=True)
                 project_data[tag]["contributors"] = contributors_list
