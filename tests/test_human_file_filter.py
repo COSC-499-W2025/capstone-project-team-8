@@ -180,8 +180,96 @@ class TestHumanFileFilterIntegration(unittest.TestCase):
         Test that the response includes a 'human_readable_files' condensed section.
         This tests the full integration with data_transformer.
         """
-        # This will be implemented after the service is created
-        pass
+        from app.services.data_transformer import transform_to_new_structure
+        
+        # Mock results with both human-readable and auto-generated files
+        results = [
+            {"type": "code", "path": "src/app.js", "lines": 100, "project_tag": 1, "project_root": "my-project"},
+            {"type": "code", "path": "package-lock.json", "lines": 5000, "project_tag": 1, "project_root": "my-project"},
+            {"type": "code", "path": "dist/bundle.min.js", "lines": 1, "project_tag": 1, "project_root": "my-project"},
+            {"type": "content", "path": "README.md", "length": 500, "project_tag": 1, "project_root": "my-project"},
+            {"type": "content", "path": "docs/guide.md", "length": 1000, "project_tag": 1, "project_root": "my-project"},
+        ]
+        
+        projects = {Path("my-project"): 1}
+        projects_rel = {1: "my-project"}
+        project_classifications = {
+            "project_1": {"classification": "coding", "confidence": 0.9},
+            "overall": {"classification": "coding", "confidence": 0.9}
+        }
+        
+        response = transform_to_new_structure(
+            results=results,
+            projects=projects,
+            projects_rel=projects_rel,
+            project_classifications=project_classifications,
+            git_contrib_data={},
+            project_timestamps={},
+        )
+        
+        # Check that human_readable_files exists in response
+        self.assertIn("human_readable_files", response)
+        
+        human_files = response["human_readable_files"]
+        
+        # Check structure
+        self.assertIn("code", human_files)
+        self.assertIn("content", human_files)
+        self.assertIn("summary", human_files)
+        
+        # Check that only human-readable code files are included
+        code_paths = [f["path"] for f in human_files["code"]]
+        self.assertIn("app.js", code_paths)
+        self.assertNotIn("package-lock.json", code_paths)
+        self.assertNotIn("bundle.min.js", code_paths)
+        
+        # Check that all content files are included (they're human-written)
+        content_paths = [f["path"] for f in human_files["content"]]
+        self.assertIn("README.md", content_paths)
+        self.assertIn("guide.md", content_paths)
+        
+        # Check summary has counts
+        self.assertEqual(human_files["summary"]["total_code_files"], 1)
+        self.assertEqual(human_files["summary"]["total_content_files"], 2)
+    
+    def test_human_readable_files_per_project(self):
+        """Test that each project has its own human_readable_files section."""
+        from app.services.data_transformer import transform_to_new_structure
+        
+        results = [
+            {"type": "code", "path": "project-a/main.py", "lines": 50, "project_tag": 1, "project_root": "project-a"},
+            {"type": "code", "path": "project-a/poetry.lock", "lines": 500, "project_tag": 1, "project_root": "project-a"},
+            {"type": "code", "path": "project-b/app.js", "lines": 30, "project_tag": 2, "project_root": "project-b"},
+        ]
+        
+        projects = {Path("project-a"): 1, Path("project-b"): 2}
+        projects_rel = {1: "project-a", 2: "project-b"}
+        project_classifications = {
+            "project_1": {"classification": "coding", "confidence": 0.9},
+            "project_2": {"classification": "coding", "confidence": 0.9},
+            "overall": {"classification": "coding", "confidence": 0.9}
+        }
+        
+        response = transform_to_new_structure(
+            results=results,
+            projects=projects,
+            projects_rel=projects_rel,
+            project_classifications=project_classifications,
+            git_contrib_data={},
+            project_timestamps={},
+        )
+        
+        # Each project should have human_readable_files
+        for project in response["projects"]:
+            self.assertIn("human_readable_files", project)
+            
+            if project["root"] == "project-a":
+                code_paths = [f["path"] for f in project["human_readable_files"]["code"]]
+                self.assertIn("main.py", code_paths)
+                self.assertNotIn("poetry.lock", code_paths)
+            elif project["root"] == "project-b":
+                code_paths = [f["path"] for f in project["human_readable_files"]["code"]]
+                self.assertIn("app.js", code_paths)
 
 
 if __name__ == "__main__":
