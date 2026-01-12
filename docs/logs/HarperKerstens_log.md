@@ -206,6 +206,7 @@ This weeks development went surprisingly well. After last week where I spent the
 
 ## January 5-11
  
+<img width="1080" height="635" alt="January5th-11th" src="https://github.com/user-attachments/assets/1de75df8-8ec4-4b4c-b3b9-1ebab57fd7bd" />
 
 
 - Linked Frontend to Backend for project upload and analysis
