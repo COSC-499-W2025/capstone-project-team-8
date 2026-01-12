@@ -59,6 +59,7 @@ Connecting the front end and back end for the upload folder feature took longer 
 | Link front end and backend + Upload project image |   harperkerstens| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/212  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213  |  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/214       |
 | Add Contribution Metric| harperkerstens| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/210| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/211| 
 | Latex Resume generator| kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/215 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/216|
+| Human-readable file filter for AI analysis | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/115 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/222 |
 
 
 
