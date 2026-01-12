@@ -179,6 +179,7 @@ This is the final week of the semester before winter break and we have successfu
 This week:
 - latex resume generator PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/216 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/215
 - reviewed Harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/211 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/210
+- reviewed harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/214 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213
 
 What went well:
 - resume generator is sucvcessfully fetching information from our analyzers which is stored in the database
