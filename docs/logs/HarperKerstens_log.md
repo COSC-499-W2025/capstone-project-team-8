@@ -203,3 +203,35 @@ This weeks development went surprisingly well. After last week where I spent the
 
 ### Reflection:
     This week went well overall. I was able to complete everything I set out to do without any major issues. The chronological skill analysis was a big win for me personally as it was a feature I was excited to implement. I'm looking forward to moving onto milestone 2 and continuing development on the project.
+
+## January 5-11
+ 
+
+
+- Linked Frontend to Backend for project upload and analysis
+- Implemented contribution analysis feature to show user a more detailed breakdown of their contributions
+- Added ability for user to upload photo for their project profile
+- Tested and debugged new features
+- Reviewed team members code and provided feedback
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+|https://github.com/COSC-499-W2025/capstone-project-team-8/pull/214  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/212 https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213   |
+|https://github.com/COSC-499-W2025/capstone-project-team-8/pull/211 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/210 |
+
+
+### What went well
+This week the linking between the frontend and backend went well. I was able to successfully connect the two and have them communicate properly. I didn't spend much time customizing the front end however and would like to make some group decisions on the design in the future.
+
+### What didn't go well
+ It took me quite a while to figure out how to add the contribution metrics. I wasn't sure what information I could obtain from the .git and how to break it all down in a useful manner. After some research I was able to figure out what was possible and implement it but it took longer than I expected.
+
+
+### What's next
+Going forward I would like to continue working on tasks relating to Milestone 2. I would also like to begin thinking about the design of the overall product as we move closer to a useable application. This would prevent any unneccesary redesigns in the future.
+
+### Reflection:
+This was a week that didn't have as much progress overall compared to previous weeks. However, I still feel great about our project and progress as a group. We are steadily moving towards our goals and getting a usable resume from what we have analysed was very exciting to see this week.
+ 
