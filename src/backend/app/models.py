@@ -72,6 +72,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     # Profile image
     profile_image_url = models.URLField(max_length=500, blank=True)
     
+    # Education fields
+    university = models.CharField(max_length=255, blank=True)
+    degree_major = models.CharField(max_length=255, blank=True)  # e.g., "Bachelor of Science in Computer Science"
+    education_city = models.CharField(max_length=100, blank=True)
+    education_state = models.CharField(max_length=100, blank=True)  # State/Province
+    expected_graduation = models.DateField(null=True, blank=True)
+    
     # Permission fields (required for admin and authentication)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
