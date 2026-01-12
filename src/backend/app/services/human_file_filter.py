@@ -153,3 +153,90 @@ class HumanFileFilter:
             "code": self.filter_files(project_files.get("code", [])),
             "content": self.filter_files(project_files.get("content", [])),
         }
+    
+    def get_human_readable_contents(
+        self,
+        directory: Union[str, Path],
+        file_extensions: List[str] = None,
+        max_chars: int = None
+    ) -> str:
+        """
+        Extract text content from human-readable files in a directory.
+        
+        Args:
+            directory: Path to the directory to scan
+            file_extensions: List of file extensions to include (e.g., ['.py', '.js'])
+                           If None, includes common code and text files
+            max_chars: Maximum total characters to return (for token limits)
+                      If None, no limit is applied
+            
+        Returns:
+            Concatenated string of file contents with file path headers
+        """
+        import os
+        
+        if file_extensions is None:
+            file_extensions = [
+                '.py', '.js', '.ts', '.jsx', '.tsx', '.java', '.c', '.cpp', '.h',
+                '.cs', '.go', '.rb', '.php', '.swift', '.kt', '.rs', '.scala',
+                '.html', '.css', '.scss', '.sass', '.less',
+                '.md', '.txt', '.rst', '.json', '.yaml', '.yml', '.xml',
+                '.sh', '.bash', '.zsh', '.ps1', '.bat', '.cmd',
+                '.sql', '.graphql', '.proto',
+            ]
+        
+        directory = Path(directory)
+        contents_parts = []
+        total_chars = 0
+        
+        # Walk the directory
+        for root, dirs, files in os.walk(directory):
+            # Filter out excluded directories
+            dirs[:] = [d for d in dirs if d not in self.EXCLUDED_PATH_PARTS]
+            
+            for filename in files:
+                file_path = Path(root) / filename
+                rel_path = file_path.relative_to(directory)
+                
+                # Check if file extension matches
+                if file_extensions:
+                    if not any(filename.endswith(ext) for ext in file_extensions):
+                        continue
+                
+                # Check if file is human-readable
+                if not self.is_human_readable(str(rel_path)):
+                    continue
+                
+                try:
+                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        content = f.read()
+                    
+                    # Skip empty files
+                    if not content.strip():
+                        continue
+                    
+                    # Format with header
+                    file_section = f"\n=== {rel_path} ===\n{content}\n"
+                    
+                    # Check if we would exceed the limit
+                    if max_chars is not None:
+                        if total_chars + len(file_section) > max_chars:
+                            # Add truncation notice and stop
+                            remaining = max_chars - total_chars
+                            if remaining > 100:
+                                contents_parts.append(file_section[:remaining])
+                                contents_parts.append("\n... [Content truncated due to size limit] ...")
+                            break
+                    
+                    contents_parts.append(file_section)
+                    total_chars += len(file_section)
+                    
+                except (IOError, OSError):
+                    # Skip files that can't be read
+                    continue
+            
+            # Check if we've hit the limit (need to break outer loop too)
+            if max_chars is not None and total_chars >= max_chars:
+                break
+        
+        return "".join(contents_parts)

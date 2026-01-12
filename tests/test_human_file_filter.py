@@ -272,5 +272,108 @@ class TestHumanFileFilterIntegration(unittest.TestCase):
                 self.assertIn("app.js", code_paths)
 
 
+class TestHumanFileContentExtraction(unittest.TestCase):
+    """Tests for extracting human-readable file contents for LLM analysis."""
+    
+    def test_get_human_readable_content_from_project(self):
+        """
+        Test that we can extract content from human-readable files only.
+        """
+        import tempfile
+        import os
+        from app.services.human_file_filter import HumanFileFilter
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create test files
+            src_dir = os.path.join(tmpdir, "src")
+            os.makedirs(src_dir)
+            
+            # Human-readable file
+            with open(os.path.join(src_dir, "app.py"), "w") as f:
+                f.write("def hello():\n    print('Hello World')\n")
+            
+            # Auto-generated file (should be excluded)
+            with open(os.path.join(tmpdir, "package-lock.json"), "w") as f:
+                f.write('{"name": "test", "lockfileVersion": 2}')
+            
+            # Human-readable content file
+            with open(os.path.join(tmpdir, "README.md"), "w") as f:
+                f.write("# My Project\n\nThis is a test project.")
+            
+            filter_service = HumanFileFilter()
+            
+            # Test the new method
+            contents = filter_service.get_human_readable_contents(
+                tmpdir,
+                file_extensions=[".py", ".md"]
+            )
+            
+            # Should include app.py and README.md content
+            self.assertIn("app.py", contents)
+            self.assertIn("README.md", contents)
+            self.assertIn("def hello()", contents)
+            self.assertIn("# My Project", contents)
+            
+            # Should NOT include package-lock.json
+            self.assertNotIn("lockfileVersion", contents)
+    
+    def test_content_extraction_respects_token_limit(self):
+        """
+        Test that content extraction respects a maximum character limit.
+        """
+        import tempfile
+        import os
+        from app.services.human_file_filter import HumanFileFilter
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create a large file
+            with open(os.path.join(tmpdir, "large.py"), "w") as f:
+                f.write("x = 1\n" * 10000)  # Large file
+            
+            filter_service = HumanFileFilter()
+            
+            # Extract with a limit
+            contents = filter_service.get_human_readable_contents(
+                tmpdir,
+                file_extensions=[".py"],
+                max_chars=1000
+            )
+            
+            # Content should be truncated
+            self.assertLessEqual(len(contents), 1500)  # Allow some overhead for file headers
+    
+    def test_content_excludes_lock_files(self):
+        """
+        Test that lock files are excluded from content extraction.
+        """
+        import tempfile
+        import os
+        from app.services.human_file_filter import HumanFileFilter
+        
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create various lock files
+            lock_files = ["package-lock.json", "yarn.lock", "poetry.lock", "Pipfile.lock"]
+            for lock_file in lock_files:
+                with open(os.path.join(tmpdir, lock_file), "w") as f:
+                    f.write(f"content of {lock_file}")
+            
+            # Create a human file
+            with open(os.path.join(tmpdir, "app.js"), "w") as f:
+                f.write("console.log('hello');")
+            
+            filter_service = HumanFileFilter()
+            contents = filter_service.get_human_readable_contents(
+                tmpdir,
+                file_extensions=[".js", ".json", ".lock", ".yaml"]
+            )
+            
+            # Should include app.js
+            self.assertIn("console.log", contents)
+            
+            # Should NOT include any lock file content
+            for lock_file in lock_files:
+                self.assertNotIn(f"content of {lock_file}", contents)
+
+
 if __name__ == "__main__":
     unittest.main()
