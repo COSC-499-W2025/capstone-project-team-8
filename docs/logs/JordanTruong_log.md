@@ -157,3 +157,27 @@ Christmas/New years break! Then on Monday, discuss with the team our plan for Mi
 
 ### Reflection:
 Because of the busy week, I couldn't stick to the plan, but new year new me, I'll start Milestone #2 stronger and better.
+
+## Week 15 January 5th - January 11th:
+<img width="1078" height="630" alt="image" src="https://github.com/user-attachments/assets/a2f1a7fc-6b15-475f-8d55-ab2f7b21f3cd" /></br>
+
+### Recap:
+- Reviewed Harper's PR
+- Started on PR https://github.com/COSC-499-W2025/capstone-project-team-8/pull/219, aiming to finish early next week
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/211 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/210 |
+
+### What went well
+I was able to get back into the groove of things pretty quickly after the break. I didn't run into too many issues with everything project related.
+
+### What didn't go well
+We all kinda forgot to do contributions this week until Harper realized. So I started late to the PR and ran into some issues with the database which made me unable to finish this week.
+
+### What's next
+Next week, I'll finish the PR early and get started on our next one. We still need to discuss our plan for Milestone#2.
+
+### Reflection:
+First week of classes so I'm still getting used to my new schedule but I think next week will be a lot smoother. My goal is to develop a strong routine by February.
