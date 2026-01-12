@@ -120,7 +120,6 @@ This week I learned that it's important to keep a clean code structure from the 
 ## Week 13 November 24-28
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/94a3dc69-60d2-49e5-ba47-96d5a6bfda10" />
 
-
 This week:
 - bug fix on fixing our file analyzer still scanning dependency folder PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/172 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/137
 - LLM microservice doc updates PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/177
@@ -151,8 +150,6 @@ We have made a lot of progress since our last week. Ever since we got the refact
 ## Week 14 December 1-5
 <img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/460e928e-b2d2-42f0-b723-a0fa635afdd9" />
 
-
-
 This week:
 - bug fix on main not having JSON bullet points ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/203 PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/204
 - saved bullet points to database ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/202 PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/207
@@ -173,6 +170,29 @@ Next week:
 - winter break
 - would be nice to do some design mocks next week to get an idea of how the front end will look & the requirements
 
-
 Reflection:
 This is the final week of the semester before winter break and we have successfully completed all milestone tasks. For the next term, we will refine our analysis and make sure we are getting accurate insights.
+
+## Week 15 January 5-9
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/7134bfa8-1730-4977-99ae-14a4faf64312" />
+
+This week:
+- latex resume generator PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/216 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/215
+- reviewed Harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/211 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/210
+- reviewed harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/214 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213
+
+What went well:
+- resume generator is sucvcessfully fetching information from our analyzers which is stored in the database
+- harpers pr now gives us more information on what files were committed by who
+  
+What went wrong:
+- we were notified that our milestone #1 had some missing requirements
+- we will work on implementing the missing requirements in the following weeks
+  
+Next week:
+- additional fields in the resume generator
+- save contribution metrics to database
+- work on adding missing requirements from milestone 1
+  
+Reflection:
+Our team is going to think more about how the user will interact with our system and implement any missing requirements from milestone 1. After that, we are going to implement the milestone 2 requirements. A lot of the milestone 2 requirements will build off of the core components we built during the last few months, so development should feel a little more straightforward this term.

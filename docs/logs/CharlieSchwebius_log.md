@@ -194,3 +194,31 @@ NEXT WEEK: Bug fixes and milestone wrap-up
 At this point, I think we are well set for milestone 1. Lots of bug fixes and refinements this week really help perfect our current implementation. Unfortunately, I have a recurring theme of late PRs, which is something I MUST change for milestone 2.
 
 NEXT WEEK: Bug fixes and milestone wrap-up
+
+
+## Milestone 2 Week 1 (Jan 5 - Jan 11)
+
+<img width="1909" height="1110" alt="image" src="https://github.com/user-attachments/assets/4ae12b8d-3c2e-47dd-b752-cd8ef0694057" />
+
+#### What I did:
+
+- Started work on customizable portfolio functionality
+- Helped troubleshoot an issue with Harper's PR
+- Reviewed and tested teammates' PRs
+  
+#### My PR's (UNFINISHED -- TO BE COMPLETED NEXT WEEK): 
+
+#220: Implement Portfolio Functionality
+
+#### WHAT WENT WELL: 
+- Was able to quickly troubleshoot Harper's PR, which allowed me to review it faster.
+- Gave thoughtful reviews and effectively tested code
+
+#### WHAT DIDN'T
+- Poor time management led me to submit my pull request later than desired.
+- Need to discuss with the team about the implementation of my PR, as it is integral to further project development
+
+  #### REFLECTION
+I made a fatal mistake by being late on my PR once again. It is a large PR, but I should have been better about my planning. Fortunately, I have made solid progress on it, but I absolutely need to coordinate with the team to ensure the best implementation. I am still optimistic about the rest of this Milestone, though; there seem to be fewer requirements.
+
+NEXT WEEK: Discuss with the team and continue work on Portfolio implementation

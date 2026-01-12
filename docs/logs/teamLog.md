@@ -8,6 +8,61 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Week 15
+
+### Our Goals this week:
+ This week our goal was to start working towards milestone 2 while accounting for any remaining tasks from milestone 1. Expanding on some of our previous features was key to help with our goal of building an exportable resume.
+
+- Preview analysed resume items on a resume template
+- Connect front end and back end for uploading folder
+- Add image uploading for portfolio items
+- File duplication checking
+
+### Reflection
+  Coming back from break we wanted to try and get on the same page as far as Milestone 2 goes. We spent some time discussing the direction we want to take for the project in regards to Milestone 2 and what we want to prioritize. We also had some things to polish off from Milestone 1 so we made sure to put an emphasis on this as well.
+
+### What went well:
+The team worked well in regards to assisting each other with development tasks. We were able to make solid progress on some key things for Milestone 2 in regards to the front end, as well as significant progress on building an exportable resume.
+
+### What didn't go well:
+Connecting the front end and back end for the upload folder feature took longer than expected on different team members machines. Some minor bugs were encountered but we were able to figure out solutions quickly.
+
+
+### Test Report
+
+![alt text](data/image-1.png)
+
+### Plan for next week:
+
+- Continue working towards Milestone 2
+- Decide on a consistent UI theme for the front end
+- Finalize exportable resume feature  
+- Prioritize user input in the process of our feature development
+
+
+### Burn up chart
+
+<img width="1846" height="1066" alt="image" src="https://github.com/user-attachments/assets/0b8e9d9b-4214-489d-908c-12eda3f7c4ed" />
+
+### In Progress Tasks
+
+| Task | Assigned To | Issue # |
+|------|-------------|---------|
+| File deduplication   |     jordany78     |    https://github.com/COSC-499-W2025/capstone-project-team-8/issues/217   |
+|Implement customm portfolio functionality| cschwebi | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/220 |
+
+
+### Completed Tasks
+
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| Link front end and backend + Upload project image |   harperkerstens| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/212  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213  |  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/214       |
+| Add Contribution Metric| harperkerstens| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/210| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/211| 
+| Latex Resume generator| kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/215 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/216|
+| Human-readable file filter for AI analysis | matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/115 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/222 |
+
+
+
 ## Week 14
 
 ### Our Goals this week:
