@@ -42,14 +42,14 @@ Connecting the front end and back end for the upload folder feature took longer 
 
 ### Burn up chart
 
-<img width="1790" height="993" alt="image" src="https://github.com/user-attachments/assets/ff51ea68-4e18-46f7-8644-68fc280aa974" />
-
+<img width="1846" height="1066" alt="image" src="https://github.com/user-attachments/assets/0b8e9d9b-4214-489d-908c-12eda3f7c4ed" />
 
 ### In Progress Tasks
 
 | Task | Assigned To | Issue # |
 |------|-------------|---------|
 | File deduplication   |     jordany78     |    https://github.com/COSC-499-W2025/capstone-project-team-8/issues/217   |
+|Implement customm portfolio functionality| cschwebi | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/220 |
 
 
 ### Completed Tasks
