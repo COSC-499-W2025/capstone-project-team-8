@@ -180,6 +180,34 @@ What didn’t go well:
 
 Next week:
 - We're on break—if there’s free time I’ll use it to do bonus work. 
+## Week 15 January 5-11
+
+- Implemented human-readable file filter service that filters out auto-generated files and keeps only human-written code for analysis (Issue [#115](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/115), PR [#222](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/222))
+- Added `human_readable_files` condensed section to the upload API response for cleaner analysis output
+- Integrated human-readable file contents into LLM prompts for deeper AI analysis when user consents
+- Wrote 32 unit tests following TDD approach covering filtering logic, integration with data transformer, and content extraction
+- Reviewed Kyle's LaTeX resume generator PR [#216](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/216) (Issue [#215](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/215))
+- Reviewed Harper's contribution analysis and project image upload PR [#214](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/214) (Issues [#212](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/212), [#213](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213))
+
+
+
+What went well:
+- The filter correctly excludes lock files (package-lock.json, yarn.lock, poetry.lock), minified files (*.min.js), and build artifacts while keeping human-written code
+
+
+What didn't go well:
+- Initially wasn't clear how to best integrate the filtered content with the LLM layer—had to trace through the existing .
+
+- The 8000 character limit for LLM content required some trial and error to find the right balance between context and token limits
+
+Next week:
+- Work on implementing missing requirements from milestone 1
+- Work on planned out tasks from Monday's meeting with team (tomorrow)
+
+
+Reflection:
+The refactoring we did in earlier weeks is paying off—adding the human file filter was straightforward because the services are well-separated. Following TDD with 32 tests gave me confidence that the feature works correctly.
+##
 
 
 
