@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from app.services.folder_upload import FolderUploadService
 from app.services.database_service import ProjectDatabaseService
+from app.models import Portfolio, PortfolioProject
 import tempfile
 import zipfile
 import os
@@ -267,6 +268,60 @@ class UploadFolderView(APIView):
                         if response_payload["database_warning"]:
                             response_payload["database_warning"] += " | "
                         response_payload["database_warning"] += " | ".join(db_update_warnings)
+                    
+                    # --- Portfolio Auto-Creation ---
+                    # Create or add to portfolio based on request parameters
+                    try:
+                        portfolio_id = request.data.get('portfolio_id')
+                        portfolio_name = request.data.get('portfolio_name', '').strip()
+                        
+                        portfolio = None
+                        is_new_portfolio = False
+                        
+                        if portfolio_id:
+                            # Add to existing portfolio
+                            try:
+                                portfolio = Portfolio.objects.get(id=int(portfolio_id), user=request.user)
+                            except Portfolio.DoesNotExist:
+                                response_payload.setdefault("portfolio_warning", "")
+                                response_payload["portfolio_warning"] = f"Portfolio {portfolio_id} not found, creating new portfolio"
+                                portfolio = None
+                        
+                        if portfolio is None:
+                            # Create new portfolio
+                            if not portfolio_name:
+                                # Auto-generate from ZIP filename
+                                zip_name = getattr(upload, 'name', 'upload.zip') or 'upload.zip'
+                                portfolio_name = zip_name.replace('.zip', '').replace('_', ' ').replace('-', ' ').title()
+                            
+                            portfolio = Portfolio.objects.create(
+                                user=request.user,
+                                name=portfolio_name,
+                                description=f"Uploaded on {datetime.datetime.now().strftime('%Y-%m-%d')}"
+                            )
+                            is_new_portfolio = True
+                        
+                        # Link all uploaded projects to portfolio
+                        existing_count = PortfolioProject.objects.filter(portfolio=portfolio).count()
+                        for idx, project in enumerate(projects):
+                            # Skip if project already in portfolio
+                            if not PortfolioProject.objects.filter(portfolio=portfolio, project=project).exists():
+                                PortfolioProject.objects.create(
+                                    portfolio=portfolio,
+                                    project=project,
+                                    display_order=existing_count + idx
+                                )
+                        
+                        # Add portfolio info to response
+                        response_payload['portfolio'] = {
+                            'id': portfolio.id,
+                            'name': portfolio.name,
+                            'slug': portfolio.slug,
+                            'is_new': is_new_portfolio,
+                            'project_count': portfolio.portfolio_projects.count()
+                        }
+                    except Exception as portfolio_error:
+                        response_payload["portfolio_warning"] = f"Failed to create/update portfolio: {str(portfolio_error)}"
                     
                 except Exception as db_error:
                     response_payload["database_warning"] = f"Analysis completed but failed to save to database: {str(db_error)}"

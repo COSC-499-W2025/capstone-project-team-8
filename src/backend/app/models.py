@@ -437,3 +437,100 @@ class ProjectContribution(models.Model):
     
     def __str__(self):
         return f"{self.contributor.name} -> {self.project.name} ({self.commit_count} commits)"
+
+
+# Portfolio Models
+class Portfolio(models.Model):
+    """
+    Curated collection of projects. Auto-created on upload or manually created.
+    Supports public sharing and resume generation.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolios')
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    
+    # Image placeholder (CharField for URL - future: convert to ImageField)
+    cover_image_url = models.CharField(max_length=500, blank=True)
+    
+    # Public sharing
+    is_public = models.BooleanField(default=False)
+    slug = models.SlugField(max_length=100, unique=True, blank=True)
+    
+    # Display settings
+    display_order = models.CharField(
+        max_length=20,
+        choices=[
+            ('manual', 'Manual Order'),
+            ('contribution', 'By Contribution Score'),
+            ('date', 'By Date'),
+            ('name', 'Alphabetical')
+        ],
+        default='manual'
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'portfolios'
+        ordering = ['-updated_at']
+        indexes = [
+            models.Index(fields=['user']),
+            models.Index(fields=['slug']),
+        ]
+    
+    def save(self, *args, **kwargs):
+        # Auto-generate slug if not set
+        if not self.slug:
+            from django.utils.text import slugify
+            import uuid
+            base_slug = slugify(self.name)[:80] or 'portfolio'
+            self.slug = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"{self.user.username}'s Portfolio: {self.name}"
+
+
+class PortfolioProject(models.Model):
+    """
+    Through model linking portfolios to projects with display customization.
+    Allows per-portfolio customization of project presentation.
+    """
+    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='portfolio_projects')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='portfolio_memberships')
+    
+    # Customization overrides
+    custom_title = models.CharField(max_length=255, blank=True)
+    custom_description = models.TextField(blank=True)
+    custom_bullet_points = models.JSONField(default=list, blank=True)
+    use_custom_bullets = models.BooleanField(default=False)
+    
+    # Display settings
+    display_order = models.IntegerField(default=0)
+    highlight = models.BooleanField(default=False)
+    include_in_resume = models.BooleanField(default=True)
+    
+    added_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'portfolio_projects'
+        unique_together = [['portfolio', 'project']]
+        ordering = ['display_order', '-added_at']
+        indexes = [
+            models.Index(fields=['portfolio', 'display_order']),
+        ]
+    
+    def get_bullet_points(self):
+        """Get bullet points (custom or project default)."""
+        if self.use_custom_bullets and self.custom_bullet_points:
+            return self.custom_bullet_points
+        return self.project.resume_bullet_points or []
+    
+    def get_display_title(self):
+        """Get display title (custom or project name)."""
+        return self.custom_title or self.project.name
+    
+    def __str__(self):
+        return f"{self.portfolio.name} - {self.project.name}"
