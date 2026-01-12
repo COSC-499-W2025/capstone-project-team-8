@@ -11,6 +11,15 @@ from .views.project_views import (
 )
 from .views.user_views import UserMeView, PublicUserView
 from .views.resume_views import ResumeTemplatesView, ResumePreviewView
+from .views.portfolio_views import (
+    PortfolioListView,
+    PortfolioDetailView,
+    PortfolioCoverUploadView,
+    PortfolioProjectsView,
+    PortfolioProjectDetailView,
+    PortfolioReorderView,
+    PublicPortfolioView,
+)
 
 urlpatterns = [
     # Upload and analysis
@@ -22,6 +31,15 @@ urlpatterns = [
     path("projects/ranked/", RankedProjectsView.as_view(), name="projects-ranked"),
     path("projects/ranked/summary/", TopProjectsSummaryView.as_view(), name="projects-ranked-summary"),
     path("projects/<int:pk>/", ProjectDetailView.as_view(), name="projects-detail"),
+
+    # Portfolio endpoints
+    path("portfolios/", PortfolioListView.as_view(), name="portfolio-list"),
+    path("portfolios/<int:portfolio_id>/", PortfolioDetailView.as_view(), name="portfolio-detail"),
+    path("portfolios/<int:portfolio_id>/upload-cover/", PortfolioCoverUploadView.as_view(), name="portfolio-upload-cover"),
+    path("portfolios/<int:portfolio_id>/projects/", PortfolioProjectsView.as_view(), name="portfolio-add-project"),
+    path("portfolios/<int:portfolio_id>/projects/<int:portfolio_project_id>/", PortfolioProjectDetailView.as_view(), name="portfolio-project-detail"),
+    path("portfolios/<int:portfolio_id>/reorder/", PortfolioReorderView.as_view(), name="portfolio-reorder"),
+    path("portfolio/public/<slug:slug>/", PublicPortfolioView.as_view(), name="portfolio-public"),
 
     # Resume endpoints
     path("resume/templates/", ResumeTemplatesView.as_view(), name="resume-templates"),
