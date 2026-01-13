@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { login } from '@/utils/api';
+import { initializeButtons } from '@/utils/buttonAnimation';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,6 +14,10 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    initializeButtons();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,21 +40,21 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Login</h1>
-          <p className="text-gray-600 mb-8">Sign in to your account</p>
+    <div className="min-h-screen bg-primary flex items-center justify-center p-8">
+      <div className="max-w-md w-full fade-in">
+        <div className="glow-box rounded-lg p-8">
+          <h1 className="text-3xl font-bold mb-2 text-primary">Login</h1>
+          <p className="mb-8 text-primary">Sign in to your account</p>
 
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-700">{error}</p>
+            <div className="mb-4 p-4 rounded-lg" style={{ background: 'rgba(220, 38, 38, 0.1)', borderLeft: '3px solid #dc2626' }}>
+              <p style={{ color: '#ff6b6b' }}>{error}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="username" className="block text-sm font-medium mb-1 text-primary">
                 Username
               </label>
               <input
@@ -57,14 +62,19 @@ export default function LoginPage() {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition-all text-gray-900"
+                style={{ 
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: 'white'
+                }}
                 placeholder="Enter your username"
                 disabled={loading}
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium mb-1 text-primary">
                 Password
               </label>
               <input
@@ -72,7 +82,12 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900"
+                className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition-all text-gray-900"
+                style={{ 
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  color: 'white'
+                }}
                 placeholder="Enter your password"
                 disabled={loading}
               />
@@ -81,16 +96,18 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full font-semibold button-lift disabled:opacity-50 disabled:cursor-not-allowed"
+              data-block="button"
             >
-              {loading ? 'Logging in...' : 'Login'}
+              <span className="button__flair"></span>
+              <span className="button__label">{loading ? 'Logging in...' : 'Login'}</span>
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <p className="text-gray-600 text-center">
+          <div className="mt-6 pt-6" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            <p className="text-center text-primary">
               Don't have an account?{' '}
-              <Link href="/signup" className="text-indigo-600 hover:text-indigo-700 font-semibold">
+              <Link href="/signup" className="font-semibold transition-colors text-primary" style={{ textDecoration: 'underline' }}>
                 Sign up
               </Link>
             </p>
@@ -99,7 +116,7 @@ export default function LoginPage() {
           <div className="mt-4">
             <Link
               href="/"
-              className="text-center block text-gray-600 hover:text-gray-700 text-sm"
+              className="text-center block text-sm transition-colors text-primary"
             >
               Back to home
             </Link>

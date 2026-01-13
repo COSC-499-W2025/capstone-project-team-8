@@ -13,7 +13,6 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Portfolio Analyzer",
   description: "Analyze your projects and generate insights from your codebase",
 };
 

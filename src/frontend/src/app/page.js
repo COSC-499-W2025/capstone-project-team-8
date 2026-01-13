@@ -1,62 +1,74 @@
+'use client';
+
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
+import { useEffect } from "react";
+import { initializeButtons } from "@/utils/buttonAnimation";
 
 export default function Home() {
+  useEffect(() => {
+    initializeButtons();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-8">
-      <div className="max-w-2xl w-full">
-        <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-          <h1 className="text-5xl font-bold text-gray-800 mb-4">Portfolio Analyzer</h1>
-          <p className="text-xl text-gray-600 mb-8">
-            Analyze your projects and generate insights from your codebase
-          </p>
+    <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-8">
+      {/* Main Title */}
+      <div className="text-center mb-4 fade-in">
+        <h2 className="text-4xl font-bold" style={{ color: 'white', letterSpacing: '0.05em', lineHeight: '1' }}>
+          Team 8 Be Great Analyzer
+        </h2>
+      </div>
 
-          <div className="space-y-4 mb-8">
-            <Link
-              href="/login"
-              className="inline-block w-full px-8 py-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
-            >
-              🔓 Login to Your Account
-            </Link>
 
-            <Link
-              href="/signup"
-              className="inline-block w-full px-8 py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
-            >
-              ✍️ Create New Account
-            </Link>
+      {/* Main Content Card */}
+      <div className="max-w-2xl w-full glow-box rounded-lg p-12 text-center fade-in" style={{ 
+        background: '#292828',
+        borderRadius: '12px'
+      }}>
+        <h1 className="text-5xl font-bold mb-4" style={{ color: 'white' }}>
+          Portfolio Analyzer
+        </h1>
+        <p className="text-lg mb-8" style={{ color: 'white' }}>
+          Analyze your projects and generate insights from your codebase
+        </p>
 
-            <button
-              disabled
-              className="w-full px-8 py-4 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed opacity-50"
-              title="Feature coming soon"
-            >
-              📄 Generate One-Time Resume (Coming Soon)
-            </button>
-          </div>
+        {/* Buttons */}
+        <div className="space-y-4 mb-8">
+          <Link
+            href="/login"
+            className="inline-block w-full button-lift"
+            data-block="button"
+          >
+            <span className="button__flair"></span>
+            <span className="button__label">Login to Your Account</span>
+          </Link>
 
-          <p className="text-gray-500 text-sm mb-8">
-            Supported: ZIP files containing git repositories and project files
-          </p>
+          <Link
+            href="/signup"
+            className="inline-block w-full button-lift"
+            data-block="button"
+          >
+            <span className="button__flair"></span>
+            <span className="button__label">Create New Account</span>
+          </Link>
 
-          <div className="mt-12 pt-8 border-t border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Features</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <p className="font-semibold text-blue-900">📊 Analysis</p>
-                <p className="text-sm text-blue-700 mt-1">Detect projects and frameworks automatically</p>
-              </div>
-              <div className="p-4 bg-green-50 rounded-lg">
-                <p className="font-semibold text-green-900">👥 Contributors</p>
-                <p className="text-sm text-green-700 mt-1">Extract git history and contribution metrics</p>
-              </div>
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <p className="font-semibold text-purple-900">🎨 Customization</p>
-                <p className="text-sm text-purple-700 mt-1">Add thumbnails and personalize your portfolio</p>
-              </div>
-            </div>
-          </div>
+          <button
+            disabled
+            className="w-full button-lift cursor-not-allowed opacity-40 transition-all"
+            title="Feature coming soon"
+            style={{ 
+              background: 'rgba(255, 255, 255, 0.3)',
+              color: 'white',
+              border: 'none',
+            }}
+          >
+            Generate One-Time Resume (Coming Soon)
+          </button>
         </div>
+
+        <p className="text-sm mb-8" style={{ color: 'white' }}>
+          Supported: ZIP files containing git repositories and project files
+        </p>
       </div>
     </div>
   );
