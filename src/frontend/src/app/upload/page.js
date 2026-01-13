@@ -2,6 +2,9 @@
 
 import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { uploadFolder } from '@/utils/api';
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
@@ -11,6 +14,7 @@ export default function UploadPage() {
   const [llmConsent, setLlmConsent] = useState(false);
   const fileInputRef = useRef(null);
   const router = useRouter();
+  const { isAuthenticated, token } = useAuth();
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
@@ -35,22 +39,7 @@ export default function UploadPage() {
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('consent_scan', scanConsent ? 'true' : 'false');
-      formData.append('consent_send_llm', llmConsent ? 'true' : 'false');
-
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://capstone_backend:8000';
-      const response = await fetch(`${backendUrl}/api/upload-folder/`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const data = await uploadFolder(file, scanConsent, llmConsent, token || null);
       
       // Store results in sessionStorage to pass to results page
       sessionStorage.setItem('uploadResults', JSON.stringify(data));
@@ -82,9 +71,24 @@ export default function UploadPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
       <div className="max-w-2xl mx-auto">
+        {/* Navigation */}
+        <div className="mb-6">
+          <Link href={isAuthenticated ? '/dashboard' : '/'} className="text-indigo-600 hover:text-indigo-700 font-semibold">
+            ← {isAuthenticated ? 'Back to Dashboard' : 'Back to Home'}
+          </Link>
+        </div>
+
         <div className="bg-white rounded-lg shadow-lg p-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">Upload Portfolio</h1>
           <p className="text-gray-600 mb-8">Upload your project files as a ZIP archive</p>
+
+          {isAuthenticated && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-700">
+                ✓ You are authenticated. Your uploads will be saved to your account.
+              </p>
+            </div>
+          )}
 
           {/* Upload Area */}
           <div

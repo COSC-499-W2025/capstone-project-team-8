@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Home() {
   return (
@@ -10,18 +11,33 @@ export default function Home() {
             Analyze your projects and generate insights from your codebase
           </p>
 
-          <div className="space-y-4">
+          <div className="space-y-4 mb-8">
             <Link
-              href="/upload"
+              href="/login"
               className="inline-block w-full px-8 py-4 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
             >
-              📤 Upload Portfolio
+              🔓 Login to Your Account
             </Link>
 
-            <p className="text-gray-500 text-sm">
-              Supported: ZIP files containing git repositories and project files
-            </p>
+            <Link
+              href="/signup"
+              className="inline-block w-full px-8 py-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+            >
+              ✍️ Create New Account
+            </Link>
+
+            <button
+              disabled
+              className="w-full px-8 py-4 bg-gray-400 text-white font-semibold rounded-lg cursor-not-allowed opacity-50"
+              title="Feature coming soon"
+            >
+              📄 Generate One-Time Resume (Coming Soon)
+            </button>
           </div>
+
+          <p className="text-gray-500 text-sm mb-8">
+            Supported: ZIP files containing git repositories and project files
+          </p>
 
           <div className="mt-12 pt-8 border-t border-gray-200">
             <h2 className="text-lg font-semibold text-gray-800 mb-4">Features</h2>
