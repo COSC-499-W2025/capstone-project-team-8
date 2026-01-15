@@ -1,0 +1,192 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import Header from '@/components/Header';
+import config from '@/config';
+
+export default function ProjectsPage() {
+  const router = useRouter();
+  const { isAuthenticated, token } = useAuth();
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch(`${config.API_URL}/api/projects/`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+
+        const data = await response.json();
+        setProjects(data);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+        setError('Failed to load projects');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProjects();
+  }, [isAuthenticated, token, router]);
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-white">Loading projects...</p>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Header />
+      <div className="min-h-screen p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">Previous Projects</h1>
+            <p className="text-white/70">View and manage all your uploaded projects</p>
+          </div>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500 rounded-lg">
+              <p className="text-red-400">{error}</p>
+            </div>
+          )}
+
+          {projects.length === 0 ? (
+            <div className="bg-[var(--card-bg)] rounded-lg p-12 text-center">
+              <div className="text-6xl mb-4">📁</div>
+              <h2 className="text-2xl font-semibold text-white mb-2">No Projects Yet</h2>
+              <p className="text-white/70 mb-6">Start by uploading your first project</p>
+              <Link
+                href="/upload"
+                className="inline-block px-6 py-3 bg-white text-[var(--card-bg)] font-semibold rounded-lg hover:opacity-80 transition-opacity"
+              >
+                Upload Project
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((project) => (
+                <div
+                  key={project.id}
+                  className="bg-[var(--card-bg)] rounded-lg p-6 hover:bg-white/5 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-white mb-1 truncate">
+                        {project.name || 'Untitled Project'}
+                      </h3>
+                      {project.project_type && (
+                        <span className="inline-block px-2 py-1 text-xs font-medium bg-white/10 text-white rounded">
+                          {project.project_type}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {project.description && (
+                    <p className="text-white/70 text-sm mb-4 line-clamp-3">
+                      {project.description}
+                    </p>
+                  )}
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex items-center text-xs text-white/60">
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>Created: {formatDate(project.created_at)}</span>
+                    </div>
+                    {project.updated_at && (
+                      <div className="flex items-center text-xs text-white/60">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Updated: {formatDate(project.updated_at)}</span>
+                      </div>
+                    )}
+                    {project.file_count !== undefined && (
+                      <div className="flex items-center text-xs text-white/60">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span>{project.file_count} files</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {project.tags && project.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {project.tags.slice(0, 3).map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 text-xs bg-white/5 text-white/80 rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {project.tags.length > 3 && (
+                        <span className="px-2 py-1 text-xs bg-white/5 text-white/80 rounded">
+                          +{project.tags.length - 3} more
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/projects/${project.id}`}
+                      className="flex-1 px-4 py-2 bg-white/10 text-white text-center text-sm font-medium rounded-lg hover:bg-white/20 transition-colors"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      onClick={() => {
+                        if (confirm('Are you sure you want to delete this project?')) {
+                          // TODO: Implement delete functionality
+                          console.log('Delete project:', project.id);
+                        }
+                      }}
+                      className="px-4 py-2 bg-red-500/10 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/20 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}

@@ -1,4 +1,4 @@
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://capstone_backend:8000';
+import config from '@/config';
 
 /**
  * Make an API call with optional bearer token
@@ -12,7 +12,7 @@ export async function apiCall(endpoint, options = {}, token = null) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const url = `${BACKEND_URL}${endpoint}`;
+  const url = `${config.API_URL}${endpoint}`;
 
   const response = await fetch(url, {
     ...options,
@@ -69,7 +69,7 @@ export async function logout(token) {
  * Get current user profile
  */
 export async function getCurrentUser(token) {
-  const data = await apiCall('/api/user/me/', {
+  const data = await apiCall('/api/users/me/', {
     method: 'GET',
   }, token);
   return data;
@@ -89,7 +89,7 @@ export async function uploadFolder(file, scanConsent, llmConsent, token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BACKEND_URL}/api/upload-folder/`, {
+  const response = await fetch(`${config.API_URL}/api/upload-folder/`, {
     method: 'POST',
     headers,
     body: formData,

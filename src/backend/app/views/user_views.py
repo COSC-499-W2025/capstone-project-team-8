@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.contrib.auth import authenticate
 import re
 import logging
 
@@ -47,9 +48,14 @@ class UserMeView(APIView):
 	def put(self, request):
 		user = request.user
 		try:
-			data = request.data if hasattr(request, 'data') else {}
-		except Exception:
-			data = {}
+			if hasattr(request, 'data'):
+				data = request.data
+			else:
+				import json
+				data = json.loads(request.body) if request.body else {}
+		except Exception as e:
+			logger.error("Error parsing request data: %s", str(e))
+			return JsonResponse({'detail': 'Invalid JSON in request body'}, status=400)
 
 		if isinstance(data, dict) and 'user' in data and isinstance(data['user'], dict):
 			data = data['user']
@@ -114,6 +120,57 @@ class PublicUserView(APIView):
 	def get(self, request, username):
 		user = get_object_or_404(User, username=username)
 		return JsonResponse({'user': self._user_to_dict(user)})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PasswordChangeView(APIView):
+	"""PUT endpoint to change user password."""
+
+	permission_classes = [IsAuthenticated]
+
+	def put(self, request):
+		user = request.user
+		try:
+			data = request.data if hasattr(request, 'data') else {}
+		except Exception:
+			data = {}
+
+		# Get password fields
+		current_password = data.get('current_password', '')
+		new_password = data.get('new_password', '')
+
+		# Validate current password
+		if not authenticate(username=user.username, password=current_password):
+			return JsonResponse(
+				{'detail': 'Current password is incorrect'},
+				status=400
+			)
+
+		# Validate new password
+		if not new_password:
+			return JsonResponse(
+				{'detail': 'New password is required'},
+				status=400
+			)
+
+		if len(new_password) < 8:
+			return JsonResponse(
+				{'detail': 'Password must be at least 8 characters long'},
+				status=400
+			)
+
+		# Update password
+		user.set_password(new_password)
+		user.save()
+
+		return JsonResponse({
+			'detail': 'Password updated successfully',
+			'user': {
+				'username': user.username,
+				'email': user.email,
+			}
+		})
+
 
 
 

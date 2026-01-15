@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { uploadFolder } from '@/utils/api';
 import { initializeButtons } from '@/utils/buttonAnimation';
+import Header from '@/components/Header';
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
@@ -74,29 +75,24 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-primary p-8">
-      <div className="max-w-2xl mx-auto fade-in">
-        {/* Navigation */}
-        <div className="mb-6">
-          <Link href={isAuthenticated ? '/dashboard' : '/'} className="font-semibold transition-colors text-primary">
-            ← {isAuthenticated ? 'Back to Dashboard' : 'Back to Home'}
-          </Link>
-        </div>
+    <>
+      <Header />
+      <div className="min-h-screen bg-primary p-8">
+        <div className="max-w-2xl mx-auto fade-in">
+          <div className="glow-box rounded-lg p-8">
+            <h1 className="text-4xl font-bold mb-2 text-primary">Upload Portfolio</h1>
+            <p className="mb-8 text-primary">Upload your project files as a ZIP archive</p>
 
-        <div className="glow-box rounded-lg p-8">
-          <h1 className="text-4xl font-bold mb-2 text-primary">Upload Portfolio</h1>
-          <p className="mb-8 text-primary">Upload your project files as a ZIP archive</p>
-
-          {isAuthenticated && (
-            <div className="mb-6 p-4 rounded-lg" style={{ 
-              background: 'rgba(34, 197, 94, 0.1)',
-              borderLeft: '3px solid #22c55e'
-            }}>
-              <p style={{ color: '#86efac' }}>
-                ✓ You are authenticated. Your uploads will be saved to your account.
-              </p>
-            </div>
-          )}
+            {isAuthenticated && (
+              <div className="mb-6 p-4 rounded-lg" style={{ 
+                background: 'rgba(34, 197, 94, 0.1)',
+                borderLeft: '3px solid #22c55e'
+              }}>
+                <p style={{ color: '#86efac' }}>
+                  ✓ You are authenticated. Your uploads will be saved to your account.
+                </p>
+              </div>
+            )}
 
           {/* Upload Area */}
           <div
@@ -195,5 +191,6 @@ export default function UploadPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

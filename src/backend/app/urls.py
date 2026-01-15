@@ -9,7 +9,7 @@ from .views.project_views import (
     RankedProjectsView,
     TopProjectsSummaryView,
 )
-from .views.user_views import UserMeView, PublicUserView
+from .views.user_views import UserMeView, PublicUserView, PasswordChangeView
 from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView
 
 urlpatterns = [
@@ -39,5 +39,6 @@ urlpatterns = [
     
     # User profile endpoints
     path("users/me/", UserMeView.as_view(), name="user-me"),
+    path("users/password/", PasswordChangeView.as_view(), name="user-password-change"),
     path("users/<str:username>/", PublicUserView.as_view(), name="user-public"),
 ]
