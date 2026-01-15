@@ -13,6 +13,9 @@ export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [uploadingThumbnail, setUploadingThumbnail] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -52,6 +55,69 @@ export default function ProjectsPage() {
       month: 'short',
       day: 'numeric',
     });
+  };
+
+  const handleThumbnailChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setThumbnailPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleThumbnailUpload = async (projectId) => {
+    const fileInput = document.querySelector(`input[type="file"][data-project-id="${projectId}"]`);
+    const file = fileInput?.files?.[0];
+
+    if (!file) {
+      setError('Please select an image');
+      return;
+    }
+
+    setUploadingThumbnail(projectId);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('thumbnail', file);
+
+      const response = await fetch(`${config.API_URL}/api/projects/${projectId}/thumbnail/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        let errorMessage = 'Failed to upload thumbnail';
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+          if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+            errorMessage = 'API endpoint not found';
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      // Update project in list with new thumbnail
+      setProjects(prev => prev.map(p => 
+        p.id === projectId ? { ...p, thumbnail_url: data.project.thumbnail_url } : p
+      ));
+      setSelectedProject(null);
+      setThumbnailPreview(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setUploadingThumbnail(null);
+    }
   };
 
   if (loading) {
@@ -98,8 +164,34 @@ export default function ProjectsPage() {
               {projects.map((project) => (
                 <div
                   key={project.id}
-                  className="bg-[var(--card-bg)] rounded-lg p-6 hover:bg-white/5 transition-colors"
+                  className="bg-[var(--card-bg)] rounded-lg overflow-hidden hover:bg-white/5 transition-colors"
                 >
+                  {/* Project Thumbnail */}
+                  <div className="relative h-40 bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+                    {project.thumbnail_url ? (
+                      <img
+                        src={project.thumbnail_url}
+                        alt={project.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-4xl">📁</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => {
+                        setSelectedProject(project.id);
+                        setThumbnailPreview(project.thumbnail_url || null);
+                      }}
+                      className="absolute top-2 right-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                    >
+                      {project.thumbnail_url ? 'Change' : 'Add'} Thumbnail
+                    </button>
+                  </div>
+
+                  {/* Project Content */}
+                  <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-white mb-1 truncate">
@@ -182,10 +274,67 @@ export default function ProjectsPage() {
                     </button>
                   </div>
                 </div>
+                </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* Thumbnail Upload Modal */}
+        {selectedProject && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+            <div className="bg-[var(--card-bg)] rounded-lg p-6 max-w-md w-full">
+              <h2 className="text-xl font-semibold text-white mb-4">
+                {projects.find(p => p.id === selectedProject)?.name}
+              </h2>
+              
+              <div className="mb-6">
+                <div className="h-40 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden mb-4">
+                  {thumbnailPreview ? (
+                    <img
+                      src={thumbnailPreview}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl">📁</span>
+                  )}
+                </div>
+
+                <label className="block text-white/80 text-sm font-medium mb-2">
+                  Choose Image
+                </label>
+                <input
+                  type="file"
+                  data-project-id={selectedProject}
+                  accept="image/*"
+                  onChange={handleThumbnailChange}
+                  className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
+                />
+                <p className="text-white/60 text-xs mt-2">Supported formats: JPG, PNG, GIF. Max size: 5MB</p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setSelectedProject(null);
+                    setThumbnailPreview(null);
+                  }}
+                  className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleThumbnailUpload(selectedProject)}
+                  disabled={uploadingThumbnail === selectedProject || !thumbnailPreview || !document.querySelector(`input[type="file"][data-project-id="${selectedProject}"]`)?.files?.length}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:opacity-50 text-white font-medium rounded transition-colors"
+                >
+                  {uploadingThumbnail === selectedProject ? 'Uploading...' : 'Upload'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

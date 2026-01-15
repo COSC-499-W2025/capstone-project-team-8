@@ -19,7 +19,19 @@ class UserMeView(APIView):
 
 	permission_classes = [IsAuthenticated]
 
-	def _user_to_dict(self, user, include_email=False):
+	def _build_absolute_url(self, request, relative_url):
+		"""Build absolute URL from relative path"""
+		if not relative_url:
+			return ''
+		if relative_url.startswith('http'):
+			return relative_url
+		return request.build_absolute_uri(relative_url)
+
+	def _user_to_dict(self, user, request=None, include_email=False):
+		profile_image_url = user.profile_image_url
+		if profile_image_url and request:
+			profile_image_url = self._build_absolute_url(request, profile_image_url)
+		
 		out = {
 			'username': user.username,
 			'first_name': user.first_name,
@@ -29,7 +41,7 @@ class UserMeView(APIView):
 			'linkedin_url': user.linkedin_url,
 			'portfolio_url': user.portfolio_url,
 			'twitter_username': user.twitter_username,
-			'profile_image_url': user.profile_image_url,
+			'profile_image_url': profile_image_url,
 			'university': user.university,
 			'degree_major': user.degree_major,
 			'education_city': user.education_city,
@@ -43,7 +55,7 @@ class UserMeView(APIView):
 
 	def get(self, request):
 		user = request.user
-		return JsonResponse({'user': self._user_to_dict(user, include_email=True)})
+		return JsonResponse({'user': self._user_to_dict(user, request=request, include_email=True)})
 
 	def put(self, request):
 		user = request.user
@@ -99,7 +111,7 @@ class UserMeView(APIView):
 		if changed:
 			user.save()
 
-		return JsonResponse({'user': self._user_to_dict(user, include_email=True)})
+		return JsonResponse({'user': self._user_to_dict(user, request=request, include_email=True)})
 
 
 
@@ -109,17 +121,29 @@ class PublicUserView(APIView):
 
 	permission_classes = [AllowAny]
 
-	def _user_to_dict(self, user):
+	def _build_absolute_url(self, request, relative_url):
+		"""Build absolute URL from relative path"""
+		if not relative_url:
+			return ''
+		if relative_url.startswith('http'):
+			return relative_url
+		return request.build_absolute_uri(relative_url)
+
+	def _user_to_dict(self, user, request=None):
+		profile_image_url = user.profile_image_url
+		if profile_image_url and request:
+			profile_image_url = self._build_absolute_url(request, profile_image_url)
+		
 		return {
 			'username': user.username,
 			'bio': user.bio,
-			'profile_image_url': user.profile_image_url,
+			'profile_image_url': profile_image_url,
 			'date_joined': user.date_joined.isoformat() if user.date_joined else None,
 		}
 
 	def get(self, request, username):
 		user = get_object_or_404(User, username=username)
-		return JsonResponse({'user': self._user_to_dict(user)})
+		return JsonResponse({'user': self._user_to_dict(user, request=request)})
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -168,6 +192,50 @@ class PasswordChangeView(APIView):
 			'user': {
 				'username': user.username,
 				'email': user.email,
+			}
+		})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ProfileImageUploadView(APIView):
+	"""POST endpoint to upload user profile image."""
+
+	permission_classes = [IsAuthenticated]
+
+	def post(self, request):
+		user = request.user
+		
+		if 'profile_image' not in request.FILES:
+			return JsonResponse({'detail': 'No image file provided'}, status=400)
+		
+		image_file = request.FILES['profile_image']
+		
+		# Validate file is an image
+		if not image_file.content_type.startswith('image/'):
+			return JsonResponse({'detail': 'File must be an image'}, status=400)
+		
+		# Optional: Check file size (e.g., max 5MB)
+		if image_file.size > 5 * 1024 * 1024:
+			return JsonResponse({'detail': 'Image must be smaller than 5MB'}, status=400)
+		
+		# Delete old image if exists
+		if user.profile_image:
+			user.profile_image.delete()
+		
+		# Save new image
+		user.profile_image = image_file
+		user.save()
+		
+		# Build absolute URL for the image
+		profile_image_url = user.profile_image_url
+		if profile_image_url:
+			profile_image_url = request.build_absolute_uri(profile_image_url)
+		
+		return JsonResponse({
+			'detail': 'Profile image uploaded successfully',
+			'user': {
+				'username': user.username,
+				'profile_image_url': profile_image_url,
 			}
 		})
 

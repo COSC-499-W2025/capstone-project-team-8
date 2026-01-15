@@ -40,6 +40,9 @@ export default function ProfilePage() {
     confirm_password: '',
   });
 
+  const [profileImagePreview, setProfileImagePreview] = useState(user?.profile_image_url || '');
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
@@ -183,6 +186,67 @@ export default function ProfilePage() {
     }
   };
 
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleProfileImageUpload = async (e) => {
+    e.preventDefault();
+    const fileInput = document.querySelector('input[type="file"][name="profile_image"]');
+    const file = fileInput?.files?.[0];
+
+    if (!file) {
+      setMessage({ type: 'error', text: 'Please select an image' });
+      return;
+    }
+
+    setUploadingImage(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      const formData = new FormData();
+      formData.append('profile_image', file);
+
+      const response = await fetch(`${config.API_URL}/api/users/me/profile-image/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        let errorMessage = 'Failed to upload image';
+        try {
+          const errorData = JSON.parse(text);
+          errorMessage = errorData.detail || errorMessage;
+        } catch (e) {
+          if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+            errorMessage = 'API endpoint not found. Check your backend connection.';
+          }
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      setCurrentUser({ ...user, profile_image_url: data.user.profile_image_url });
+      setMessage({ type: 'success', text: 'Profile image uploaded successfully!' });
+      fileInput.value = '';
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -298,7 +362,49 @@ export default function ProfilePage() {
                   />
                 </div>
               </div>
-
+              {/* Profile Picture Upload */}
+              <div className="mt-8 p-6 bg-white/5 rounded-lg border border-white/10">
+                <h3 className="text-lg font-semibold text-white mb-4">Profile Picture</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="md:col-span-1">
+                    <div className="w-full h-48 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center overflow-hidden">
+                      {profileImagePreview ? (
+                        <img
+                          src={profileImagePreview}
+                          alt="Profile preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-4xl font-bold text-white">
+                          {user?.username?.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="md:col-span-2">
+                    <div>
+                      <label className="block text-white/80 text-sm font-medium mb-2">
+                        Upload New Profile Picture
+                      </label>
+                      <input
+                        type="file"
+                        name="profile_image"
+                        accept="image/*"
+                        onChange={handleProfileImageChange}
+                        className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
+                      />
+                      <p className="text-white/60 text-xs mt-2">Supported formats: JPG, PNG, GIF. Max size: 5MB</p>
+                    </div>
+                    <button
+                      onClick={handleProfileImageUpload}
+                      disabled={uploadingImage || !profileImagePreview}
+                      className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:opacity-50 text-white font-medium rounded transition-colors"
+                    >
+                      {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                    </button>
+                  </div>
+                </div>
+              </div>
               {/* Social Links */}
               <div className="mt-8">
                 <h3 className="text-lg font-semibold text-white mb-4">Social & Professional Links</h3>

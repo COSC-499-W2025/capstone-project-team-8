@@ -11,3 +11,4 @@ PyMuPDF>=1.23.0
 openai
 pytest
 pytest-django
+Pillow
