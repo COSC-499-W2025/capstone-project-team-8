@@ -36,7 +36,7 @@ export default function DashboardPage() {
     };
 
     fetchUser();
-  }, [isAuthenticated, token, router, setCurrentUser]);
+  }, []);
 
   if (loading) {
     return (
