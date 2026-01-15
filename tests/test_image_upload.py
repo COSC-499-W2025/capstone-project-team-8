@@ -85,15 +85,23 @@ class ProfileImageUploadTest(TestCase):
         self.client.login(username='testuser', password='testpass123')
 
         # Create large test image (5MB+)
+        # Note: Create a large PNG (uncompressed) to ensure > 5MB
         file = BytesIO()
-        image = Image.new('RGB', size=(5000, 5000), color=(255, 0, 0))
-        image.save(file, format='JPEG')
+        image = Image.new('RGB', size=(2500, 2500), color=(255, 0, 0))
+        image.save(file, format='PNG')
         file.seek(0)
 
+        # Ensure file is actually > 5MB
+        if file.getbuffer().nbytes <= 5 * 1024 * 1024:
+            # If PNG is still not large enough, pad it
+            file_data = file.getvalue()
+            file_data += b'\x00' * (5 * 1024 * 1024 - len(file_data) + 1)
+            file = BytesIO(file_data)
+
         large_file = SimpleUploadedFile(
-            'large.jpg',
+            'large.png',
             file.getvalue(),
-            content_type='image/jpeg'
+            content_type='image/png'
         )
 
         response = self.client.post(
