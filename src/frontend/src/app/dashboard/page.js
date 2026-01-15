@@ -6,26 +6,17 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { getCurrentUser } from '@/utils/api';
 import Header from '@/components/Header';
+import config from '@/config';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { isAuthenticated, token, user, setCurrentUser } = useAuth();
   const [loading, setLoading] = useState(true);
-
-  // Mock resume data
-  const mockResumes = [
-    { id: 1, title: 'Tech Resume 2024', date: 'Jan 14, 2024', downloads: 3 },
-    { id: 2, title: 'Full Stack Resume', date: 'Dec 20, 2023', downloads: 1 },
-    { id: 3, title: 'Frontend Specialist', date: 'Nov 15, 2023', downloads: 5 },
-    { id: 4, title: 'Python Developer', date: 'Oct 10, 2023', downloads: 2 },
-  ];
-
-  // Mock skills data
-  const mockSkills = {
-    languages: { Python: 16, JavaScript: 12, TypeScript: 8 },
-    frameworks: { Django: 10, React: 8, 'Next.js': 6 },
-    tools: { Git: 14, Docker: 5, PostgreSQL: 8 },
-  };
+  const [projects, setProjects] = useState([]);
+  const [skills, setSkills] = useState({
+    languages: {},
+    frameworks: {},
+  });
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -33,18 +24,58 @@ export default function DashboardPage() {
       return;
     }
 
-    const fetchUser = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getCurrentUser(token);
-        setCurrentUser(data.user);
+        // Fetch user data
+        const userData = await getCurrentUser(token);
+        setCurrentUser(userData.user);
+
+        // Fetch projects
+        const projectsResponse = await fetch(`${config.API_URL}/api/projects/`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (projectsResponse.ok) {
+          const projectsData = await projectsResponse.json();
+          const projectsList = projectsData.projects || [];
+          setProjects(projectsList);
+
+          // Calculate skills from projects
+          const languageCount = {};
+          const frameworkCount = {};
+
+          projectsList.forEach((project) => {
+            // Count primary classification as language
+            if (project.classification_type) {
+              const primaryLang = project.classification_type.split(':')[0].trim();
+              languageCount[primaryLang] = (languageCount[primaryLang] || 0) + 1;
+            }
+            
+            // Count frameworks if available in response
+            if (project.frameworks && Array.isArray(project.frameworks)) {
+              project.frameworks.forEach((fw) => {
+                if (fw.name) {
+                  frameworkCount[fw.name] = (frameworkCount[fw.name] || 0) + 1;
+                }
+              });
+            }
+          });
+
+          setSkills({
+            languages: languageCount,
+            frameworks: frameworkCount,
+          });
+        }
       } catch (err) {
-        console.log('Could not fetch user profile:', err);
+        console.log('Error fetching data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUser();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -119,12 +150,16 @@ export default function DashboardPage() {
                   <div className="mb-4">
                     <p className="text-white/70 text-sm font-medium mb-2">Languages</p>
                     <div className="space-y-2">
-                      {Object.entries(mockSkills.languages).map(([lang, count]) => (
-                        <div key={lang} className="flex justify-between items-center">
-                          <span className="text-white/60 text-sm">{lang}</span>
-                          <span className="text-white font-bold">{count} projects</span>
-                        </div>
-                      ))}
+                      {Object.entries(skills.languages).length > 0 ? (
+                        Object.entries(skills.languages).map(([lang, count]) => (
+                          <div key={lang} className="flex justify-between items-center">
+                            <span className="text-white/60 text-sm">{lang}</span>
+                            <span className="text-white font-bold">{count} {count === 1 ? 'project' : 'projects'}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-white/40 text-sm">No projects uploaded yet</p>
+                      )}
                     </div>
                   </div>
 
@@ -132,25 +167,16 @@ export default function DashboardPage() {
                   <div className="mb-4">
                     <p className="text-white/70 text-sm font-medium mb-2">Frameworks</p>
                     <div className="space-y-2">
-                      {Object.entries(mockSkills.frameworks).map(([fw, count]) => (
-                        <div key={fw} className="flex justify-between items-center">
-                          <span className="text-white/60 text-sm">{fw}</span>
-                          <span className="text-white font-bold">{count} projects</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Tools */}
-                  <div>
-                    <p className="text-white/70 text-sm font-medium mb-2">Tools</p>
-                    <div className="space-y-2">
-                      {Object.entries(mockSkills.tools).map(([tool, count]) => (
-                        <div key={tool} className="flex justify-between items-center">
-                          <span className="text-white/60 text-sm">{tool}</span>
-                          <span className="text-white font-bold">{count} projects</span>
-                        </div>
-                      ))}
+                      {Object.entries(skills.frameworks).length > 0 ? (
+                        Object.entries(skills.frameworks).map(([fw, count]) => (
+                          <div key={fw} className="flex justify-between items-center">
+                            <span className="text-white/60 text-sm">{fw}</span>
+                            <span className="text-white font-bold">{count} {count === 1 ? 'project' : 'projects'}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-white/40 text-sm">No frameworks detected</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -163,48 +189,70 @@ export default function DashboardPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
                   <p className="text-white/60 text-sm mb-1">Total Projects</p>
-                  <p className="text-3xl font-bold text-white">24</p>
+                  <p className="text-3xl font-bold text-white">{projects.length}</p>
                 </div>
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
                   <p className="text-white/60 text-sm mb-1">Languages Used</p>
-                  <p className="text-3xl font-bold text-white">12</p>
+                  <p className="text-3xl font-bold text-white">{Object.keys(skills.languages).length}</p>
                 </div>
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
-                  <p className="text-white/60 text-sm mb-1">Resumes Generated</p>
-                  <p className="text-3xl font-bold text-white">{mockResumes.length}</p>
+                  <p className="text-white/60 text-sm mb-1">Frameworks Used</p>
+                  <p className="text-3xl font-bold text-white">{Object.keys(skills.frameworks).length}</p>
                 </div>
               </div>
 
-              {/* Previous Resumes - Scrollable Carousel */}
+              {/* Previous Projects - Scrollable Carousel */}
               <div className="bg-[var(--card-bg)] rounded-lg p-6">
-                <h2 className="text-2xl font-bold text-white mb-4">Generated Resumes</h2>
-                <div className="flex gap-4 overflow-x-auto pb-2 snap-x">
-                  {mockResumes.map((resume) => (
-                    <div
-                      key={resume.id}
-                      className="flex-shrink-0 w-64 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg p-4 snap-start hover:border-white/40 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="text-lg font-semibold text-white">{resume.title}</h3>
-                          <p className="text-white/60 text-sm">{resume.date}</p>
+                <h2 className="text-2xl font-bold text-white mb-4">Recent Projects</h2>
+                {projects.length > 0 ? (
+                  <div className="flex gap-4 overflow-x-auto pb-2 snap-x">
+                    {projects.slice(0, 10).map((project) => (
+                      <Link
+                        key={project.id}
+                        href={`/projects/${project.id}`}
+                        className="flex-shrink-0 w-72 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg p-4 snap-start hover:border-white/40 transition-colors"
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <h3 className="text-lg font-semibold text-white line-clamp-2">{project.name}</h3>
+                            <p className="text-white/60 text-sm">
+                              {new Date(project.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <span className="text-2xl">📁</span>
                         </div>
-                        <span className="text-2xl">📄</span>
-                      </div>
-                      <div className="text-white/60 text-sm mb-3">
-                        ⬇️ {resume.downloads} downloads
-                      </div>
-                      <div className="flex gap-2">
-                        <button className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition-colors">
-                          View
-                        </button>
-                        <button className="flex-1 px-3 py-2 bg-white/10 hover:bg-white/20 text-white text-sm font-medium rounded transition-colors">
-                          Download
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                        <div className="mb-3">
+                          <p className="text-white/60 text-sm mb-2">
+                            {project.classification_type || 'Mixed Technologies'}
+                          </p>
+                          <div className="flex flex-wrap gap-1">
+                            {project.classification_type && (
+                              <span className="inline-block px-2 py-1 bg-blue-500/30 text-blue-200 text-xs rounded">
+                                {project.classification_type}
+                              </span>
+                            )}
+                            {project.framework_count > 0 && (
+                              <span className="inline-block px-2 py-1 bg-purple-500/30 text-purple-200 text-xs rounded">
+                                {project.framework_count} frameworks
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-blue-400 text-sm font-medium">View Project →</p>
+                      </Link>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-white/60 mb-4">No projects uploaded yet</p>
+                    <Link
+                      href="/upload"
+                      className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition-colors"
+                    >
+                      Upload Your First Project
+                    </Link>
+                  </div>
+                )}
               </div>
 
               {/* Upload New Project Section */}
