@@ -33,7 +33,7 @@ export default function ProjectsPage() {
         }
 
         const data = await response.json();
-        setProjects(data);
+        setProjects(data.projects || []);
       } catch (err) {
         console.error('Error fetching projects:', err);
         setError('Failed to load projects');
