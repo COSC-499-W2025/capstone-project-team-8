@@ -127,111 +127,213 @@ export default function ProjectDetailPage() {
                 <h1 className="text-3xl font-bold text-white mb-2">
                   {project.name || 'Untitled Project'}
                 </h1>
-                {project.project_type && (
-                  <span className="inline-block px-3 py-1 text-sm font-medium bg-white/10 text-white rounded">
-                    {project.project_type}
+                {project.classification_type && (
+                  <span className="inline-block px-3 py-1 text-sm font-medium bg-blue-500/20 text-blue-200 rounded">
+                    {project.classification_type}
                   </span>
                 )}
               </div>
             </div>
 
-            {project.description && (
-              <p className="text-white/80 mb-6">{project.description}</p>
-            )}
-
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <p className="text-white/60 text-sm mb-1">Created</p>
                 <p className="text-white font-medium">
-                  {formatDate(project.created_at)}
+                  {project.created_at ? formatDate(new Date(project.created_at * 1000)) : 'N/A'}
                 </p>
               </div>
               <div>
-                <p className="text-white/60 text-sm mb-1">Last Updated</p>
+                <p className="text-white/60 text-sm mb-1">First Commit</p>
                 <p className="text-white font-medium">
-                  {formatDate(project.updated_at)}
+                  {project.first_commit_date ? formatDate(new Date(project.first_commit_date * 1000)) : 'N/A'}
                 </p>
               </div>
-              {project.file_count !== undefined && (
-                <div>
-                  <p className="text-white/60 text-sm mb-1">Files</p>
-                  <p className="text-white font-medium">{project.file_count}</p>
-                </div>
-              )}
-              {project.language && (
-                <div>
-                  <p className="text-white/60 text-sm mb-1">Language</p>
-                  <p className="text-white font-medium">{project.language}</p>
-                </div>
-              )}
+              <div>
+                <p className="text-white/60 text-sm mb-1">Total Files</p>
+                <p className="text-white font-medium">{project.total_files || 0}</p>
+              </div>
+              <div>
+                <p className="text-white/60 text-sm mb-1">Git Repository</p>
+                <p className="text-white font-medium">
+                  {project.git_repository ? '✓ Yes' : '✗ No'}
+                </p>
+              </div>
             </div>
+
+            {project.classification_confidence && (
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <p className="text-white/60 text-sm mb-2">Classification Confidence</p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-white/10 rounded-full h-2">
+                    <div
+                      className="bg-green-500 h-2 rounded-full transition-all"
+                      style={{ width: `${(project.classification_confidence * 100).toFixed(0)}%` }}
+                    />
+                  </div>
+                  <span className="text-white font-bold">
+                    {(project.classification_confidence * 100).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Project Details */}
-          {project.tags && project.tags.length > 0 && (
+          {/* Tags Section */}
+          {project.project_tag && (
             <div className="bg-[var(--card-bg)] rounded-lg p-6 mb-6">
-              <h2 className="text-xl font-semibold text-white mb-4">Tags</h2>
-              <div className="flex flex-wrap gap-2">
-                {project.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="px-3 py-1 bg-white/10 text-white rounded-full text-sm"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+              <h2 className="text-xl font-semibold text-white mb-4">Project Tag</h2>
+              <span className="inline-block px-4 py-2 bg-blue-500/20 text-blue-200 rounded-full text-sm font-medium">
+                {project.project_tag}
+              </span>
             </div>
           )}
 
-          {/* Files Section */}
-          {project.files && project.files.length > 0 && (
+          {/* Contributors Section */}
+          {project.contributors && project.contributors.length > 0 && (
             <div className="bg-[var(--card-bg)] rounded-lg p-6 mb-6">
               <h2 className="text-xl font-semibold text-white mb-4">
-                Files ({project.files.length})
+                Contributors ({project.contributors.length})
               </h2>
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {project.files.map((file, index) => (
+              <div className="space-y-3">
+                {project.contributors.map((contributor, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                    className="p-4 bg-white/5 rounded-lg"
                   >
-                    <div className="flex items-center space-x-3">
-                      <svg
-                        className="w-5 h-5 text-white/60"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                        />
-                      </svg>
-                      <span className="text-white">{file.name || file}</span>
-                    </div>
-                    {file.size && (
-                      <span className="text-white/60 text-sm">
-                        {(file.size / 1024).toFixed(2)} KB
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="text-white font-semibold">{contributor.name}</p>
+                        <p className="text-white/60 text-sm">{contributor.email}</p>
+                      </div>
+                      <span className="text-sm font-bold bg-blue-500/20 text-blue-200 px-3 py-1 rounded">
+                        {contributor.percent_of_commits.toFixed(1)}%
                       </span>
-                    )}
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs text-white/60">
+                      <div>💬 {contributor.commits} commits</div>
+                      <div>➕ {contributor.lines_added} lines added</div>
+                      <div>➖ {contributor.lines_deleted} lines deleted</div>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Additional Metadata */}
-          {project.metadata && (
-            <div className="bg-[var(--card-bg)] rounded-lg p-6">
+          {/* Resume Bullet Points */}
+          {project.resume_bullet_points && project.resume_bullet_points.length > 0 && (
+            <div className="bg-[var(--card-bg)] rounded-lg p-6 mb-6">
+              <h2 className="text-xl font-semibold text-white mb-4">Resume Highlights</h2>
+              <ul className="space-y-2">
+                {project.resume_bullet_points.map((point, index) => (
+                  <li key={index} className="flex items-start gap-3 text-white/80">
+                    <span className="text-blue-400 mt-1">•</span>
+                    <span>{point}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Files Section */}
+          {project.files && Object.keys(project.files).some(key => project.files[key].length > 0) && (
+            <div className="bg-[var(--card-bg)] rounded-lg p-6 mb-6">
               <h2 className="text-xl font-semibold text-white mb-4">
-                Additional Information
+                Files ({project.total_files || 0})
               </h2>
-              <pre className="text-white/80 text-sm overflow-x-auto">
-                {JSON.stringify(project.metadata, null, 2)}
-              </pre>
+              
+              {/* Code Files */}
+              {project.files.code && project.files.code.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-white/80 text-sm font-semibold mb-3 uppercase tracking-wide">Code Files ({project.files.code.length})</h3>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {project.files.code.map((file, index) => (
+                      <div
+                        key={index}
+                        className="p-4 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <span className="text-white font-medium">{file.filename}</span>
+                          <span className="text-white/60 text-xs bg-white/10 px-2 py-1 rounded">
+                            {file.file_extension}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-xs text-white/60">
+                          <div>📄 {(file.file_size_bytes / 1024).toFixed(2)} KB</div>
+                          <div>📝 {file.line_count || 0} lines</div>
+                          <div>🔤 {file.character_count || 0} chars</div>
+                        </div>
+                        {file.content_preview && (
+                          <div className="mt-2 p-2 bg-white/5 rounded text-xs text-white/50 font-mono overflow-x-auto">
+                            {file.content_preview}...
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Content Files */}
+              {project.files.content && project.files.content.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-white/80 text-sm font-semibold mb-3 uppercase tracking-wide">Content Files ({project.files.content.length})</h3>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {project.files.content.map((file, index) => (
+                      <div
+                        key={index}
+                        className="p-3 bg-white/5 rounded-lg flex items-center justify-between hover:bg-white/10 transition-colors"
+                      >
+                        <div>
+                          <span className="text-white">{file.filename}</span>
+                          <span className="text-white/60 text-xs ml-2">({file.file_extension})</span>
+                        </div>
+                        <span className="text-white/60 text-sm">{(file.file_size_bytes / 1024).toFixed(2)} KB</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Image Files */}
+              {project.files.image && project.files.image.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-white/80 text-sm font-semibold mb-3 uppercase tracking-wide">Image Files ({project.files.image.length})</h3>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {project.files.image.map((file, index) => (
+                      <div
+                        key={index}
+                        className="p-3 bg-white/5 rounded-lg flex items-center justify-between hover:bg-white/10 transition-colors"
+                      >
+                        <div>
+                          <span className="text-white">{file.filename}</span>
+                          <span className="text-white/60 text-xs ml-2">({file.file_extension})</span>
+                        </div>
+                        <span className="text-white/60 text-sm">🖼️ {(file.file_size_bytes / 1024).toFixed(2)} KB</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Additional Info */}
+          {project.project_root_path && (
+            <div className="bg-[var(--card-bg)] rounded-lg p-6 mb-6">
+              <h2 className="text-xl font-semibold text-white mb-4">Project Information</h2>
+              <div className="space-y-3">
+                <div>
+                  <p className="text-white/60 text-sm mb-1">Root Path</p>
+                  <p className="text-white/80 font-mono text-sm break-all">{project.project_root_path}</p>
+                </div>
+                {project.classification_type && (
+                  <div>
+                    <p className="text-white/60 text-sm mb-1">Classification</p>
+                    <p className="text-white">{project.classification_type}</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
