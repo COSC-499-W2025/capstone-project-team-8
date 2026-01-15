@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { getCurrentUser } from '@/utils/api';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
+import { initializeButtons } from '@/utils/buttonAnimation';
 import config from '@/config';
 
 export default function ProfilePage() {
@@ -81,6 +82,24 @@ export default function ProfilePage() {
 
     fetchUser();
   }, []);
+
+  // Initialize button animations after component render with multiple delays to catch all buttons
+  useEffect(() => {
+    if (loading) return;
+    
+    const timer1 = setTimeout(() => {
+      initializeButtons();
+    }, 100);
+    
+    const timer2 = setTimeout(() => {
+      initializeButtons();
+    }, 300);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, [loading]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -265,6 +284,52 @@ export default function ProfilePage() {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold text-white mb-8">Profile Settings</h1>
 
+          {/* Profile Picture Upload - Moved to Top */}
+          <div className="bg-[var(--card-bg)] rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold text-white mb-6">Profile Picture</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="md:col-span-1 flex justify-center">
+                <div className="w-48 h-48 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center overflow-hidden">
+                  {profileImagePreview ? (
+                    <img
+                      src={profileImagePreview}
+                      alt="Profile preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-4xl font-bold text-white">
+                      {user?.username?.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <div>
+                  <label className="block text-white/80 text-sm font-medium mb-2">
+                    Upload New Profile Picture
+                  </label>
+                  <input
+                    type="file"
+                    name="profile_image"
+                    accept="image/*"
+                    onChange={handleProfileImageChange}
+                    className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
+                  />
+                  <p className="text-white/60 text-xs mt-2">Supported formats: JPG, PNG, GIF. Max size: 5MB</p>
+                </div>
+                <button
+                  onClick={handleProfileImageUpload}
+                  disabled={uploadingImage || !profileImagePreview}
+                  className="mt-4 w-full font-semibold button-lift disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  data-block="button"
+                >
+                  <span className="button__flair"></span>
+                  <span className="button__label">{uploadingImage ? 'Uploading...' : 'Upload Image'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           {/* Personal Information */}
           <div className="bg-[var(--card-bg)] rounded-lg p-6 mb-6">
             <h2 className="text-xl font-semibold text-white mb-6">Personal Information</h2>
@@ -360,49 +425,6 @@ export default function ProfilePage() {
                     onChange={handleInputChange}
                     className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
                   />
-                </div>
-              </div>
-              {/* Profile Picture Upload */}
-              <div className="mt-8 p-6 bg-white/5 rounded-lg border border-white/10">
-                <h3 className="text-lg font-semibold text-white mb-4">Profile Picture</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="md:col-span-1">
-                    <div className="w-full h-48 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center overflow-hidden">
-                      {profileImagePreview ? (
-                        <img
-                          src={profileImagePreview}
-                          alt="Profile preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-4xl font-bold text-white">
-                          {user?.username?.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <div>
-                      <label className="block text-white/80 text-sm font-medium mb-2">
-                        Upload New Profile Picture
-                      </label>
-                      <input
-                        type="file"
-                        name="profile_image"
-                        accept="image/*"
-                        onChange={handleProfileImageChange}
-                        className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
-                      />
-                      <p className="text-white/60 text-xs mt-2">Supported formats: JPG, PNG, GIF. Max size: 5MB</p>
-                    </div>
-                    <button
-                      onClick={handleProfileImageUpload}
-                      disabled={uploadingImage || !profileImagePreview}
-                      className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:opacity-50 text-white font-medium rounded transition-colors"
-                    >
-                      {uploadingImage ? 'Uploading...' : 'Upload Image'}
-                    </button>
-                  </div>
                 </div>
               </div>
               {/* Social Links */}
@@ -543,16 +565,18 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2 bg-white text-[var(--card-bg)] font-semibold rounded-lg hover:opacity-80 transition-opacity disabled:opacity-50"
+                  className="font-semibold button-lift disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  data-block="button"
                 >
-                  {saving ? 'Saving...' : 'Save Changes'}
+                  <span className="button__flair"></span>
+                  <span className="button__label">{saving ? 'Saving...' : 'Save Changes'}</span>
                 </button>
               </div>
             </form>
           </div>
 
           {/* Change Password */}
-          <div className="bg-[var(--card-bg)] rounded-lg p-6">
+          <div className="bg-[var(--card-bg)] rounded-lg p-6 mt-6">
             <h2 className="text-xl font-semibold text-white mb-6">Change Password</h2>
             <form onSubmit={handlePasswordUpdate}>
               <div className="space-y-6">
@@ -600,9 +624,11 @@ export default function ProfilePage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2 bg-white text-[var(--card-bg)] font-semibold rounded-lg hover:opacity-80 transition-opacity disabled:opacity-50"
+                  className="font-semibold button-lift disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  data-block="button"
                 >
-                  {saving ? 'Updating...' : 'Update Password'}
+                  <span className="button__flair"></span>
+                  <span className="button__label">{saving ? 'Updating...' : 'Update Password'}</span>
                 </button>
               </div>
             </form>
