@@ -12,3 +12,5 @@ openai
 pytest
 pytest-django
 ango
+
+Pillow
