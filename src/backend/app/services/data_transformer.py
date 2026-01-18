@@ -6,6 +6,7 @@ This is a simple extraction of the _transform_to_new_structure function.
 """
 
 from pathlib import Path as PathLib
+from app.services.human_file_filter import HumanFileFilter
 
 
 def transform_to_new_structure(
@@ -391,7 +392,13 @@ def transform_to_new_structure(
     
     # Add timestamp and AI fields to project data if available
     # Add timestamps to project data if available
+    # Also add human_readable_files section for each project
+    human_filter = HumanFileFilter()
+    
     projects_list = []
+    all_human_code = []
+    all_human_content = []
+    
     for tag in sorted_tags:
         project = project_data[tag]
         # Attach created_at timestamp
@@ -403,6 +410,25 @@ def transform_to_new_structure(
         project["llm_consent"] = bool(send_to_llm)
         if tag in project_end_timestamps and project_end_timestamps[tag] > 0:
             project["end_date"] = project_end_timestamps[tag]
+        
+        # Filter for human-readable files in this project
+        project_files = project["files"]
+        human_code = [f for f in project_files["code"] if human_filter.is_human_readable(f["path"])]
+        human_content = [f for f in project_files["content"] if human_filter.is_human_readable(f["path"])]
+        
+        project["human_readable_files"] = {
+            "code": human_code,
+            "content": human_content,
+            "summary": {
+                "total_code_files": len(human_code),
+                "total_content_files": len(human_content)
+            }
+        }
+        
+        # Accumulate for overall summary
+        all_human_code.extend(human_code)
+        all_human_content.extend(human_content)
+        
         projects_list.append(project)
     
     payload = {
@@ -410,7 +436,15 @@ def transform_to_new_structure(
         "scan_performed": True,
         "send_to_llm": bool(send_to_llm),
         "projects": projects_list,
-        "overall": overall
+        "overall": overall,
+        "human_readable_files": {
+            "code": all_human_code,
+            "content": all_human_content,
+            "summary": {
+                "total_code_files": len(all_human_code),
+                "total_content_files": len(all_human_content)
+            }
+        }
     }
     if user_contrib_summary:
         payload["user_contributions"] = user_contrib_summary

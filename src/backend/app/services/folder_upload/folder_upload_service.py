@@ -490,28 +490,43 @@ class FolderUploadService:
     
         from app.services.llm.azure_client import ai_analyze
         from app.utils.prompt_loader import load_prompt_template
+        from app.services.human_file_filter import HumanFileFilter
         import logging
     
         logger = logging.getLogger(__name__)
         summaries = {}
+        human_filter = HumanFileFilter()
+        
+        # Max characters for code content to stay within token limits
+        MAX_CODE_CHARS = 8000
     
         for project_path, tag in projects.items():
             try:
                 # Build context for this project (similar to TopProjectsSummaryView)
                 # You can reuse the logic to extract languages, frameworks, etc.
                 context = self._build_summary_context(project_path, tmpdir_path, tag, project_classifications, git_contrib_data)
+                
+                # Extract human-readable file contents for deeper analysis
+                full_project_path = tmpdir_path / project_path if not project_path.is_absolute() else project_path
+                human_code_content = human_filter.get_human_readable_contents(
+                    full_project_path,
+                    max_chars=MAX_CODE_CHARS
+                )
             
                 context_str = f"""
-    Project Name: {context['project_name']}
-    Classification: {context['classification']}
-    Primary Languages: {context['languages']}
-    Frameworks: {context['frameworks']}
-    Contribution Score: {context['contribution_score']}
-    Commit Percentage: {context['commit_percentage']}
-    Lines Changed Percentage: {context['lines_changed_percentage']}
-    Total Commits: {context['total_commits']}
-    Date Range: {context['first_commit_date']}
-    """
+Project Name: {context['project_name']}
+Classification: {context['classification']}
+Primary Languages: {context['languages']}
+Frameworks: {context['frameworks']}
+Contribution Score: {context['contribution_score']}
+Commit Percentage: {context['commit_percentage']}
+Lines Changed Percentage: {context['lines_changed_percentage']}
+Total Commits: {context['total_commits']}
+Date Range: {context['first_commit_date']}
+
+=== Human-Written Code Files ===
+{human_code_content if human_code_content else "(No code files found)"}
+"""
 
                 # Load prompt template
                 prompt_template = load_prompt_template("project_contribution_summary")
