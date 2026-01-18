@@ -1,18 +1,18 @@
 # Harper Kerstens's Weekly Logs
 
--[September 15-21 ](# September 15-21)
--[September 22-28 ](# September 22-28)
--[September 29-October 5 ](# September 29-October 5)
--[October 6-12 ](# October 6-12)
--[October 13-19 ](# October 13-19)
--[October 20-26 ](# October 20-26)
--[October 27-November 2 ](# October 27-November 2)
--[November 3-9 ](# November 3-9)
--[November 16-22 ](# November 16-22)
--[November 23-29 ](# November 23-29)
--[November 30-December 6 ](# November 30-December 6)
--[January 5-11 ](# January 5-11)
--[January 12-18 ](# January 12-18)
+-[September 15-21 ](#september-15-21)
+-[September 22-28 ](#september-22-28)
+-[September 29-October 5 ](#september-29-october-5)
+-[October 6-12 ](#october-6-12)
+-[October 13-19 ](#october-13-19)
+-[October 20-26 ](#october-20-26)
+-[October 27-November 2 ](#october-27-november-2)
+-[November 3-9 ](#november-3-9)
+-[November 16-22 ](#november-16-22)
+-[November 23-29 ](#november-23-29)
+-[November 30-December 6 ](#november-30-december-6)
+-[January 5-11 ](#january-5-11)
+-[January 12-18 ](#january-12-18)
 
 ## September 15-21
 
