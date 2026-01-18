@@ -11,14 +11,13 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-montserrat);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Neue Helvetica', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif;
   overflow-x: hidden;
 }
 
@@ -115,13 +114,13 @@ html {
 
 /* Text styling */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Neue Helvetica', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif;
   font-weight: 700;
   color: white;
 }
 
 p, span, div, label, a {
-  font-family: 'Neue Helvetica', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif;
   font-weight: 400;
 }
 
@@ -129,7 +128,7 @@ input, textarea, select {
   background-color: rgba(255, 255, 255, 0.1) !important;
   border: 1px solid rgba(255, 255, 255, 0.2) !important;
   color: white !important;
-  font-family: 'Neue Helvetica', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif;
 }
 
 input::placeholder {
