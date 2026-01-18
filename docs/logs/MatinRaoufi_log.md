@@ -1,4 +1,6 @@
 
+[Jump to latest week](#week-16-january-12-17)
+
 September 15-21
 
 <img width="1069" height="622" alt="image" src="https://github.com/user-attachments/assets/3ebfb261-388d-4c7e-a261-48bf1b64e3c2" />
@@ -180,6 +182,9 @@ What didn’t go well:
 
 Next week:
 - We're on break—if there’s free time I’ll use it to do bonus work. 
+
+# Term 2
+
 ## Week 15 January 5-11
 
 - Implemented human-readable file filter service that filters out auto-generated files and keeps only human-written code for analysis (Issue [#115](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/115), PR [#222](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/222))
@@ -207,7 +212,39 @@ Next week:
 
 Reflection:
 The refactoring we did in earlier weeks is paying off—adding the human file filter was straightforward because the services are well-separated. Following TDD with 32 tests gave me confidence that the feature works correctly.
-##
+
+## Week 16 January 12-17
+
+
+**Coding tasks:**
+- Implemented the Resume model and Milestone 2 Endpoints for Resume.
+  - PR: [#244](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/244) (Resume model)
+  - PR: [#246](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/246) (Resume endpoints)
+  - Both PRs include links to the related issues.
+- Wrote and maintained unit tests for all new endpoints, ensuring full coverage and passing tests.
+
+**Testing or debugging tasks:**
+- Used Postman and automated tests to verify all new endpoints work as expected and return correct error codes for edge cases (auth required, 404 for other users, etc.).
+- Debugged test failures related to database schema and ensured the new endpoints are only available when the Resume model is present.
+
+**Reviewing or collaboration tasks:**
+- Reviewed PRs from teammates:
+  - [#219](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/219)
+  - [#236](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/236)
+- Provided feedback and suggestions, focusing on code clarity, test coverage, and API consistency.
+
+**Connection to previous week:**
+- Last week, I worked on the human-readable file filter and LLM integration. This week, I shifted focus to the resume feature, building on our previous backend refactoring.
+
+**Plan/goals for next week:**
+- Merge the resume model and endpoint PRs after team review.
+- Discuss with team next steps and priorities
+- Start integrating actual resume generation logic potentially and setup/or assist with portfolio generation logic as well
+
+
+**Issues/blockers:**
+- Needed to ensure the endpoints branch was based on the resume model branch to avoid missing DB tables.
+- No major issues, just making sure of proper branching logic to make sure no issues form with merging.
 
 
 
