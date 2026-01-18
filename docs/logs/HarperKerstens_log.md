@@ -236,3 +236,34 @@ Going forward I would like to continue working on tasks relating to Milestone 2.
 ### Reflection:
 This was a week that didn't have as much progress overall compared to previous weeks. However, I still feel great about our project and progress as a group. We are steadily moving towards our goals and getting a usable resume from what we have analysed was very exciting to see this week.
  
+## January 12-18
+ 
+
+
+
+- Linked Frontend to Backend for project upload and analysis
+- Implemented contribution analysis feature to show user a more detailed breakdown of their contributions
+- Added ability for user to upload photo for their project profile
+- Tested and debugged new features
+- Reviewed team members code and provided feedback
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+|  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/236 |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/235 |
+|  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/237 |   |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/238  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213   |
+
+### What went well
+This week develpment was very smooth across the board. There were no hitchups or unexpecting issues that arrised causing delays in progress. I was able to get everything done I had planned out for this week.
+
+### What didn't go well
+I found myself spending time on unenessacary features this week and had to stop myself a few times from wasting time. I was getting down rabbit holes for cool little interativity features but decided to shelve them for now as it's very low priority work.
+
+
+### What's next
+Next week would be continuing what we built off of and focusing on putting together a resume builder. Now that we have a resume generator we need to give the users the option to pick and designing/building an interface to put it together is key to the work we have done so far.
+
+### Reflection:
+I'm very please with both my work and the groups work this week as lots was done. We are feeling good ahead of the peer testing in a few weeks and our product is continuing to go. There were minimal conflicts this week which was also nice, stress free weeks are very much appreciated.
