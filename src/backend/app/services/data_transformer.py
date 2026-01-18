@@ -111,16 +111,30 @@ def transform_to_new_structure(
             filename = PathLib(file_path).name
             
             if file_type == "code":
-                lines = r.get("lines")
                 file_info = {"path": filename}
-                if lines is not None:
-                    file_info["lines"] = lines
+                # Include all available metrics
+                if r.get("lines") is not None:
+                    file_info["lines"] = r.get("lines")
+                if r.get("chars") is not None:
+                    file_info["chars"] = r.get("chars")
+                if r.get("bytes") is not None:
+                    file_info["bytes"] = r.get("bytes")
+                if r.get("size") is not None:
+                    file_info["size"] = r.get("size")
                 project_data[project_tag]["files"]["code"].append(file_info)
             elif file_type == "content":
-                length = r.get("length")
                 file_info = {"path": filename}
-                if length is not None:
-                    file_info["length"] = length
+                # Include all available metrics
+                if r.get("length") is not None:
+                    file_info["length"] = r.get("length")
+                if r.get("chars") is not None:
+                    file_info["chars"] = r.get("chars")
+                if r.get("bytes") is not None:
+                    file_info["bytes"] = r.get("bytes")
+                if r.get("size") is not None:
+                    file_info["size"] = r.get("size")
+                if r.get("lines") is not None:
+                    file_info["lines"] = r.get("lines")
                 # Attach inline text preview if available (from earlier read)
                 if "text" in r:
                     file_info["text"] = r.get("text")
@@ -128,10 +142,12 @@ def transform_to_new_structure(
                         file_info["truncated"] = True
                 project_data[project_tag]["files"]["content"].append(file_info)
             elif file_type == "image":
-                size = r.get("size")
                 file_info = {"path": filename}
-                if size is not None:
-                    file_info["size"] = size
+                # Include all available metrics
+                if r.get("size") is not None:
+                    file_info["size"] = r.get("size")
+                if r.get("bytes") is not None:
+                    file_info["bytes"] = r.get("bytes")
                 project_data[project_tag]["files"]["image"].append(file_info)
             else:
                 # For unknown files, just add the filename
