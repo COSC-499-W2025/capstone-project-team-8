@@ -259,7 +259,7 @@ export default function ProjectDetailPage() {
                           </span>
                         </div>
                         <div className="grid grid-cols-3 gap-2 text-xs text-white/60">
-                          <div>📄 {(file.file_size_bytes / 1024).toFixed(2)} KB</div>
+                          <div>📄 {file.file_size_bytes ? (file.file_size_bytes / 1024).toFixed(2) + ' KB' : 'N/A'}</div>
                           <div>📝 {file.line_count || 0} lines</div>
                           <div>🔤 {file.character_count || 0} chars</div>
                         </div>
@@ -288,7 +288,7 @@ export default function ProjectDetailPage() {
                           <span className="text-white">{file.filename}</span>
                           <span className="text-white/60 text-xs ml-2">({file.file_extension})</span>
                         </div>
-                        <span className="text-white/60 text-sm">{(file.file_size_bytes / 1024).toFixed(2)} KB</span>
+                        <span className="text-white/60 text-sm">{file.file_size_bytes ? (file.file_size_bytes / 1024).toFixed(2) + ' KB' : 'N/A'}</span>
                       </div>
                     ))}
                   </div>
@@ -309,7 +309,7 @@ export default function ProjectDetailPage() {
                           <span className="text-white">{file.filename}</span>
                           <span className="text-white/60 text-xs ml-2">({file.file_extension})</span>
                         </div>
-                        <span className="text-white/60 text-sm">🖼️ {(file.file_size_bytes / 1024).toFixed(2)} KB</span>
+                        <span className="text-white/60 text-sm">🖼️ {file.file_size_bytes ? (file.file_size_bytes / 1024).toFixed(2) + ' KB' : 'N/A'}</span>
                       </div>
                     ))}
                   </div>
