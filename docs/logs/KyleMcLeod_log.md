@@ -1,4 +1,22 @@
 # Kyle McLeod's Weekly Logs
+## Weekly Logs Index
+### Term 1
+- [Week 3 (Sept 15–21)](#week-3-september-15-21)
+- [Week 4 (Sept 22–28)](#week-4-september-22-28)
+- [Week 5 (Sept 29–Oct 5)](#week-5-september-29---october-5)
+- [Week 6 (Oct 6–10)](#week-6-october-6-10)
+- [Week 7 (Oct 13–17)](#week-7-october-13-17)
+- [Week 8 (Oct 20–24)](#week-8-october-20-24)
+- [Week 9 (Oct 27–31)](#week-9-october-27-31)
+- [Week 10 (Nov 3–7)](#week-10-november-3-7)
+- [Week 11 & 12 (Nov 10–21)](#week-11--12-november-10-21)
+- [Week 13 (Nov 24–28)](#week-13-november-24-28)
+- [Week 14 (Dec 1–5)](#week-14-december-1-5)
+### Term 2
+- [Week 15 (Jan 5–9)](#week-15-january-5-9)
+- [Week 16 (Jan 12–16)](#week-16-january-12-16)
+
+
 ## Week 3 September 15-21
 <img width="624" height="358" alt="Screenshot 2025-09-21 144528" src="https://github.com/user-attachments/assets/abef3302-eb64-4093-b540-9c8f9dc87dd8" />
 
@@ -193,6 +211,28 @@ Next week:
 - additional fields in the resume generator
 - save contribution metrics to database
 - work on adding missing requirements from milestone 1
+- 
+## Week 16 January 12-16
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/7134bfa8-1730-4977-99ae-14a4faf64312" />
+
+This week:
+- implemented bugfix on API error PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/241
+- quick UI styling change PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/242
+- reviewed Matins PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/244
+- reviewed Harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/238
+
+What went well:
+- prepped for peer evals
+- got a bare ones user interface to interact with our API's we created
+
+What went wrong:
+- a few bugs with our backend
+- our API endpoints list are starting to pickup and we need a solution to track them all. we are thinking of starting documention for API's so we can all stay on the same page and not create overlapping code
+  
+Next week:
+- fix backend bugs such as dates not returning properly
+- adjust accuracy of our system and make sure classification login and analyzer logic is returning proper results
+- work on getting the resume system done
   
 Reflection:
-Our team is going to think more about how the user will interact with our system and implement any missing requirements from milestone 1. After that, we are going to implement the milestone 2 requirements. A lot of the milestone 2 requirements will build off of the core components we built during the last few months, so development should feel a little more straightforward this term.
+We now have a UI that is connected to our Django backend. This will help plan out future backend features since we will be able to find shortcomings in our app. I feel like we were slightly bottlenecked in which features to work on since we didn't have an idea of how the user would actually interact with the system. But now since we have a quick UI to see, I can already see a lot of bugs and such that our backend has. We can include these tasks in our next week.
