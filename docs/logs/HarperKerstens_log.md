@@ -1,4 +1,19 @@
 # Harper Kerstens's Weekly Logs
+
+-[September 15-21 ](## September 15-21)
+-[September 22-28 ](## September 22-28)
+-[September 29-October 5 ](## September 29-October 5)
+-[October 6-12 ](## October 6-12)
+-[October 13-19 ](## October 13-19)
+-[October 20-26 ](## October 20-26)
+-[October 27-November 2 ](## October 27-November 2)
+-[November 3-9 ](## November 3-9)
+-[November 16-22 ](## November 16-22)
+-[November 23-29 ](## November 23-29)
+-[November 30-December 6 ](## November 30-December 6)
+-[January 5-11 ](## January 5-11)
+-[January 12-18 ](## January 12-18)
+
 ## September 15-21
 
 <img width="1090" height="643" alt="September15-21" src="https://github.com/user-attachments/assets/78cd1c97-3f9a-450c-a8d4-981e2753d42a" />
