@@ -5,7 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.shortcuts import get_object_or_404
 
+from app.models import Resume
 from app.services.resume_service import list_templates, get_template, build_resume_context
 from app.services.resume_builder.latex_generator import JakesResumeGenerator
 
@@ -68,3 +70,23 @@ class GenerateLatexResumeView(APIView):
                 {"error": f"Failed to generate resume: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ResumeDetailView(APIView):
+    """
+    GET /api/resume/{id}/
+    Retrieve a specific resume by ID (only if owned by the authenticated user).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        """Get a resume by ID."""
+        resume = get_object_or_404(Resume, pk=pk, user=request.user)
+        return Response({
+            "id": resume.id,
+            "name": resume.name,
+            "content": resume.content,
+            "created_at": resume.created_at,
+            "updated_at": resume.updated_at,
+        })
