@@ -7,14 +7,17 @@ AI-related tests skip (not fail) when LLM service is unavailable.
 import os
 import sys
 import requests
-import django
 
-# Add the backend directory to the Python path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src', 'backend'))
+# Add the backend directory to the Python path if not already there
+backend_path = os.path.join(os.path.dirname(__file__), '..', 'src', 'backend')
+if backend_path not in sys.path:
+    sys.path.insert(0, backend_path)
 
-# Setup Django settings
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.settings')
-django.setup()
+# Setup Django settings only if not already configured
+if not os.environ.get('DJANGO_SETTINGS_MODULE'):
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'src.settings')
+    import django
+    django.setup()
 
 from django.test import TestCase
 from django.urls import reverse
