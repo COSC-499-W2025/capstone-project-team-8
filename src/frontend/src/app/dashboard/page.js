@@ -231,7 +231,7 @@ export default function DashboardPage() {
                             <div>
                               <h3 className="text-lg font-semibold text-white line-clamp-2">{project.name}</h3>
                               <p className="text-white/60 text-sm">
-                                {new Date(project.created_at).toLocaleDateString()}
+                                {new Date(project.created_at * 1000).toLocaleDateString()}
                               </p>
                             </div>
                           </div>
