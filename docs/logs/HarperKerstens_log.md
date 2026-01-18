@@ -254,13 +254,13 @@ This was a week that didn't have as much progress overall compared to previous w
 ## January 12-18
  
 
+<img width="1086" height="638" alt="January12-18th" src="https://github.com/user-attachments/assets/078fb130-1a24-4e3d-90a6-684b5cf24cc8" />
 
-
-- Linked Frontend to Backend for project upload and analysis
-- Implemented contribution analysis feature to show user a more detailed breakdown of their contributions
-- Added ability for user to upload photo for their project profile
-- Tested and debugged new features
-- Reviewed team members code and provided feedback
+- Implemented login/signup ability
+- Users can pull previous projects from database
+- Users can upload profile picture alongisde change any account information
+- Users can upload a photo per project that now saves to the database
+- Implemented dashboard on main page
 
 
 ### Completed PRs
