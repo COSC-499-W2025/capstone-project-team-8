@@ -12,6 +12,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from django.contrib.auth import get_user_model
+from app.models import Resume
 
 
 User = get_user_model()
@@ -57,3 +58,56 @@ class ResumeEndpointsTests(TestCase):
         self.assertIn("summary", context)
         self.assertIn("projects", context)
         self.assertIsInstance(context["projects"], list)
+
+
+class ResumeDetailEndpointTests(TestCase):
+    """Tests for GET /api/resume/{id}/ endpoint."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="detail_user",
+            email="detail@example.com",
+            password="pass12345"
+        )
+        self.other_user = User.objects.create_user(
+            username="other_user",
+            email="other@example.com",
+            password="pass12345"
+        )
+        self.resume = Resume.objects.create(
+            user=self.user,
+            name="Test Resume",
+            content={"summary": "Test summary", "skills": ["Python", "Django"]}
+        )
+
+    def test_get_resume_requires_authentication(self):
+        """GET /api/resume/{id}/ requires auth."""
+        url = reverse("resume-detail", kwargs={"pk": self.resume.id})
+        resp = self.client.get(url)
+        self.assertIn(resp.status_code, (401, 403))
+
+    def test_get_resume_returns_data(self):
+        """Authenticated user can get their resume."""
+        self.client.force_authenticate(user=self.user)
+        url = reverse("resume-detail", kwargs={"pk": self.resume.id})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["id"], self.resume.id)
+        self.assertEqual(data["name"], "Test Resume")
+        self.assertEqual(data["content"]["summary"], "Test summary")
+
+    def test_get_resume_404_for_nonexistent(self):
+        """GET returns 404 for nonexistent resume."""
+        self.client.force_authenticate(user=self.user)
+        url = reverse("resume-detail", kwargs={"pk": 99999})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 404)
+
+    def test_get_resume_404_for_other_users_resume(self):
+        """User cannot access another user's resume."""
+        self.client.force_authenticate(user=self.other_user)
+        url = reverse("resume-detail", kwargs={"pk": self.resume.id})
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 404)
