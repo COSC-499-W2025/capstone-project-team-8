@@ -1,7 +1,11 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { uploadFolder } from '@/utils/api';
+import { initializeButtons } from '@/utils/buttonAnimation';
 
 export default function UploadPage() {
   const [file, setFile] = useState(null);
@@ -11,6 +15,11 @@ export default function UploadPage() {
   const [llmConsent, setLlmConsent] = useState(false);
   const fileInputRef = useRef(null);
   const router = useRouter();
+  const { isAuthenticated, token } = useAuth();
+
+  useEffect(() => {
+    initializeButtons();
+  }, []);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files?.[0];
@@ -35,22 +44,7 @@ export default function UploadPage() {
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('consent_scan', scanConsent ? 'true' : 'false');
-      formData.append('consent_send_llm', llmConsent ? 'true' : 'false');
-
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://capstone_backend:8000';
-      const response = await fetch(`${backendUrl}/api/upload-folder/`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error(`Upload failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      const data = await uploadFolder(file, scanConsent, llmConsent, token || null);
       
       // Store results in sessionStorage to pass to results page
       sessionStorage.setItem('uploadResults', JSON.stringify(data));
@@ -80,19 +74,39 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Upload Portfolio</h1>
-          <p className="text-gray-600 mb-8">Upload your project files as a ZIP archive</p>
+    <div className="min-h-screen bg-primary p-8">
+      <div className="max-w-2xl mx-auto fade-in">
+        {/* Navigation */}
+        <div className="mb-6">
+          <Link href={isAuthenticated ? '/dashboard' : '/'} className="font-semibold transition-colors text-primary">
+            ← {isAuthenticated ? 'Back to Dashboard' : 'Back to Home'}
+          </Link>
+        </div>
+
+        <div className="glow-box rounded-lg p-8">
+          <h1 className="text-4xl font-bold mb-2 text-primary">Upload Portfolio</h1>
+          <p className="mb-8 text-primary">Upload your project files as a ZIP archive</p>
+
+          {isAuthenticated && (
+            <div className="mb-6 p-4 rounded-lg" style={{ 
+              background: 'rgba(34, 197, 94, 0.1)',
+              borderLeft: '3px solid #22c55e'
+            }}>
+              <p style={{ color: '#86efac' }}>
+                ✓ You are authenticated. Your uploads will be saved to your account.
+              </p>
+            </div>
+          )}
 
           {/* Upload Area */}
           <div
             onDragOver={handleDragOver}
             onDrop={handleDrop}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-              file ? 'border-green-500 bg-green-50' : 'border-gray-300 hover:border-indigo-500'
-            }`}
+            className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all button-lift"
+            style={{
+              borderColor: file ? 'white' : 'rgba(255, 255, 255, 0.2)',
+              background: file ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)',
+            }}
             onClick={() => fileInputRef.current?.click()}
           >
             <input
@@ -103,18 +117,18 @@ export default function UploadPage() {
               className="hidden"
             />
 
-            <div className="text-gray-600">
+            <div className="text-primary">
               {file ? (
                 <>
-                  <p className="text-lg font-semibold text-green-600">{file.name}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-lg font-semibold text-primary">{file.name}</p>
+                  <p className="text-sm text-primary">
                     {(file.size / 1024 / 1024).toFixed(2)} MB
                   </p>
                 </>
               ) : (
                 <>
-                  <p className="text-lg font-semibold mb-2">Drag and drop your ZIP file</p>
-                  <p className="text-sm">or click to browse</p>
+                  <p className="text-lg font-semibold mb-2" style={{ fontFamily: 'Lato, sans-serif' }}>Drag and drop your ZIP file</p>
+                  <p className="text-sm text-primary">or click to browse</p>
                 </>
               )}
             </div>
@@ -122,8 +136,11 @@ export default function UploadPage() {
 
           {/* Error Message */}
           {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-600">
-              {error}
+            <div className="mt-4 p-4 rounded-lg" style={{ 
+              background: 'rgba(220, 38, 38, 0.1)',
+              borderLeft: '3px solid #dc2626'
+            }}>
+              <p style={{ color: '#ff6b6b' }}>{error}</p>
             </div>
           )}
 
@@ -135,10 +152,10 @@ export default function UploadPage() {
                 type="checkbox"
                 checked={scanConsent}
                 onChange={(e) => setScanConsent(e.target.checked)}
-                className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                className="mt-1 w-4 h-4 rounded accent-cyan-400"
               />
-              <label htmlFor="scan-consent" className="text-sm text-gray-700">
-                <span className="font-semibold">Scan Consent:</span> I consent to scan my portfolio for code analysis, file structure, and contribution metrics.
+              <label htmlFor="scan-consent" className="text-sm text-primary">
+                <span className="font-semibold" style={{ fontFamily: 'Lato, sans-serif' }}>Scan Consent:</span> I consent to scan my portfolio for code analysis, file structure, and contribution metrics.
               </label>
             </div>
 
@@ -148,10 +165,10 @@ export default function UploadPage() {
                 type="checkbox"
                 checked={llmConsent}
                 onChange={(e) => setLlmConsent(e.target.checked)}
-                className="mt-1 w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                className="mt-1 w-4 h-4 rounded accent-cyan-400"
               />
-              <label htmlFor="llm-consent" className="text-sm text-gray-700">
-                <span className="font-semibold">LLM Processing:</span> I consent to use AI/LLM models for advanced analysis and summary generation of my portfolio.
+              <label htmlFor="llm-consent" className="text-sm text-primary">
+                <span className="font-semibold" style={{ fontFamily: 'Lato, sans-serif' }}>LLM Processing:</span> I consent to use AI/LLM models for advanced analysis and summary generation of my portfolio.
               </label>
             </div>
           </div>
@@ -160,20 +177,20 @@ export default function UploadPage() {
           <button
             onClick={handleUpload}
             disabled={!file || loading || !scanConsent}
-            className={`w-full mt-8 py-3 px-4 rounded-lg font-semibold transition-colors ${
-              !file || loading || !scanConsent
-                ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                : 'bg-indigo-600 text-white hover:bg-indigo-700'
-            }`}
+            className="w-full mt-8 font-semibold button-lift disabled:opacity-40 disabled:cursor-not-allowed"
+            data-block="button"
           >
-            {loading ? (
-              <span className="flex items-center justify-center">
-                <span className="animate-spin mr-2">⏳</span>
-                Uploading...
-              </span>
-            ) : (
-              'Upload Portfolio'
-            )}
+            <span className="button__flair"></span>
+            <span className="button__label">
+              {loading ? (
+                <span className="flex items-center justify-center">
+                  <span className="animate-spin mr-2">⏳</span>
+                  Uploading...
+                </span>
+              ) : (
+                'Upload Portfolio'
+              )}
+            </span>
           </button>
         </div>
       </div>

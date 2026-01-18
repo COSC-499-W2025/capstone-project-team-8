@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import ProjectCard from '@/components/ProjectCard';
 import ThumbnailUpload from '@/components/ThumbnailUpload';
+import { initializeButtons } from '@/utils/buttonAnimation';
 
 export default function ResultsPage() {
   const [results, setResults] = useState(null);
@@ -22,13 +23,14 @@ export default function ResultsPage() {
       }
     }
     setLoading(false);
+    initializeButtons();
   }, []);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-primary">
         <div className="text-center">
-          <p className="text-2xl font-semibold text-gray-700">Loading...</p>
+          <p className="text-2xl font-semibold text-primary">Loading...</p>
         </div>
       </div>
     );
@@ -36,14 +38,16 @@ export default function ResultsPage() {
 
   if (!results) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center bg-primary">
         <div className="text-center">
-          <p className="text-2xl font-semibold text-gray-700 mb-4">No results found</p>
+          <p className="text-2xl font-semibold text-primary mb-4">No results found</p>
           <button
-            onClick={() => router.push('/upload')}
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            onClick={() => router.push('/dashboard')}
+            className="px-6 py-2 bg-card text-primary rounded-lg hover:opacity-80 button-lift"
+            data-block="button"
           >
-            Back to Upload
+            <span className="button__flair"></span>
+            <span className="button__label">Back to Dashboard</span>
           </button>
         </div>
       </div>
@@ -69,21 +73,21 @@ export default function ResultsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
+    <div className="min-h-screen bg-primary p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <button
-            onClick={() => router.push('/upload')}
-            className="text-indigo-600 hover:text-indigo-700 font-semibold mb-4"
+            onClick={() => router.push('/dashboard')}
+            className="text-primary hover:opacity-80 font-semibold mb-4"
           >
-            ← Back to Upload
+            ← Back to Dashboard
           </button>
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Portfolio Analysis</h1>
-          <p className="text-gray-600">Review your uploaded portfolio and add a thumbnail</p>
+          <h1 className="text-4xl font-bold text-primary mb-2">Portfolio Analysis</h1>
+          <p className="text-primary">Review your uploaded portfolio and add a thumbnail</p>
           <button
             onClick={() => setShowDebug(!showDebug)}
-            className="mt-2 text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+            className="mt-2 text-xs px-2 py-1 bg-card text-primary rounded hover:opacity-80"
           >
             {showDebug ? 'Hide' : 'Show'} Debug Info
           </button>
