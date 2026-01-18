@@ -111,3 +111,110 @@ class ResumeDetailEndpointTests(TestCase):
         url = reverse("resume-detail", kwargs={"pk": self.resume.id})
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 404)
+
+
+class ResumeGenerateEndpointTests(TestCase):
+    """Tests for POST /api/resume/generate/ endpoint."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="generate_user",
+            email="generate@example.com",
+            password="pass12345"
+        )
+
+    def test_generate_resume_requires_authentication(self):
+        """POST /api/resume/generate/ requires auth."""
+        url = reverse("resume-generate")
+        resp = self.client.post(url, {"name": "New Resume"})
+        self.assertIn(resp.status_code, (401, 403))
+
+    def test_generate_resume_creates_new_resume(self):
+        """Authenticated user can generate a new resume."""
+        self.client.force_authenticate(user=self.user)
+        url = reverse("resume-generate")
+        payload = {"name": "My Generated Resume"}
+        resp = self.client.post(url, payload, format="json")
+        self.assertEqual(resp.status_code, 201)
+        data = resp.json()
+        self.assertIn("id", data)
+        self.assertEqual(data["name"], "My Generated Resume")
+        # Verify it's saved in database
+        resume = Resume.objects.get(id=data["id"])
+        self.assertEqual(resume.user, self.user)
+
+    def test_generate_resume_requires_name(self):
+        """Name field is required."""
+        self.client.force_authenticate(user=self.user)
+        url = reverse("resume-generate")
+        payload = {}
+        resp = self.client.post(url, payload, format="json")
+        self.assertEqual(resp.status_code, 400)
+
+
+class ResumeEditEndpointTests(TestCase):
+    """Tests for POST /api/resume/{id}/edit/ endpoint."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="edit_user",
+            email="edit@example.com",
+            password="pass12345"
+        )
+        self.other_user = User.objects.create_user(
+            username="other_edit_user",
+            email="other_edit@example.com",
+            password="pass12345"
+        )
+        self.resume = Resume.objects.create(
+            user=self.user,
+            name="Original Name",
+            content={"summary": "Original summary"}
+        )
+
+    def test_edit_resume_requires_authentication(self):
+        """POST /api/resume/{id}/edit/ requires auth."""
+        url = reverse("resume-edit", kwargs={"pk": self.resume.id})
+        resp = self.client.post(url, {"name": "New Name"})
+        self.assertIn(resp.status_code, (401, 403))
+
+    def test_edit_resume_updates_name(self):
+        """Authenticated user can update resume name."""
+        self.client.force_authenticate(user=self.user)
+        url = reverse("resume-edit", kwargs={"pk": self.resume.id})
+        payload = {"name": "Updated Name"}
+        resp = self.client.post(url, payload, format="json")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["name"], "Updated Name")
+        # Verify it's updated in database
+        self.resume.refresh_from_db()
+        self.assertEqual(self.resume.name, "Updated Name")
+
+    def test_edit_resume_updates_content(self):
+        """Authenticated user can update resume content."""
+        self.client.force_authenticate(user=self.user)
+        url = reverse("resume-edit", kwargs={"pk": self.resume.id})
+        payload = {"content": {"summary": "Updated summary", "skills": ["Python"]}}
+        resp = self.client.post(url, payload, format="json")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["content"]["summary"], "Updated summary")
+        self.resume.refresh_from_db()
+        self.assertEqual(self.resume.content["summary"], "Updated summary")
+
+    def test_edit_resume_404_for_nonexistent(self):
+        """POST returns 404 for nonexistent resume."""
+        self.client.force_authenticate(user=self.user)
+        url = reverse("resume-edit", kwargs={"pk": 99999})
+        resp = self.client.post(url, {"name": "Test"}, format="json")
+        self.assertEqual(resp.status_code, 404)
+
+    def test_edit_resume_404_for_other_users_resume(self):
+        """User cannot edit another user's resume."""
+        self.client.force_authenticate(user=self.other_user)
+        url = reverse("resume-edit", kwargs={"pk": self.resume.id})
+        resp = self.client.post(url, {"name": "Hacked"}, format="json")
+        self.assertEqual(resp.status_code, 404)

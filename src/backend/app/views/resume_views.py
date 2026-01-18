@@ -90,3 +90,65 @@ class ResumeDetailView(APIView):
             "created_at": resume.created_at,
             "updated_at": resume.updated_at,
         })
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ResumeGenerateView(APIView):
+    """
+    POST /api/resume/generate/
+    Generate a new resume for the authenticated user.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        """Generate a new resume."""
+        name = request.data.get("name")
+        if not name:
+            return Response(
+                {"error": "name is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        content = request.data.get("content", {})
+        resume = Resume.objects.create(
+            user=request.user,
+            name=name,
+            content=content
+        )
+        return Response(
+            {
+                "id": resume.id,
+                "name": resume.name,
+                "content": resume.content,
+                "created_at": resume.created_at,
+                "updated_at": resume.updated_at,
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ResumeEditView(APIView):
+    """
+    POST /api/resume/{id}/edit/
+    Edit an existing resume (only if owned by the authenticated user).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        """Edit an existing resume."""
+        resume = get_object_or_404(Resume, pk=pk, user=request.user)
+        
+        if "name" in request.data:
+            resume.name = request.data["name"]
+        if "content" in request.data:
+            resume.content = request.data["content"]
+        
+        resume.save()
+        
+        return Response({
+            "id": resume.id,
+            "name": resume.name,
+            "content": resume.content,
+            "created_at": resume.created_at,
+            "updated_at": resume.updated_at,
+        })
