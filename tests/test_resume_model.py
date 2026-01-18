@@ -116,12 +116,13 @@ class ResumeModelTests(TestCase):
             email="temp@example.com",
             password="temppass"
         )
+        temp_user_id = temp_user.id
         
         Resume.objects.create(user=temp_user, name="Temp Resume")
-        self.assertEqual(Resume.objects.filter(user=temp_user).count(), 1)
+        self.assertEqual(Resume.objects.filter(user_id=temp_user_id).count(), 1)
         
         temp_user.delete()
-        self.assertEqual(Resume.objects.filter(user=temp_user).count(), 0)
+        self.assertEqual(Resume.objects.filter(user_id=temp_user_id).count(), 0)
 
     def test_resume_str_representation(self):
         """Test the string representation of a resume."""
