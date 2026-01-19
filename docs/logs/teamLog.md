@@ -1,4 +1,21 @@
 # T8BG Team Log
+
+## Weekly Logs
+- [Milestone 2 Week 2](#milestone-2-week-2)
+- [Milestone 2 Week 1](#milestone-2-week-1)
+- [Week 14](#week-14)
+- [Week 13](#week-13)
+- [Week 11 (Reading Week) & 12: Nov 10 - 22](#week-11-reading-week--12-nov-10---22)
+- [Week 10: Nov 2 - 9](#week-10-nov-2---9)
+- [Week 9: Oct 25 - 29](#week-9-oct-25---29)
+- [Week 8: Oct 20 - 24](#week-8-oct-20---24)
+- [Week 7: Oct 13 - 17](#week-7-oct-13---17)
+- [Week 6: Oct 6 - 12](#week-6-oct-6---12)
+- [Week 5: Sept 29 - Oct 5](#week-5-sept-29---oct-5)
+- [Week 4: Sept 22 - 28](#week-4-sept-22---28)
+- [Week 3: Sept 15 - 21](#week-3-sept-15---21)
+
+
 |Username|Student Name|
 |-|-|
 |kylekmcleod|Kyle McLeod|
@@ -8,10 +25,11 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
-## Week 16
+
+## Milestone 2 Week 2
 
 
-## Week 15
+## Milestone 2 Week 1
 
 ### Our Goals this week:
  This week our goal was to start working towards milestone 2 while accounting for any remaining tasks from milestone 1. Expanding on some of our previous features was key to help with our goal of building an exportable resume.

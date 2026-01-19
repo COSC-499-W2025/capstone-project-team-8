@@ -217,8 +217,8 @@ Next week:
 
 This week:
 - implemented bugfix on API error PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/241
-- backend byte size and char count bugfix PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/250
-- quick UI styling change PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/242
+- backend byte size and char count bugfix PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/254
+- quick UI styling change PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/252
 - reviewed Matins PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/244
 - reviewed Harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/238
 
