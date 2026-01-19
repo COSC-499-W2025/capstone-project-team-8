@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('app', '0007_project_resume_bullet_points'),
+        ('app', '0010_remove_user_profile_image_url_project_thumbnail_and_more'),
     ]
 
     operations = [
