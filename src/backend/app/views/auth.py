@@ -133,6 +133,9 @@ class SignupView(APIView):
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
 
+    @extend_schema(
+        exclude=True,  # Hide from API docs since it's just for HTML form
+    )
     def get(self, request):
         """Return signupusage or HTML form."""
 
@@ -242,6 +245,9 @@ class LoginView(APIView):
                 status=http_status.HTTP_401_UNAUTHORIZED,
             )
 
+    @extend_schema(
+        exclude=True,  # Hide from API docs since it's just for HTML form
+    )
     def get(self, request):
         """Return signupusage or HTML form."""
 
