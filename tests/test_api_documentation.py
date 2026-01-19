@@ -37,7 +37,7 @@ class APIDocumentationTests(TestCase):
         self.assertTrue(schema['openapi'].startswith('3.'))
         
         # Check API info
-        self.assertEqual(schema['info']['title'], 'Capstone Project API')
+        self.assertEqual(schema['info']['title'], 'Team 8 Capstone Project API')
         self.assertEqual(schema['info']['version'], '1.0.0')
 
     def test_schema_contains_expected_endpoints(self):
