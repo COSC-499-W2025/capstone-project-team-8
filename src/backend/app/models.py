@@ -454,3 +454,46 @@ class ProjectContribution(models.Model):
     
     def __str__(self):
         return f"{self.contributor.name} -> {self.project.name} ({self.commit_count} commits)"
+
+
+class Resume(models.Model):
+    """
+    Model to store generated resumes for users.
+    
+    Each user can have multiple resumes with different configurations.
+    The content field stores the resume data as JSON for flexibility.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='resumes',
+        help_text="The user who owns this resume"
+    )
+    
+    name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Optional name/title for this resume"
+    )
+    
+    content = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Resume content stored as JSON (skills, projects, education, etc.)"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'resumes'
+        ordering = ['-updated_at']
+        indexes = [
+            models.Index(fields=['user', '-updated_at']),
+        ]
+    
+    def __str__(self):
+        name_display = self.name or f"Resume {self.id}"
+        return f"{name_display} ({self.user.username})"
