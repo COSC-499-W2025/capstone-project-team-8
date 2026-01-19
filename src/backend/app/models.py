@@ -475,19 +475,19 @@ class Portfolio(models.Model):
     """
     # Owner
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolios')
-    
+
     # Core fields
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=100, unique=True, db_index=True)  # Globally unique
     description = models.TextField(blank=True)
-    
+
     # AI-generated summary
     summary = models.TextField(blank=True)
     summary_generated_at = models.DateTimeField(null=True, blank=True)
-    
+
     # Visibility
     is_public = models.BooleanField(default=False)
-    
+
     # Customization
     target_audience = models.CharField(max_length=100, blank=True)  # e.g., "recruiters", "developers"
     tone = models.CharField(
@@ -498,45 +498,20 @@ class Portfolio(models.Model):
             ('technical', 'Technical'),
             ('creative', 'Creative'),
         ],
-        default='professional')
-class Resume(models.Model):
-    """
-    Model to store generated resumes for users.
-    
-    Each user can have multiple resumes with different configurations.
-    The content field stores the resume data as JSON for flexibility.
-    """
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='resumes',
-        help_text="The user who owns this resume"
+        default='professional'
     )
-    
-    name = models.CharField(
-        max_length=255,
-        blank=True,
-        default="",
-        help_text="Optional name/title for this resume"
-    )
-    
-    content = models.JSONField(
-        default=dict,
-        blank=True,
-        help_text="Resume content stored as JSON (skills, projects, education, etc.)"
-    )
-    
+
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     # Relationships
     projects = models.ManyToManyField(
         Project,
         through='PortfolioProject',
         related_name='portfolios'
     )
-    
+
     class Meta:
         db_table = 'portfolios'
         ordering = ['-created_at']
@@ -544,7 +519,7 @@ class Resume(models.Model):
             models.Index(fields=['user', '-created_at']),
             models.Index(fields=['is_public', '-created_at']),
         ]
-    
+
     def __str__(self):
         return f"{self.user.username} - {self.title}"
 
@@ -555,15 +530,15 @@ class PortfolioProject(models.Model):
     """
     portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='portfolio_projects')
     project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='portfolio_entries')
-    
+
     # Ordering and customization
     order = models.PositiveIntegerField(default=0)
     notes = models.TextField(blank=True)  # Custom description for this project in portfolio context
     featured = models.BooleanField(default=False)  # Highlight this project
-    
+
     # Timestamps
     added_at = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
         db_table = 'portfolio_projects'
         unique_together = ['portfolio', 'project']
@@ -571,16 +546,6 @@ class PortfolioProject(models.Model):
         indexes = [
             models.Index(fields=['portfolio', 'order']),
         ]
-    
+
     def __str__(self):
         return f"{self.portfolio.title} - {self.project.name} (order: {self.order})"
-    class Meta:
-        db_table = 'resumes'
-        ordering = ['-updated_at']
-        indexes = [
-            models.Index(fields=['user', '-updated_at']),
-        ]
-    
-    def __str__(self):
-        name_display = self.name or f"Resume {self.id}"
-        return f"{name_display} ({self.user.username})"
