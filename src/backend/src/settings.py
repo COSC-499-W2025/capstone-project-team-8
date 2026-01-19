@@ -192,8 +192,8 @@ SIMPLE_JWT = {
 
 # API Documentation Configuration
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Capstone Project API',
-    'DESCRIPTION': 'API for project analysis and resume generation',
+    'TITLE': 'Team 8 Capstone Project API',
+    'DESCRIPTION': 'API documentation for Team 8 Capstone Project.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'COMPONENT_SPLIT_REQUEST': True,
