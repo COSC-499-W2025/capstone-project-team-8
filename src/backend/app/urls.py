@@ -11,7 +11,14 @@ from .views.project_views import (
     ProjectThumbnailUploadView,
 )
 from .views.user_views import UserMeView, PublicUserView, PasswordChangeView, ProfileImageUploadView
-from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView
+from .views.resume_views import (
+    ResumeTemplatesView, 
+    ResumePreviewView, 
+    GenerateLatexResumeView,
+    ResumeGenerateView,
+    ResumeDetailView,
+    ResumeEditView,
+)
 
 urlpatterns = [
     # Upload and analysis
@@ -28,7 +35,7 @@ urlpatterns = [
     path("resume/templates/", ResumeTemplatesView.as_view(), name="resume-templates"),
     path("resume/preview/", ResumePreviewView.as_view(), name="resume-preview"),
     path("resume/generate/latex/", GenerateLatexResumeView.as_view(), name="resume-generate-latex"),
-    path("resume/generate/", ResumeTemplatesView.as_view(), name="resume-generate"),
+    path("resume/generate/", ResumeGenerateView.as_view(), name="resume-generate"),
     path("resume/<int:pk>/", ResumeDetailView.as_view(), name="resume-detail"),
     path("resume/<int:pk>/edit/", ResumeEditView.as_view(), name="resume-edit"),
     
