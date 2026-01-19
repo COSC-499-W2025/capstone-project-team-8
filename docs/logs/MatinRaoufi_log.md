@@ -215,6 +215,7 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 
 ## Week 16 January 12-17
 
+![alt text](image-1.png)
 
 **Coding tasks:**
 - Implemented the Resume model and Milestone 2 Endpoints for Resume.
@@ -227,11 +228,12 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 - Used Postman and automated tests to verify all new endpoints work as expected and return correct error codes for edge cases (auth required, 404 for other users, etc.).
 - Debugged test failures related to database schema and ensured the new endpoints are only available when the Resume model is present.
 
-**Reviewing or collaboration tasks:**
+**Reviewing**
 - Reviewed PRs from teammates:
   - [#219](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/219)
   - [#236](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/236)
   - [#237](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/237)
+  - [#252](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/252)
 - Provided feedback and suggestions, focusing on code clarity, test coverage, and API consistency, UI review and better utilization of Tailwind
 
 **Connection to previous week:**
