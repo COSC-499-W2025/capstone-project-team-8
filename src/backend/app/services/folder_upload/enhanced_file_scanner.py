@@ -109,8 +109,21 @@ class EnhancedFileScannerService:
         
         elif kind == 'content':
             try:
-                with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
-                    text = f.read()
+                # Use the proper analyze_content function for PDF support
+                from app.services.analysis.analyzers import analyze_content
+                content_result = analyze_content(fpath)
+                result['length'] = content_result.get('length')
+                
+                # For content files, we need to get the actual text
+                if fpath.suffix.lower() == '.pdf':
+                    from app.services.utils.pdfReader import read_pdf
+                    text = read_pdf(str(fpath))
+                    if text is None:
+                        text = ""  # fallback for failed PDF reads
+                else:
+                    with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
+                        text = f.read()
+                
                 result['length'] = len(text)
                 # Include text for hash computation in database service
                 result['text'] = text[:20000]  # Cap at 20KB

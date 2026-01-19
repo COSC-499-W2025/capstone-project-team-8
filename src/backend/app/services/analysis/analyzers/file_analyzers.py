@@ -6,6 +6,7 @@ from typing import Dict, Any
 from pathlib import Path
 from fnmatch import fnmatch
 from app.services.analysis.analyzers import project_metadata
+from app.services.utils.pdfReader import read_pdf
 
 DEFAULT_IGNORES = set(project_metadata.DEFAULT_IGNORES)
 
@@ -68,14 +69,23 @@ def analyze_content(path: Path) -> Dict[str, Any]:
     if _is_ignored(path):
         # skip heavy text reads for ignored files
         return {"type": "content", "path": str(path), "length": None, "skipped": True}
+    
     try:
-        text = path.read_text(errors="ignore")
+        # Handle PDF files specially
+        if path.suffix.lower() == '.pdf':
+            text = read_pdf(str(path))
+            if text is None:
+                # If PDF reading fails, treat as binary/unsupported
+                return {"type": "content", "path": str(path), "length": None, "skipped": True, "reason": "pdf_read_failed"}
+        else:
+            text = path.read_text(errors="ignore")
+        
         length = len(text)
         # small-file heuristic: skip empty or very short text files (<5 lines)
         lines = text.count("\n") + 1 if text else 0
         if lines > 0 and lines < 5:
             return {"type": "content", "path": str(path), "length": length, "skipped": True, "reason": "too_few_lines"}
-    except Exception:
+    except Exception as e:
         length = None
     return {"type": "content", "path": str(path), "length": length}
 
