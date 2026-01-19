@@ -59,6 +59,7 @@ We made a lot of code contibutions this week and split them up into numerous PR'
 Our task delegation at the beggining of the week went well, we really knew what to tackle for the week. Having basic UI makes dealing with file uploads a lot easier now and we can now cross off things from the Milestone 2 checklists, and we have set up ourselves to tackle other tasks. At our next meeting we will delegate our tasks acoordingly. 
 
 ### What didn't go well:
+We had some issues with the database migrations since some branches had the same migration codes from being out of sync. We also caught some bugs in our backend when integrating our prototype UI. Some of these bugs were resolved but we will continue to find more and resolve them in the following week.
 
 ### Test Report
 <img width="1064" height="592" alt="image" src="https://github.com/user-attachments/assets/dd9ae350-0dde-4f2f-8407-53655e76942b" />
