@@ -1,9 +1,13 @@
 # Charlie Schwebius' weekly logs
+[Week 3](#week-3-(september-15-21))
+
+
 ## Week 3 (September 15-21)
 <img width="1923" height="1123" alt="Screenshot 2025-09-21 111401" src="https://github.com/user-attachments/assets/3816e1e3-ec1a-42a8-878a-b87766521230" />
 
 - Worked as a team to create requirements document
 - Reviewed requirements document with other teams to gather input and insight.
+- 
 ## Week 4 (September 22-28)
 <img width="1085" height="629" alt="image" src="https://github.com/user-attachments/assets/2203e8d0-580b-41bd-975a-595e45fcf2e2" />
 
@@ -222,3 +226,8 @@ NEXT WEEK: Bug fixes and milestone wrap-up
 I made a fatal mistake by being late on my PR once again. It is a large PR, but I should have been better about my planning. Fortunately, I have made solid progress on it, but I absolutely need to coordinate with the team to ensure the best implementation. I am still optimistic about the rest of this Milestone, though; there seem to be fewer requirements.
 
 NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
+
+## Milestone 2 Week 2 (Jan 12-18)
+
+<img width="1878" height="1099" alt="image" src="https://github.com/user-attachments/assets/d2f50349-300f-48f9-9339-e51e0af4ecb1" />
+
