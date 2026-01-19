@@ -61,6 +61,8 @@ Our task delegation at the beggining of the week went well, we really knew what 
 ### What didn't go well:
 
 ### Test Report
+<img width="1064" height="592" alt="image" src="https://github.com/user-attachments/assets/dd9ae350-0dde-4f2f-8407-53655e76942b" />
+
 
 ### Plan for next week:
 
