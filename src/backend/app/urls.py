@@ -8,9 +8,10 @@ from .views.project_views import (
     ProjectStatsView,
     RankedProjectsView,
     TopProjectsSummaryView,
+    ProjectThumbnailUploadView,
 )
-from .views.user_views import UserMeView, PublicUserView
-from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView, ResumeDetailView, ResumeGenerateView, ResumeEditView
+from .views.user_views import UserMeView, PublicUserView, PasswordChangeView, ProfileImageUploadView
+from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView
 
 urlpatterns = [
     # Upload and analysis
@@ -42,5 +43,10 @@ urlpatterns = [
     
     # User profile endpoints
     path("users/me/", UserMeView.as_view(), name="user-me"),
+    path("users/me/profile-image/", ProfileImageUploadView.as_view(), name="user-profile-image-upload"),
+    path("users/password/", PasswordChangeView.as_view(), name="user-password-change"),
     path("users/<str:username>/", PublicUserView.as_view(), name="user-public"),
+    
+    # Project thumbnail endpoints
+    path("projects/<int:pk>/thumbnail/", ProjectThumbnailUploadView.as_view(), name="project-thumbnail-upload"),
 ]
