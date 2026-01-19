@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('app', '0008_user_degree_major_user_education_city_and_more'),
+        ('app', '0011_add_file_deduplication'),
     ]
 
     operations = [
