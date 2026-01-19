@@ -27,7 +27,6 @@ export default function ProfilePage() {
     linkedin_url: '',
     portfolio_url: '',
     twitter_username: '',
-    profile_image_url: '',
     university: '',
     degree_major: '',
     education_city: '',
@@ -65,7 +64,6 @@ export default function ProfilePage() {
           linkedin_url: data.user.linkedin_url || '',
           portfolio_url: data.user.portfolio_url || '',
           twitter_username: data.user.twitter_username || '',
-          profile_image_url: data.user.profile_image_url || '',
           university: data.user.university || '',
           degree_major: data.user.degree_major || '',
           education_city: data.user.education_city || '',
@@ -257,6 +255,7 @@ export default function ProfilePage() {
 
       const data = await response.json();
       setCurrentUser({ ...user, profile_image_url: data.user.profile_image_url });
+      setProfileImagePreview(data.user.profile_image_url);
       setMessage({ type: 'success', text: 'Profile image uploaded successfully!' });
       fileInput.value = '';
     } catch (err) {
@@ -459,7 +458,7 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-white/80 text-sm font-medium mb-2">
                       Twitter Username
                     </label>
@@ -469,20 +468,6 @@ export default function ProfilePage() {
                       value={formData.twitter_username}
                       onChange={handleInputChange}
                       placeholder="@username"
-                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">
-                      Profile Image URL
-                    </label>
-                    <input
-                      type="url"
-                      name="profile_image_url"
-                      value={formData.profile_image_url}
-                      onChange={handleInputChange}
-                      placeholder="https://example.com/image.jpg"
                       className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
                     />
                   </div>
