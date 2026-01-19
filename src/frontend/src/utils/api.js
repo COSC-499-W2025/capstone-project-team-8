@@ -21,7 +21,7 @@ export async function apiCall(endpoint, options = {}, token = null) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || errorData.message || `API error: ${response.statusText}`);
+    throw new Error(errorData.error || errorData.detail || errorData.message || `API error: ${response.statusText}`);
   }
 
   return response.json();
