@@ -1,199 +1,273 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { uploadFolder } from '@/utils/api';
-import { initializeButtons } from '@/utils/buttonAnimation';
+import Header from '@/components/Header';
+import Toast from '@/components/Toast';
 
 export default function UploadPage() {
-  const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [scanConsent, setScanConsent] = useState(false);
-  const [llmConsent, setLlmConsent] = useState(false);
-  const fileInputRef = useRef(null);
   const router = useRouter();
   const { isAuthenticated, token } = useAuth();
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [showConsent, setShowConsent] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
-    initializeButtons();
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
   }, []);
-
-  const handleFileChange = (e) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setError(null);
-    }
-  };
-
-  const handleUpload = async () => {
-    if (!file) {
-      setError('Please select a file');
-      return;
-    }
-
-    if (!scanConsent) {
-      setError('Please accept scan consent to continue');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await uploadFolder(file, scanConsent, llmConsent, token || null);
-      
-      // Store results in sessionStorage to pass to results page
-      sessionStorage.setItem('uploadResults', JSON.stringify(data));
-      
-      // Redirect to results page
-      router.push('/results');
-    } catch (err) {
-      setError(err.message || 'Upload failed');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    const droppedFile = e.dataTransfer.files?.[0];
-    if (droppedFile) {
-      setFile(droppedFile);
-      setError(null);
+    setIsDragging(false);
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      setSelectedFile(files[0]);
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleStartScan = () => {
+    if (!selectedFile) {
+      setMessage({ type: 'error', text: 'Please select a file first' });
+      return;
+    }
+    setShowConsent(true);
+  };
+
+  const handleConfirmUpload = async (scanConsent, llmConsent) => {
+    setShowConsent(false);
+    setUploading(true);
+    setMessage({ type: '', text: '' });
+
+    try {
+      await uploadFolder(selectedFile, scanConsent, llmConsent, token);
+      setMessage({ type: 'success', text: 'Portfolio uploaded and analysis started!' });
+      setSelectedFile(null);
+      
+      // Redirect to results page after a short delay
+      setTimeout(() => {
+        router.push('/results');
+      }, 2000);
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message || 'Failed to upload portfolio' });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
   return (
-    <div className="min-h-screen bg-primary p-8">
-      <div className="max-w-2xl mx-auto fade-in">
-        {/* Navigation */}
-        <div className="mb-6">
-          <Link href={isAuthenticated ? '/dashboard' : '/'} className="font-semibold transition-colors text-primary">
-            ← {isAuthenticated ? 'Back to Dashboard' : 'Back to Home'}
-          </Link>
-        </div>
+    <>
+      <Header />
+      <div className="min-h-screen flex flex-col items-center justify-center p-8">
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={handleFileSelect}
+          accept=".zip,.rar,.7z,.tar,.gz"
+          className="hidden"
+        />
 
-        <div className="glow-box rounded-lg p-8">
-          <h1 className="text-4xl font-bold mb-2 text-primary">Upload Portfolio</h1>
-          <p className="mb-8 text-primary">Upload your project files as a ZIP archive</p>
-
-          {isAuthenticated && (
-            <div className="mb-6 p-4 rounded-lg" style={{ 
-              background: 'rgba(34, 197, 94, 0.1)',
-              borderLeft: '3px solid #22c55e'
-            }}>
-              <p style={{ color: '#86efac' }}>
-                ✓ You are authenticated. Your uploads will be saved to your account.
+        {!selectedFile ? (
+          // Upload Zone
+          <div
+            onClick={handleUploadClick}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`w-full max-w-md flex flex-col items-center justify-center p-8 rounded-lg border-2 border-dashed cursor-pointer transition-all ${
+              isDragging
+                ? 'border-blue-400 bg-blue-500/10'
+                : 'border-white/30 bg-[var(--card-bg)] hover:bg-white/5'
+            }`}
+          >
+            <img
+              src="/upload.svg"
+              alt="Upload"
+              className="w-16 h-16 mb-6"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
+            
+            <h2 className="text-2xl font-semibold text-white mb-4 text-center">
+              Upload Your Portfolio
+            </h2>
+            
+            <p className="text-white/60 text-center mb-6">
+              Drag and drop your project folder (ZIP) here, or click to browse
+            </p>
+            
+            <button
+              type="button"
+              onClick={handleUploadClick}
+              className="inline-block"
+              data-block="button"
+            >
+              <span className="button__flair"></span>
+              <span className="button__label">Select File</span>
+            </button>
+            
+            <p className="text-white/40 text-sm text-center mt-4">
+              Supported formats: ZIP, RAR, 7Z, TAR, GZ
+            </p>
+          </div>
+        ) : (
+          // File Selected State
+          <div className="w-full max-w-md flex flex-col items-center justify-center p-8 rounded-lg bg-[var(--card-bg)] border border-white/20">
+            <div className="text-5xl mb-6">✓</div>
+            
+            <h2 className="text-2xl font-semibold text-white mb-4 text-center">
+              Ready to Scan
+            </h2>
+            
+            <div className="w-full bg-white/5 border border-white/10 rounded-lg p-4 mb-6">
+              <p className="text-white/60 text-xs uppercase tracking-wide mb-1">Selected File</p>
+              <p className="text-white font-medium break-all">{selectedFile.name}</p>
+              <p className="text-white/40 text-sm mt-2">
+                {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
               </p>
             </div>
-          )}
+            
+            <p className="text-white/60 text-center mb-6 text-sm">
+              Click "Start Scan" to analyze your portfolio and extract your skills
+            </p>
+            
+            <div className="flex gap-3 w-full">
+              <button
+                onClick={clearSelection}
+                className="flex-1 px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-lg transition-colors"
+                disabled={uploading}
+              >
+                Change File
+              </button>
+              
+              <button
+                onClick={handleStartScan}
+                disabled={uploading}
+                className="flex-1 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {uploading ? 'Scanning...' : 'Start Scan'}
+              </button>
+            </div>
+          </div>
+        )}
 
-          {/* Upload Area */}
-          <div
-            onDragOver={handleDragOver}
-            onDrop={handleDrop}
-            className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all button-lift"
-            style={{
-              borderColor: file ? 'white' : 'rgba(255, 255, 255, 0.2)',
-              background: file ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.05)',
-            }}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".zip"
-              onChange={handleFileChange}
-              className="hidden"
+        {/* Consent Modal */}
+        {showConsent && (
+          <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
+            {/* Backdrop */}
+            <div
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setShowConsent(false)}
             />
 
-            <div className="text-primary">
-              {file ? (
-                <>
-                  <p className="text-lg font-semibold text-primary">{file.name}</p>
-                  <p className="text-sm text-primary">
-                    {(file.size / 1024 / 1024).toFixed(2)} MB
-                  </p>
-                </>
-              ) : (
-                <>
-                  <p className="text-lg font-semibold mb-2" style={{ fontFamily: 'Lato, sans-serif' }}>Drag and drop your ZIP file</p>
-                  <p className="text-sm text-primary">or click to browse</p>
-                </>
-              )}
+            {/* Modal */}
+            <div className="relative rounded-lg p-8 max-w-md w-full bg-[var(--card-bg)] border border-white/20 shadow-xl">
+              <h3 className="text-xl font-semibold text-white mb-4">Analysis Preferences</h3>
+
+              <p className="text-white/70 mb-6">
+                Please confirm how you'd like us to analyze your portfolio:
+              </p>
+
+              <div className="space-y-4 mb-6">
+                <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors">
+                  <input
+                    type="checkbox"
+                    defaultChecked
+                    className="mt-1 w-4 h-4 rounded accent-blue-500"
+                  />
+                  <div>
+                    <p className="text-white font-medium">Scan Portfolio</p>
+                    <p className="text-white/60 text-sm">
+                      Extract skills, frameworks, and technologies from your projects
+                    </p>
+                  </div>
+                </label>
+
+                <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-colors">
+                  <input
+                    type="checkbox"
+                    defaultChecked
+                    id="llm-consent"
+                    className="mt-1 w-4 h-4 rounded accent-blue-500"
+                  />
+                  <div>
+                    <p className="text-white font-medium">Allow LLM Analysis</p>
+                    <p className="text-white/60 text-sm">
+                      Use AI to generate detailed project summaries and insights
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConsent(false)}
+                  className="flex-1 px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    const scanConsent = true;
+                    const llmCheckbox = document.getElementById('llm-consent');
+                    const llmConsent = llmCheckbox?.checked || false;
+                    handleConfirmUpload(scanConsent, llmConsent);
+                  }}
+                  className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg transition-colors"
+                >
+                  Start Analysis
+                </button>
+              </div>
             </div>
           </div>
+        )}
 
-          {/* Error Message */}
-          {error && (
-            <div className="mt-4 p-4 rounded-lg" style={{ 
-              background: 'rgba(220, 38, 38, 0.1)',
-              borderLeft: '3px solid #dc2626'
-            }}>
-              <p style={{ color: '#ff6b6b' }}>{error}</p>
-            </div>
-          )}
-
-          {/* Consent Checkboxes */}
-          <div className="mt-6 space-y-4">
-            <div className="flex items-start space-x-3">
-              <input
-                id="scan-consent"
-                type="checkbox"
-                checked={scanConsent}
-                onChange={(e) => setScanConsent(e.target.checked)}
-                className="mt-1 w-4 h-4 rounded accent-cyan-400"
-              />
-              <label htmlFor="scan-consent" className="text-sm text-primary">
-                <span className="font-semibold" style={{ fontFamily: 'Lato, sans-serif' }}>Scan Consent:</span> I consent to scan my portfolio for code analysis, file structure, and contribution metrics.
-              </label>
-            </div>
-
-            <div className="flex items-start space-x-3">
-              <input
-                id="llm-consent"
-                type="checkbox"
-                checked={llmConsent}
-                onChange={(e) => setLlmConsent(e.target.checked)}
-                className="mt-1 w-4 h-4 rounded accent-cyan-400"
-              />
-              <label htmlFor="llm-consent" className="text-sm text-primary">
-                <span className="font-semibold" style={{ fontFamily: 'Lato, sans-serif' }}>LLM Processing:</span> I consent to use AI/LLM models for advanced analysis and summary generation of my portfolio.
-              </label>
-            </div>
-          </div>
-
-          {/* Upload Button */}
-          <button
-            onClick={handleUpload}
-            disabled={!file || loading || !scanConsent}
-            className="w-full mt-8 font-semibold button-lift disabled:opacity-40 disabled:cursor-not-allowed"
-            data-block="button"
-          >
-            <span className="button__flair"></span>
-            <span className="button__label">
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <span className="animate-spin mr-2">⏳</span>
-                  Uploading...
-                </span>
-              ) : (
-                'Upload Portfolio'
-              )}
-            </span>
-          </button>
-        </div>
+        {/* Toast Notification */}
+        {message.text && (
+          <Toast
+            message={message.text}
+            type={message.type}
+            onClose={() => setMessage({ type: '', text: '' })}
+          />
+        )}
       </div>
-    </div>
+    </>
   );
 }
