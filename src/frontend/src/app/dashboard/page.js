@@ -210,35 +210,50 @@ export default function DashboardPage() {
                       <Link
                         key={project.id}
                         href={`/projects/${project.id}`}
-                        className="flex-shrink-0 w-72 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg p-4 snap-start hover:border-white/40 transition-colors"
+                        className="flex-shrink-0 w-72 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg overflow-hidden snap-start hover:border-white/40 transition-colors"
                       >
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-lg font-semibold text-white line-clamp-2">{project.name}</h3>
-                            <p className="text-white/60 text-sm">
-                              {new Date(project.created_at).toLocaleDateString()}
+                        {/* Thumbnail */}
+                        <div className="h-40 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden">
+                          {project.thumbnail_url ? (
+                            <img
+                              src={project.thumbnail_url}
+                              alt={project.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-4xl">📁</span>
+                          )}
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="text-lg font-semibold text-white line-clamp-2">{project.name}</h3>
+                              <p className="text-white/60 text-sm">
+                                {new Date(project.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mb-3">
+                            <p className="text-white/60 text-sm mb-2">
+                              {project.classification_type || 'Mixed Technologies'}
                             </p>
+                            <div className="flex flex-wrap gap-1">
+                              {project.classification_type && (
+                                <span className="inline-block px-2 py-1 bg-blue-500/30 text-blue-200 text-xs rounded">
+                                  {project.classification_type}
+                                </span>
+                              )}
+                              {project.framework_count > 0 && (
+                                <span className="inline-block px-2 py-1 bg-purple-500/30 text-purple-200 text-xs rounded">
+                                  {project.framework_count} frameworks
+                                </span>
+                              )}
+                            </div>
                           </div>
-                          <span className="text-2xl">📁</span>
+                          <p className="text-blue-400 text-sm font-medium">View Project →</p>
                         </div>
-                        <div className="mb-3">
-                          <p className="text-white/60 text-sm mb-2">
-                            {project.classification_type || 'Mixed Technologies'}
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {project.classification_type && (
-                              <span className="inline-block px-2 py-1 bg-blue-500/30 text-blue-200 text-xs rounded">
-                                {project.classification_type}
-                              </span>
-                            )}
-                            {project.framework_count > 0 && (
-                              <span className="inline-block px-2 py-1 bg-purple-500/30 text-purple-200 text-xs rounded">
-                                {project.framework_count} frameworks
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <p className="text-blue-400 text-sm font-medium">View Project →</p>
                       </Link>
                     ))}
                   </div>

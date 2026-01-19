@@ -71,10 +71,18 @@ export default function Header() {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-white/5 transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-                <span className="text-white font-semibold">
-                  {user?.username?.[0]?.toUpperCase() || 'U'}
-                </span>
+              <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
+                {user?.profile_image_url ? (
+                  <img 
+                    src={user.profile_image_url} 
+                    alt={user?.username}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-white font-semibold text-sm">
+                    {user?.username?.[0]?.toUpperCase() || 'U'}
+                  </span>
+                )}
               </div>
               <span className="hidden sm:block text-white">{user?.username || 'User'}</span>
               <svg
