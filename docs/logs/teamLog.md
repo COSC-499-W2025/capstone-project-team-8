@@ -1,4 +1,21 @@
 # T8BG Team Log
+
+## Weekly Logs
+- [Milestone 2 Week 2](#milestone-2-week-2)
+- [Milestone 2 Week 1](#milestone-2-week-1)
+- [Week 14](#week-14)
+- [Week 13](#week-13)
+- [Week 11 (Reading Week) & 12: Nov 10 - 22](#week-11-reading-week--12-nov-10---22)
+- [Week 10: Nov 2 - 9](#week-10-nov-2---9)
+- [Week 9: Oct 25 - 29](#week-9-oct-25---29)
+- [Week 8: Oct 20 - 24](#week-8-oct-20---24)
+- [Week 7: Oct 13 - 17](#week-7-oct-13---17)
+- [Week 6: Oct 6 - 12](#week-6-oct-6---12)
+- [Week 5: Sept 29 - Oct 5](#week-5-sept-29---oct-5)
+- [Week 4: Sept 22 - 28](#week-4-sept-22---28)
+- [Week 3: Sept 15 - 21](#week-3-sept-15---21)
+
+
 |Username|Student Name|
 |-|-|
 |kylekmcleod|Kyle McLeod|
@@ -8,7 +25,55 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
-## Week 15
+
+## Milestone 2 Week 2
+
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| Frontend login | [@harperkerstens](https://github.com/harperkerstens) | [#235](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/235) | [#236](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/236) |
+| Dashboard and Upload Rework | [@harperkerstens](https://github.com/harperkerstens) | N/A | [#237](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/237) |
+| Profile/project uploadimage | [@harperkerstens](https://github.com/harperkerstens) | [#213](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213) | [#238](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/238) |
+| [bugfix] api error and profile img url shown | [@kylekmcleod](https://github.com/kylekmcleod) | [#240](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/240) | [#241](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/241) |
+| Feature/resume-model | [@matin0014](https://github.com/matin0014) | [#234](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/234) | [#244](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/244) |
+| Feature/resume crud endpoints | [@matin0014](https://github.com/matin0014) | [#245](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/245) | [#246](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/246) |
+| [bugfix] error message returns details | [@jordany78](https://github.com/jordany78) | [#239](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/239) | [#251](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/251) |
+| [bugfix] unix time bugfix & null database values fix | [@kylekmcleod](https://github.com/kylekmcleod) | [#249](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/249) | [#254](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/254) |
+| File deduplication | [@jordany78](https://github.com/jordany78) | [#217](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/217) | [#219](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/219) |
+| User Portfolios | [@cschwebi](https://github.com/cschwebi) | [#220](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/220) | [#247](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/247) |
+| [ui] font switch to montserrat | [@kylekmcleod](https://github.com/kylekmcleod) | N/A | [#252](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/252) |
+
+
+
+
+### Our Goals this week:
+- get a prototype UI for preparation for peer evals
+- fix bugs related to API errors
+- review and refine our milestone 2 requirements
+
+### Reflection
+We made a lot of code contibutions this week and split them up into numerous PR's. We found that a lot of PR's made is easier to review and catch bugs earlier on and merge without conflicts. Overall, going forward we are going to try to contribute smaller and more PR's so we can make steady progress without having to go back and fix things all the time.
+
+### What went well:
+
+Our task delegation at the beggining of the week went well, we really knew what to tackle for the week. Having basic UI makes dealing with file uploads a lot easier now and we can now cross off things from the Milestone 2 checklists, and we have set up ourselves to tackle other tasks. At our next meeting we will delegate our tasks acoordingly. 
+
+### What didn't go well:
+We had some issues with the database migrations since some branches had the same migration codes from being out of sync. We also caught some bugs in our backend when integrating our prototype UI. Some of these bugs were resolved but we will continue to find more and resolve them in the following week.
+
+### Test Report
+<img width="1064" height="592" alt="image" src="https://github.com/user-attachments/assets/dd9ae350-0dde-4f2f-8407-53655e76942b" />
+
+
+### Plan for next week:
+
+We want to work meet on Monday and delegate our tasks accordingly based off the Milestone 2 checklist. We want to focus on the LaTeX generator and resume builder as we now have our database model setup with our endpoints. We are also looking to simultaneously also work on the portfolio builder as well.
+
+### Burn up chart
+
+![alt text](image-2.png)
+
+## Milestone 2 Week 1
 
 ### Our Goals this week:
  This week our goal was to start working towards milestone 2 while accounting for any remaining tasks from milestone 1. Expanding on some of our previous features was key to help with our goal of building an exportable resume.
