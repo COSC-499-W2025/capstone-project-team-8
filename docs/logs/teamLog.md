@@ -47,8 +47,12 @@
 
 
 ### Our Goals this week:
+- get a prototype UI for preparation for peer evals
+- fix bugs related to API errors
+- review and refine our milestone 2 requirements
 
 ### Reflection
+We made a lot of code contibutions this week and split them up into numerous PR's. We found that a lot of PR's made is easier to review and catch bugs earlier on and merge without conflicts. Overall, going forward we are going to try to contribute smaller and more PR's so we can make steady progress without having to go back and fix things all the time.
 
 ### What went well:
 
