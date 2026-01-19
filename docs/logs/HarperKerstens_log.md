@@ -1,4 +1,19 @@
 # Harper Kerstens's Weekly Logs
+
+- [September 15-21](#september-15-21)
+- [September 22-28](#september-22-28)
+- [September 29-October 5](#september-29-october-5)
+- [October 6-12](#october-6-12)
+- [October 13-19](#october-13-19)
+- [October 20-26](#october-20-26)
+- [October 27-November 2](#october-27-november-2)
+- [November 3-9](#november-3-9)
+- [November 16-22](#november-16-22)
+- [November 23-29](#november-23-29)
+- [November 30-December 6](#november-30-december-6)
+- [January 5-11](#january-5-11)
+- [January 12-18](#january-12-18)
+
 ## September 15-21
 
 <img width="1090" height="643" alt="September15-21" src="https://github.com/user-attachments/assets/78cd1c97-3f9a-450c-a8d4-981e2753d42a" />
@@ -236,3 +251,34 @@ Going forward I would like to continue working on tasks relating to Milestone 2.
 ### Reflection:
 This was a week that didn't have as much progress overall compared to previous weeks. However, I still feel great about our project and progress as a group. We are steadily moving towards our goals and getting a usable resume from what we have analysed was very exciting to see this week.
  
+## January 12-18
+ 
+
+<img width="1086" height="638" alt="January12-18th" src="https://github.com/user-attachments/assets/078fb130-1a24-4e3d-90a6-684b5cf24cc8" />
+
+- Implemented login/signup ability
+- Users can pull previous projects from database
+- Users can upload profile picture alongisde change any account information
+- Users can upload a photo per project that now saves to the database
+- Implemented dashboard on main page
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+|  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/236 |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/235 |
+|  https://github.com/COSC-499-W2025/capstone-project-team-8/pull/237 |   |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/238  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213   |
+
+### What went well
+This week develpment was very smooth across the board. There were no hitchups or unexpecting issues that arrised causing delays in progress. I was able to get everything done I had planned out for this week.
+
+### What didn't go well
+I found myself spending time on unenessacary features this week and had to stop myself a few times from wasting time. I was getting down rabbit holes for cool little interativity features but decided to shelve them for now as it's very low priority work.
+
+
+### What's next
+Next week would be continuing what we built off of and focusing on putting together a resume builder. Now that we have a resume generator we need to give the users the option to pick and designing/building an interface to put it together is key to the work we have done so far.
+
+### Reflection:
+I'm very please with both my work and the groups work this week as lots was done. We are feeling good ahead of the peer testing in a few weeks and our product is continuing to go. There were minimal conflicts this week which was also nice, stress free weeks are very much appreciated.

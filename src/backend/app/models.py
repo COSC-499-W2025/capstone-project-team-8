@@ -69,8 +69,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     portfolio_url = models.URLField(max_length=255, blank=True)
     twitter_username = models.CharField(max_length=100, blank=True)
     
-    # Profile image
-    profile_image_url = models.URLField(max_length=500, blank=True)
+    # Profile image - stored as file upload
+    profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
     
     # Education fields
     university = models.CharField(max_length=255, blank=True)
@@ -122,6 +122,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     def display_name(self):
         """Best name to display for this user"""
         return self.get_full_name()
+    
+    @property
+    def profile_image_url(self):
+        """Return URL to profile image file or empty string"""
+        if self.profile_image:
+            return self.profile_image.url
+        return ''
 
 
 # Programming Languages and Frameworks
@@ -200,6 +207,9 @@ class Project(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects')
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    
+    # Project thumbnail image
+    thumbnail = models.ImageField(upload_to='project_thumbnails/', null=True, blank=True)
     
     # Project classification from AI analysis
     classification_type = models.CharField(
@@ -478,6 +488,31 @@ class Portfolio(models.Model):
             ('creative', 'Creative'),
         ],
         default='professional'
+class Resume(models.Model):
+    """
+    Model to store generated resumes for users.
+    
+    Each user can have multiple resumes with different configurations.
+    The content field stores the resume data as JSON for flexibility.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='resumes',
+        help_text="The user who owns this resume"
+    )
+    
+    name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Optional name/title for this resume"
+    )
+    
+    content = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Resume content stored as JSON (skills, projects, education, etc.)"
     )
     
     # Timestamps
@@ -528,3 +563,13 @@ class PortfolioProject(models.Model):
     
     def __str__(self):
         return f"{self.portfolio.title} - {self.project.name} (order: {self.order})"
+    class Meta:
+        db_table = 'resumes'
+        ordering = ['-updated_at']
+        indexes = [
+            models.Index(fields=['user', '-updated_at']),
+        ]
+    
+    def __str__(self):
+        name_display = self.name or f"Resume {self.id}"
+        return f"{name_display} ({self.user.username})"

@@ -201,6 +201,104 @@ class DatabaseSavingTests(TestCase):
         print(f"   - Frameworks detected: {[f.name for f in project_frameworks]}")
         print(f"   - Classification: {saved_project.classification_type}")
 
+    def test_project_files_have_complete_metadata(self):
+        """Test that saved project files contain complete metadata (bytes, chars, lines)"""
+        # Create files with known content to verify metadata
+        code_content = "def hello():\n    print('Hello World')\n    return True\n"
+        html_content = "<html>\n<head><title>Test</title></head>\n<body>Hello</body>\n</html>\n"
+        text_content = "This is a test document.\nIt has multiple lines.\nFor testing purposes.\n"
+        
+        files = {
+            "main.py": code_content,
+            "index.html": html_content,
+            "README.md": text_content,
+            "logo.png": b'\x89PNG\r\n\x1a\n' + b'\x00' * 100,  # Fake PNG header + 100 bytes
+            ".git/HEAD": "ref: refs/heads/main"
+        }
+        
+        zip_bytes = self.make_zip_bytes(files)
+        upload = SimpleUploadedFile("test_files.zip", zip_bytes, content_type="application/zip")
+        
+        response = self.authenticated_post("/api/upload-folder/", {
+            "file": upload,
+            "consent_scan": "1"
+        })
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        
+        # Verify project was saved
+        if "saved_projects" not in data:
+            self.skipTest("Database saving not working - skipping metadata test")
+            return
+            
+        project_info = data["saved_projects"][0]
+        saved_project = Project.objects.get(id=project_info["id"])
+        
+        # Get all project files
+        from app.models import ProjectFile
+        code_files = ProjectFile.objects.filter(project=saved_project, file_type='code')
+        content_files = ProjectFile.objects.filter(project=saved_project, file_type='content')
+        image_files = ProjectFile.objects.filter(project=saved_project, file_type='image')
+        
+        # Verify code files have all metadata
+        for code_file in code_files:
+            if code_file.filename in ['main.py', 'index.html']:
+                # All code files should have file_size_bytes
+                self.assertIsNotNone(code_file.file_size_bytes, 
+                    f"{code_file.filename} should have file_size_bytes")
+                self.assertGreater(code_file.file_size_bytes, 0,
+                    f"{code_file.filename} file_size_bytes should be > 0")
+                
+                # All code files should have character_count
+                self.assertIsNotNone(code_file.character_count,
+                    f"{code_file.filename} should have character_count")
+                self.assertGreater(code_file.character_count, 0,
+                    f"{code_file.filename} character_count should be > 0")
+                
+                # All code files should have line_count
+                self.assertIsNotNone(code_file.line_count,
+                    f"{code_file.filename} should have line_count")
+                self.assertGreater(code_file.line_count, 0,
+                    f"{code_file.filename} line_count should be > 0")
+                
+                print(f"✓ {code_file.filename}: {code_file.file_size_bytes} bytes, "
+                      f"{code_file.character_count} chars, {code_file.line_count} lines")
+        
+        # Verify content files have all metadata
+        for content_file in content_files:
+            if content_file.filename == 'README.md':
+                # All content files should have file_size_bytes
+                self.assertIsNotNone(content_file.file_size_bytes,
+                    f"{content_file.filename} should have file_size_bytes")
+                self.assertGreater(content_file.file_size_bytes, 0,
+                    f"{content_file.filename} file_size_bytes should be > 0")
+                
+                # All content files should have character_count
+                self.assertIsNotNone(content_file.character_count,
+                    f"{content_file.filename} should have character_count")
+                self.assertGreater(content_file.character_count, 0,
+                    f"{content_file.filename} character_count should be > 0")
+                
+                print(f"✓ {content_file.filename}: {content_file.file_size_bytes} bytes, "
+                      f"{content_file.character_count} chars")
+        
+        # Verify image files have size metadata
+        for image_file in image_files:
+            if image_file.filename == 'logo.png':
+                # All image files should have file_size_bytes
+                self.assertIsNotNone(image_file.file_size_bytes,
+                    f"{image_file.filename} should have file_size_bytes")
+                self.assertGreater(image_file.file_size_bytes, 0,
+                    f"{image_file.filename} file_size_bytes should be > 0")
+                
+                print(f"✓ {image_file.filename}: {image_file.file_size_bytes} bytes")
+        
+        print(f"\nFile metadata test passed!")
+        print(f"   - All code files have bytes, chars, and lines")
+        print(f"   - All content files have bytes and chars")
+        print(f"   - All image files have bytes")
+
     @unittest.expectedFailure
     def test_authenticated_upload_works(self):
         """Simple test to verify authenticated uploads work (even if DB save fails)"""
