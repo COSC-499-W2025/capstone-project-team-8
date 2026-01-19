@@ -44,6 +44,20 @@
 | User Portfolios | [@cschwebi](https://github.com/cschwebi) | [#220](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/220) | [#247](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/247) |
 | [ui] font switch to montserrat | [@kylekmcleod](https://github.com/kylekmcleod) | N/A | [#252](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/252) |
 
+### Our Goals this week:
+
+### Reflection
+
+### What went well:
+
+### What didn't go well:
+
+### Test Report
+
+### Plan for next week:
+
+### Burn up chart
+
 ## Milestone 2 Week 1
 
 ### Our Goals this week:
