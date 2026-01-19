@@ -487,7 +487,7 @@ class Portfolio(models.Model):
             ('technical', 'Technical'),
             ('creative', 'Creative'),
         ],
-        default='professional'
+        default='professional')
 class Resume(models.Model):
     """
     Model to store generated resumes for users.
