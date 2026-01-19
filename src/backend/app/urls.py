@@ -11,7 +11,14 @@ from .views.project_views import (
     ProjectThumbnailUploadView,
 )
 from .views.user_views import UserMeView, PublicUserView, PasswordChangeView, ProfileImageUploadView
-from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView
+from .views.resume_views import (
+    ResumeTemplatesView, 
+    ResumePreviewView, 
+    GenerateLatexResumeView,
+    ResumeGenerateView,
+    ResumeDetailView,
+    ResumeEditView,
+)
 
 urlpatterns = [
     # Upload and analysis
