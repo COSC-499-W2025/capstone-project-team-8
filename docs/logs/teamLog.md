@@ -59,6 +59,8 @@ We made a lot of code contibutions this week and split them up into numerous PR'
 ### What didn't go well:
 
 ### Test Report
+<img width="1064" height="592" alt="image" src="https://github.com/user-attachments/assets/dd9ae350-0dde-4f2f-8407-53655e76942b" />
+
 
 ### Plan for next week:
 
