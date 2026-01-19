@@ -334,6 +334,17 @@ class ProjectFile(models.Model):
     filename = models.CharField(max_length=255)
     file_extension = models.CharField(max_length=20, blank=True)
     
+    # File deduplication (SHA256 hash of file content)
+    content_hash = models.CharField(max_length=64, blank=True, db_index=True)
+    is_duplicate = models.BooleanField(default=False)  # True if this file is a duplicate
+    original_file = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='duplicates'
+    )  # Points to the original file if this is a duplicate
+    
     # File classification
     file_type = models.CharField(
         max_length=20,
