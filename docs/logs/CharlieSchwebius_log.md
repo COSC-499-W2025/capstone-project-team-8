@@ -1,5 +1,11 @@
 # Charlie Schwebius' weekly logs
-[Week 3](#week-3-(september-15-21))
+
+### Milestone 2
+| [Week 1](#milestone-2-week-1-jan-5---jan-11) | [Week 2](#milestone-2-week-2-jan-12-18)
+
+
+### Milestone 1
+[Week 3](#week-3-september-15-21) | [Week 4](#week-4-september-22-28) | [Week 5](#week-5-september-29---october-5) | [Week 6](#week-6-october-6---12) | [Week 7](#week-7-october-13---19) | [Week 8](#week-8-october-20---26) | [Week 9](#week-9-october-27---nov-2) | [Week 10](#week-10-nov-3---nov-9) | [Week 12](#week-12-nov-17---nov-23) | [Week 13](#week-13-nov-24---nov-30) | [Week 14](#week-14-dec-1---dec-7)
 
 
 ## Week 3 (September 15-21)
@@ -230,4 +236,41 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 ## Milestone 2 Week 2 (Jan 12-18)
 
 <img width="1878" height="1099" alt="image" src="https://github.com/user-attachments/assets/d2f50349-300f-48f9-9339-e51e0af4ecb1" />
+
+#### PR's Worked on
+
+- **[#247](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/247) User Portfolios**
+
+#### PR's Reviewed
+
+- **[#219](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/219) File deduplication**
+- **[#251](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/251) Error message returns details**
+
+#### Coding
+- Created PR which adds new portfolio functionality for users
+- This allows users to create custom porfolios to show off specific projects
+- only on backend right now
+
+#### Testing or Debugging
+- Made tests for my PR and testes it (manually and with unit tests)
+- Ran unit tests on PR # 219 to ensure file deduplication functionality (manual and unit)
+- Continuous debugging of mismatched migrations, missing dependencies, and constantly restarting Docker to get things working
+
+#### Reviewing or Collaboration
+- reviewed 2 PR's
+- Caught a bug that may have been missed (Deduplication PR)
+
+#### Last week to this week
+- This week was an extension of what I was working on last week
+- Simplified implementation to focus on the basics (making, adding, deleting)
+
+#### Upcoming goals
+- Tie that PR into the front end
+- Communicate with team on how to best integrate with other features (Users projects and resumes)
+
+#### Issues
+- Ran into unexplained 500 errors while manually testing on the branch I was previously using, so I ended up restarting my implementation of the porfolio from last week
+- This let me approach the problem with clarity, and the new implementation is nice and functional
+- Had issues with a faked migration that I had to troubleshoot, but everyhting came out smooth
+
 
