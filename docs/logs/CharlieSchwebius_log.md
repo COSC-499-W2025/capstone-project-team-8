@@ -245,6 +245,8 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 
 - **[#219](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/219) File deduplication**
 - **[#251](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/251) Error message returns details**
+- **[#252](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/252) Font switch to Montserrat**
+- **[#254](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/254) unix time bugfix & null database values fix**
 
 #### Coding
 - Created PR which adds new portfolio functionality for users
