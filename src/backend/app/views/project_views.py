@@ -46,7 +46,8 @@ class ProjectsListView(APIView):
                 "image_files_count": int(p.image_files_count or 0),
                 "git_repository": bool(p.git_repository),
                 "first_commit_date": int(p.first_commit_date.timestamp()) if p.first_commit_date else None,
-                "created_at": int(p.created.timestamp()) if getattr(p, "created", None) else None
+                "created_at": int(p.created.timestamp()) if getattr(p, "created", None) else None,
+                "resume_bullet_points": p.resume_bullet_points or []
             })
 
         return JsonResponse({"projects": out})
@@ -109,6 +110,7 @@ class ProjectDetailView(APIView):
             "git_repository": bool(p.git_repository),
             "first_commit_date": int(p.first_commit_date.timestamp()) if p.first_commit_date else None,
             "created_at": int(p.created.timestamp()) if getattr(p, "created", None) else None,
+            "resume_bullet_points": p.resume_bullet_points or []
         }
         return JsonResponse(resp)
 
@@ -235,6 +237,7 @@ class RankedProjectsView(APIView):
                         "total_commits": 0,
                         "total_lines_changed": 0,
                         "total_project_lines": 0,
+                        "resume_bullet_points": project.resume_bullet_points or []
                     })
                 continue
             
@@ -272,6 +275,7 @@ class RankedProjectsView(APIView):
                 "total_lines_changed": total_lines_changed,
                 "total_project_lines": total_project_lines,
                 "first_commit_date": int(project.first_commit_date.timestamp()) if project.first_commit_date else None,
+                "resume_bullet_points": project.resume_bullet_points or []
             })
         
         # Sort by contribution score descending

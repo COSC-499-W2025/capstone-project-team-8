@@ -29,6 +29,11 @@ class UserMeView(APIView):
 			'portfolio_url': user.portfolio_url,
 			'twitter_username': user.twitter_username,
 			'profile_image_url': user.profile_image_url,
+			'university': user.university,
+			'degree_major': user.degree_major,
+			'education_city': user.education_city,
+			'education_state': user.education_state,
+			'expected_graduation': user.expected_graduation.isoformat() if user.expected_graduation else None,
 			'date_joined': user.date_joined.isoformat() if user.date_joined else None,
 		}
 		if include_email:
@@ -51,15 +56,31 @@ class UserMeView(APIView):
 			
 		allowed = [
 			'first_name', 'last_name', 'bio', 'github_username',
-			'linkedin_url', 'portfolio_url', 'twitter_username', 'profile_image_url'
+			'linkedin_url', 'portfolio_url', 'twitter_username', 'profile_image_url',
+			'university', 'degree_major', 'education_city', 'education_state', 'expected_graduation'
 		]
 
 		changed = False
 		for k in allowed:
 			if k in data:
 				val = data.get(k)
-				# Basic type safety: require strings or None
-				if val is None or isinstance(val, str):
+				
+				# Handle date field specially
+				if k == 'expected_graduation':
+					if val is None:
+						setattr(user, k, None)
+						changed = True
+					elif isinstance(val, str):
+						# Parse date string (expects YYYY-MM-DD format)
+						try:
+							from datetime import datetime
+							parsed_date = datetime.strptime(val, '%Y-%m-%d').date()
+							setattr(user, k, parsed_date)
+							changed = True
+						except ValueError:
+							logger.warning("Invalid date format for expected_graduation: %s", val)
+				# Basic type safety for other fields: require strings or None
+				elif val is None or isinstance(val, str):
 					logger.debug("Setting attribute %s => %r on user %s", k, val, user)
 					setattr(user, k, val)
 					changed = True

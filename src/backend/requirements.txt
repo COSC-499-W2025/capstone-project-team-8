@@ -1,6 +1,7 @@
 django
 djangorestframework
 djangorestframework-simplejwt
+django-cors-headers
 mysqlclient
 python-decouple
 python-dotenv
@@ -8,3 +9,5 @@ GitPython
 requests
 PyMuPDF>=1.23.0
 openai
+pytest
+pytest-django

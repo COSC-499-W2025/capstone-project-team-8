@@ -7,6 +7,7 @@ Single Responsibility: Orchestration only.
 
 import tempfile
 import importlib
+import shutil
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 
@@ -54,6 +55,12 @@ class FolderUploadService:
             self.git_finder = importlib.import_module("app.services.analysis.analyzers.git_contributions")
         except Exception:
             self.git_finder = None
+        
+        # Try to import contribution metrics analyzer
+        try:
+            self.contribution_metrics = importlib.import_module("app.services.analysis.analyzers.contribution_metrics")
+        except Exception:
+            self.contribution_metrics = None
     
     def process_zip(
         self,
@@ -103,6 +110,51 @@ class FolderUploadService:
                 tmpdir_path
             )
             
+            # Step 5.5: Classify unorganized files (project 0) if any exist
+            unorganized_files = [
+                r for r in results 
+                if r.get("project_tag") is None 
+                and not ("/.git/" in r.get("path", "") or r.get("path", "").endswith("/.git") or r.get("path", "").startswith(".git/"))
+            ]
+            
+            if unorganized_files:
+                # Create a temporary directory with only unorganized files
+                with tempfile.TemporaryDirectory() as unorg_tmpdir:
+                    unorg_tmpdir_path = Path(unorg_tmpdir)
+                    for r in unorganized_files:
+                        file_path = r.get("path", "")
+                        if file_path:
+                            try:
+                                source_path = tmpdir_path / file_path
+                                if source_path.exists():
+                                    # Maintain directory structure
+                                    dest_path = unorg_tmpdir_path / file_path
+                                    dest_path.parent.mkdir(parents=True, exist_ok=True)
+                                    if source_path.is_file():
+                                        shutil.copy2(source_path, dest_path)
+                                    elif source_path.is_dir():
+                                        shutil.copytree(source_path, dest_path, dirs_exist_ok=True)
+                            except Exception:
+                                # Skip files that can't be copied
+                                continue
+                    
+                    # Classify the unorganized files directory
+                    try:
+                        project_0_classification = self.project_classifier.classify_project(unorg_tmpdir_path)
+                        project_classifications["project_0"] = {
+                            **project_0_classification,
+                            "project_root": "(non-project files)",
+                            "project_tag": 0
+                        }
+                    except Exception as e:
+                        project_classifications["project_0"] = {
+                            "classification": "unknown",
+                            "confidence": 0.0,
+                            "error": str(e),
+                            "project_root": "(non-project files)",
+                            "project_tag": 0
+                        }
+            
             # Step 6: Get Git contributors and timestamps
             git_contrib_data, project_timestamps = self._get_git_contributors(projects)
             
@@ -141,6 +193,48 @@ class FolderUploadService:
                 filter_username=None,
                 project_end_timestamps=zip_end_timestamps
             )
+            
+            # Step 10: Generate resume items (bullet points) for each project
+            from app.services.resume_item_generator import ResumeItemGenerator
+            from app.services.analysis.analyzers.content_analyzer import analyze_project_content
+            import logging
+            logger = logging.getLogger(__name__)
+            
+            generator = ResumeItemGenerator()
+
+            for project in response_data.get('projects', []):
+                try:
+                    # Extract content files for content analysis
+                    content_files = []
+                    files = project.get('files', {})
+                    for content_file in files.get('content', []):
+                        if 'text' in content_file:
+                            content_files.append({
+                                'path': content_file.get('path', ''),
+                                'text': content_file.get('text', '')
+                            })
+
+                    # Analyze content if content files are available
+                    content_summary = None
+                    if content_files:
+                        try:
+                            content_summary = analyze_project_content(content_files)
+                        except Exception as e:
+                            # Log but don't fail - resume generation can work without content analysis
+                            logger.debug(f"Content analysis failed for project {project.get('id')}: {e}")
+
+                    # Generate resume items with content summary
+                    resume_items = generator.generate_resume_items(project, github_username, content_summary)
+                    project['resume_items'] = resume_items
+                    
+                    # Also add bullet_points as a simple list for database storage
+                    if 'items' in resume_items:
+                        project['bullet_points'] = resume_items['items']
+                except Exception as e:
+                    # Log error but don't break the flow
+                    logger.warning(f"Failed to generate resume items for project {project.get('id')}: {e}")
+                    project['resume_items'] = {'items': [], 'generated_at': 0}
+                    project['bullet_points'] = []
             
             return response_data
     
@@ -243,7 +337,59 @@ class FolderUploadService:
             for root_path, tag in projects.items():
                 try:
                     contrib_result = self.git_finder.get_git_contributors(root_path)
-                    git_contrib_data[f"project_{tag}"] = contrib_result
+                    
+                    # Enrich contributor data with metrics if available
+                    if self.contribution_metrics and contrib_result and "contributors" in contrib_result:
+                        try:
+                            # Extract metrics once per project (not per contributor)
+                            metrics = self.contribution_metrics.extract_contributor_metrics(root_path, [])
+                            
+                            # Enrich each contributor with metrics
+                            enriched_contributors = {}
+                            for contributor_name, contributor_stats in contrib_result.get("contributors", {}).items():
+                                # Look up metrics by name (various formats)
+                                matched_metrics = None
+                                
+                                # Direct name match
+                                if contributor_name in metrics:
+                                    matched_metrics = metrics[contributor_name]
+                                else:
+                                    # Try case-insensitive and partial matches
+                                    for metric_name, metric_data in metrics.items():
+                                        if metric_name.lower() == contributor_name.lower():
+                                            matched_metrics = metric_data
+                                            break
+                                
+                                # Merge metrics into contributor if found
+                                if matched_metrics:
+                                    if 'activity_types' in matched_metrics:
+                                        contributor_stats['activity_types'] = matched_metrics['activity_types']
+                                    if 'contribution_duration_days' in matched_metrics:
+                                        contributor_stats['contribution_duration_days'] = matched_metrics['contribution_duration_days']
+                                    if 'contribution_duration_months' in matched_metrics:
+                                        contributor_stats['contribution_duration_months'] = matched_metrics['contribution_duration_months']
+                                    if 'first_commit' in matched_metrics:
+                                        contributor_stats['first_commit'] = matched_metrics['first_commit']
+                                    if 'last_commit' in matched_metrics:
+                                        contributor_stats['last_commit'] = matched_metrics['last_commit']
+                                    if 'file_type_distribution' in matched_metrics:
+                                        contributor_stats['file_type_distribution'] = matched_metrics['file_type_distribution']
+                                    if 'primary_languages' in matched_metrics:
+                                        contributor_stats['primary_languages'] = matched_metrics['primary_languages']
+                                
+                                enriched_contributors[contributor_name] = contributor_stats
+                            
+                            # Preserve total_commits if present
+                            enriched_result = {"contributors": enriched_contributors}
+                            if "total_commits" in contrib_result:
+                                enriched_result["total_commits"] = contrib_result["total_commits"]
+                            
+                            git_contrib_data[f"project_{tag}"] = enriched_result
+                        except Exception as e:
+                            # Fall back to basic contributor data if enrichment fails
+                            git_contrib_data[f"project_{tag}"] = contrib_result
+                    else:
+                        git_contrib_data[f"project_{tag}"] = contrib_result
                 except Exception as e:
                     git_contrib_data[f"project_{tag}"] = {"error": str(e)}
                 
@@ -344,28 +490,43 @@ class FolderUploadService:
     
         from app.services.llm.azure_client import ai_analyze
         from app.utils.prompt_loader import load_prompt_template
+        from app.services.human_file_filter import HumanFileFilter
         import logging
     
         logger = logging.getLogger(__name__)
         summaries = {}
+        human_filter = HumanFileFilter()
+        
+        # Max characters for code content to stay within token limits
+        MAX_CODE_CHARS = 8000
     
         for project_path, tag in projects.items():
             try:
                 # Build context for this project (similar to TopProjectsSummaryView)
                 # You can reuse the logic to extract languages, frameworks, etc.
                 context = self._build_summary_context(project_path, tmpdir_path, tag, project_classifications, git_contrib_data)
+                
+                # Extract human-readable file contents for deeper analysis
+                full_project_path = tmpdir_path / project_path if not project_path.is_absolute() else project_path
+                human_code_content = human_filter.get_human_readable_contents(
+                    full_project_path,
+                    max_chars=MAX_CODE_CHARS
+                )
             
                 context_str = f"""
-    Project Name: {context['project_name']}
-    Classification: {context['classification']}
-    Primary Languages: {context['languages']}
-    Frameworks: {context['frameworks']}
-    Contribution Score: {context['contribution_score']}
-    Commit Percentage: {context['commit_percentage']}
-    Lines Changed Percentage: {context['lines_changed_percentage']}
-    Total Commits: {context['total_commits']}
-    Date Range: {context['first_commit_date']}
-    """
+Project Name: {context['project_name']}
+Classification: {context['classification']}
+Primary Languages: {context['languages']}
+Frameworks: {context['frameworks']}
+Contribution Score: {context['contribution_score']}
+Commit Percentage: {context['commit_percentage']}
+Lines Changed Percentage: {context['lines_changed_percentage']}
+Total Commits: {context['total_commits']}
+Date Range: {context['first_commit_date']}
+
+=== Human-Written Code Files ===
+{human_code_content if human_code_content else "(No code files found)"}
+"""
 
                 # Load prompt template
                 prompt_template = load_prompt_template("project_contribution_summary")

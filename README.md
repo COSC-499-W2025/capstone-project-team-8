@@ -12,6 +12,56 @@ A web application that enables users to upload, scan, and analyze their work art
     - Matin Raoufi
     - Kyle McLeod
 
+## Quick Start with Docker
+
+### Prerequisites
+- Docker Desktop installed and running
+- Git installed
+
+### Running the Project
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd capstone-project-team-8
+   ```
+
+2. **Start all services**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Run database migrations**
+   ```bash
+   docker-compose exec backend python manage.py migrate
+   ```
+
+4. **Access the application**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
+   - Django Admin: http://localhost:8000/admin
+
+### Stopping the Project
+```bash
+docker-compose down
+```
+
+### Viewing Logs
+```bash
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f backend
+docker-compose logs -f frontend
+```
+
+### Rebuilding After Changes
+```bash
+docker-compose up -d --build
+```
+
+
 ## Technology Stack
 
 ### Frontend 📄 [Frontend Documentation](./src/frontend/README.md)
