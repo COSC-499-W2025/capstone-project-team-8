@@ -19,7 +19,15 @@ from .views.portfolio_views import (
     PortfolioEditView,
     PortfolioAddProjectView,
     PortfolioRemoveProjectView,
-    PortfolioReorderProjectsView,
+    PortfolioReorderProjectsView
+)
+from .views.resume_views import (
+    ResumeTemplatesView, 
+    ResumePreviewView, 
+    GenerateLatexResumeView,
+    ResumeGenerateView,
+    ResumeDetailView,
+    ResumeEditView,
 )
 
 urlpatterns = [
