@@ -231,7 +231,8 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 - Reviewed PRs from teammates:
   - [#219](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/219)
   - [#236](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/236)
-- Provided feedback and suggestions, focusing on code clarity, test coverage, and API consistency.
+  - [#237](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/237)
+- Provided feedback and suggestions, focusing on code clarity, test coverage, and API consistency, UI review and better utilization of Tailwind
 
 **Connection to previous week:**
 - Last week, I worked on the human-readable file filter and LLM integration. This week, I shifted focus to the resume feature, building on our previous backend refactoring.
