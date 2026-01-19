@@ -205,9 +205,9 @@ First week of classes so I'm still getting used to my new schedule but I think n
 
 ### Recap:
 - Reviewed multiple PR's
-- Finished PR#219
+- Finished PR https://github.com/COSC-499-W2025/capstone-project-team-8/pull/219
 - Charlie found bug on that PR, added more to the PR this week
-- Small bugfix PR on sign up error messages PR#251
+- Small bugfix PR on sign up error messages PR https://github.com/COSC-499-W2025/capstone-project-team-8/pull/251
 
 ### PRs Reviewed
 | Pull Request | Issues addressed |
