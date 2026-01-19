@@ -508,3 +508,86 @@ class Resume(models.Model):
     def __str__(self):
         name_display = self.name or f"Resume {self.id}"
         return f"{name_display} ({self.user.username})"
+
+# Portfolio Models
+class Portfolio(models.Model):
+    """
+    Model to represent a portfolio containing curated projects.
+    Users can create portfolios to showcase their work with AI-generated summaries.
+    """
+    # Owner
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolios')
+
+    # Core fields
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=100, unique=True, db_index=True)  # Globally unique
+    description = models.TextField(blank=True)
+
+    # AI-generated summary
+    summary = models.TextField(blank=True)
+    summary_generated_at = models.DateTimeField(null=True, blank=True)
+
+    # Visibility
+    is_public = models.BooleanField(default=False)
+
+    # Customization
+    target_audience = models.CharField(max_length=100, blank=True)  # e.g., "recruiters", "developers"
+    tone = models.CharField(
+        max_length=20,
+        choices=[
+            ('professional', 'Professional'),
+            ('casual', 'Casual'),
+            ('technical', 'Technical'),
+            ('creative', 'Creative'),
+        ],
+        default='professional'
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Relationships
+    projects = models.ManyToManyField(
+        Project,
+        through='PortfolioProject',
+        related_name='portfolios'
+    )
+
+    class Meta:
+        db_table = 'portfolios'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['is_public', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+
+class PortfolioProject(models.Model):
+    """
+    Through model linking portfolios to projects with ordering and notes.
+    """
+    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='portfolio_projects')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='portfolio_entries')
+
+    # Ordering and customization
+    order = models.PositiveIntegerField(default=0)
+    notes = models.TextField(blank=True)  # Custom description for this project in portfolio context
+    featured = models.BooleanField(default=False)  # Highlight this project
+
+    # Timestamps
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'portfolio_projects'
+        unique_together = ['portfolio', 'project']
+        ordering = ['order', '-added_at']
+        indexes = [
+            models.Index(fields=['portfolio', 'order']),
+        ]
+
+    def __str__(self):
+        return f"{self.portfolio.title} - {self.project.name} (order: {self.order})"
