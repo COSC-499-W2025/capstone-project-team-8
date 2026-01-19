@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, OpenApiResponse
-from app.serializers import ErrorResponseSerializer
+from app.serializers import ErrorResponseSerializer, UploadFolderSerializer
 
 from app.services.folder_upload import FolderUploadService
 from app.services.database_service import ProjectDatabaseService
@@ -36,12 +36,12 @@ class UploadFolderView(APIView):
     #permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        request={'multipart/form-data': {'type': 'object', 'properties': {'file': {'type': 'string', 'format': 'binary'}, 'github_username': {'type': 'string'}}}},
+        request=UploadFolderSerializer,
         responses={
             200: OpenApiResponse(description="Project uploaded and analyzed successfully"),
             400: ErrorResponseSerializer,
         },
-        description="Upload a ZIP file containing projects for analysis",
+        description="Upload a ZIP file containing projects for analysis. Requires consent flags for scanning and LLM analysis.",
         tags=["Upload"],
     )
     def post(self, request, format=None):
