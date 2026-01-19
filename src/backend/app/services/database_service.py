@@ -418,10 +418,14 @@ class ProjectDatabaseService:
         if '.' in filename:
             file_extension = '.' + filename.split('.')[-1].lower()
         
-        # Get file metrics based on type
-        line_count = file_info.get('lines') if file_type == 'code' else None
-        character_count = file_info.get('length') if file_type == 'content' else None
-        file_size_bytes = file_info.get('size') if file_type == 'image' else None
+        # Get file metrics - populate for all file types
+        line_count = file_info.get('lines')
+        character_count = file_info.get('length') or file_info.get('chars')
+        file_size_bytes = file_info.get('size') or file_info.get('bytes')
+        
+        # Fallback: calculate size from character count if not provided
+        if file_size_bytes is None and character_count:
+            file_size_bytes = character_count  # Approximate bytes from chars
         
         # Content preview for text files
         content_preview = file_info.get('text', '')

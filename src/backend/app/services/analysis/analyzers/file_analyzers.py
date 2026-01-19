@@ -56,20 +56,19 @@ def analyze_image(path: Path) -> Dict[str, Any]:
     """Analyze image files and return basic metadata."""
     if _is_ignored(path):
         # avoid expensive stat for ignored files if desired; still return minimal info
-        return {"type": "image", "path": str(path), "size": None, "skipped": True}
+        return {"type": "image", "path": str(path), "size": None, "bytes": None, "skipped": True}
     try:
         size = path.stat().st_size
     except Exception:
         size = None
-    return {"type": "image", "path": str(path), "size": size}
+    return {"type": "image", "path": str(path), "size": size, "bytes": size}
 
 
 def analyze_content(path: Path) -> Dict[str, Any]:
     """Analyze text/content files (documents, etc.)."""
     if _is_ignored(path):
         # skip heavy text reads for ignored files
-        return {"type": "content", "path": str(path), "length": None, "skipped": True}
-    
+        return {"type": "content", "path": str(path), "length": None, "chars": None, "bytes": None, "lines": None, "skipped": True}
     try:
         # Handle PDF files specially
         if path.suffix.lower() == '.pdf':
@@ -81,26 +80,33 @@ def analyze_content(path: Path) -> Dict[str, Any]:
             text = path.read_text(errors="ignore")
         
         length = len(text)
-        # small-file heuristic: skip empty or very short text files (<5 lines)
+        file_size = path.stat().st_size
         lines = text.count("\n") + 1 if text else 0
+        # small-file heuristic: skip empty or very short text files (<5 lines)
         if lines > 0 and lines < 5:
-            return {"type": "content", "path": str(path), "length": length, "skipped": True, "reason": "too_few_lines"}
-    except Exception as e:
+            return {"type": "content", "path": str(path), "length": length, "chars": length, "bytes": file_size, "lines": lines, "skipped": True, "reason": "too_few_lines"}
+    except Exception:
         length = None
-    return {"type": "content", "path": str(path), "length": length}
+        file_size = None
+        lines = None
+    return {"type": "content", "path": str(path), "length": length, "chars": length, "bytes": file_size, "lines": lines}
 
 
 def analyze_code(path: Path) -> Dict[str, Any]:
     """Analyze code files and return simple metrics."""
     if _is_ignored(path):
         # skip heavy reads/counts for ignored files
-        return {"type": "code", "path": str(path), "lines": None, "skipped": True}
+        return {"type": "code", "path": str(path), "lines": None, "chars": None, "bytes": None, "skipped": True}
     try:
         text = path.read_text(errors="ignore")
         lines = text.count("\n") + 1
+        length = len(text)
+        file_size = path.stat().st_size
         # skip empty or very small code files (<5 lines)
         if lines == 0 or lines < 5:
-            return {"type": "code", "path": str(path), "lines": lines, "skipped": True, "reason": "too_few_lines"}
+            return {"type": "code", "path": str(path), "lines": lines, "chars": length, "bytes": file_size, "skipped": True, "reason": "too_few_lines"}
     except Exception:
         lines = None
-    return {"type": "code", "path": str(path), "lines": lines}
+        length = None
+        file_size = None
+    return {"type": "code", "path": str(path), "lines": lines, "chars": length, "bytes": file_size}

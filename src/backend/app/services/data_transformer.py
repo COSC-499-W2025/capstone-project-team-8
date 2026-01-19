@@ -6,6 +6,7 @@ This is a simple extraction of the _transform_to_new_structure function.
 """
 
 from pathlib import Path as PathLib
+from app.services.human_file_filter import HumanFileFilter
 
 
 def transform_to_new_structure(
@@ -110,16 +111,30 @@ def transform_to_new_structure(
             filename = PathLib(file_path).name
             
             if file_type == "code":
-                lines = r.get("lines")
                 file_info = {"path": filename}
-                if lines is not None:
-                    file_info["lines"] = lines
+                # Include all available metrics
+                if r.get("lines") is not None:
+                    file_info["lines"] = r.get("lines")
+                if r.get("chars") is not None:
+                    file_info["chars"] = r.get("chars")
+                if r.get("bytes") is not None:
+                    file_info["bytes"] = r.get("bytes")
+                if r.get("size") is not None:
+                    file_info["size"] = r.get("size")
                 project_data[project_tag]["files"]["code"].append(file_info)
             elif file_type == "content":
-                length = r.get("length")
                 file_info = {"path": filename}
-                if length is not None:
-                    file_info["length"] = length
+                # Include all available metrics
+                if r.get("length") is not None:
+                    file_info["length"] = r.get("length")
+                if r.get("chars") is not None:
+                    file_info["chars"] = r.get("chars")
+                if r.get("bytes") is not None:
+                    file_info["bytes"] = r.get("bytes")
+                if r.get("size") is not None:
+                    file_info["size"] = r.get("size")
+                if r.get("lines") is not None:
+                    file_info["lines"] = r.get("lines")
                 # Attach inline text preview if available (from earlier read)
                 if "text" in r:
                     file_info["text"] = r.get("text")
@@ -127,10 +142,12 @@ def transform_to_new_structure(
                         file_info["truncated"] = True
                 project_data[project_tag]["files"]["content"].append(file_info)
             elif file_type == "image":
-                size = r.get("size")
                 file_info = {"path": filename}
-                if size is not None:
-                    file_info["size"] = size
+                # Include all available metrics
+                if r.get("size") is not None:
+                    file_info["size"] = r.get("size")
+                if r.get("bytes") is not None:
+                    file_info["bytes"] = r.get("bytes")
                 project_data[project_tag]["files"]["image"].append(file_info)
             else:
                 # For unknown files, just add the filename
@@ -223,6 +240,23 @@ def transform_to_new_structure(
                     }
                     if "email" in stats and stats["email"]:
                         contributor["email"] = stats["email"]
+                    
+                    # Include enriched metrics if available
+                    if "activity_types" in stats:
+                        contributor["activity_types"] = stats["activity_types"]
+                    if "contribution_duration_days" in stats:
+                        contributor["contribution_duration_days"] = stats["contribution_duration_days"]
+                    if "contribution_duration_months" in stats:
+                        contributor["contribution_duration_months"] = stats["contribution_duration_months"]
+                    if "first_commit" in stats:
+                        contributor["first_commit"] = stats["first_commit"]
+                    if "last_commit" in stats:
+                        contributor["last_commit"] = stats["last_commit"]
+                    if "file_type_distribution" in stats:
+                        contributor["file_type_distribution"] = stats["file_type_distribution"]
+                    if "primary_languages" in stats:
+                        contributor["primary_languages"] = stats["primary_languages"]
+                    
                     contributors_list.append(contributor)
                 contributors_list.sort(key=lambda x: x["commits"], reverse=True)
                 project_data[tag]["contributors"] = contributors_list
@@ -374,7 +408,13 @@ def transform_to_new_structure(
     
     # Add timestamp and AI fields to project data if available
     # Add timestamps to project data if available
+    # Also add human_readable_files section for each project
+    human_filter = HumanFileFilter()
+    
     projects_list = []
+    all_human_code = []
+    all_human_content = []
+    
     for tag in sorted_tags:
         project = project_data[tag]
         # Attach created_at timestamp
@@ -386,6 +426,25 @@ def transform_to_new_structure(
         project["llm_consent"] = bool(send_to_llm)
         if tag in project_end_timestamps and project_end_timestamps[tag] > 0:
             project["end_date"] = project_end_timestamps[tag]
+        
+        # Filter for human-readable files in this project
+        project_files = project["files"]
+        human_code = [f for f in project_files["code"] if human_filter.is_human_readable(f["path"])]
+        human_content = [f for f in project_files["content"] if human_filter.is_human_readable(f["path"])]
+        
+        project["human_readable_files"] = {
+            "code": human_code,
+            "content": human_content,
+            "summary": {
+                "total_code_files": len(human_code),
+                "total_content_files": len(human_content)
+            }
+        }
+        
+        # Accumulate for overall summary
+        all_human_code.extend(human_code)
+        all_human_content.extend(human_content)
+        
         projects_list.append(project)
     
     payload = {
@@ -393,7 +452,15 @@ def transform_to_new_structure(
         "scan_performed": True,
         "send_to_llm": bool(send_to_llm),
         "projects": projects_list,
-        "overall": overall
+        "overall": overall,
+        "human_readable_files": {
+            "code": all_human_code,
+            "content": all_human_content,
+            "summary": {
+                "total_code_files": len(all_human_code),
+                "total_content_files": len(all_human_content)
+            }
+        }
     }
     if user_contrib_summary:
         payload["user_contributions"] = user_contrib_summary

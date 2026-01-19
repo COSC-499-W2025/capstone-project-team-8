@@ -58,6 +58,12 @@ class FolderUploadService:
             self.git_finder = importlib.import_module("app.services.analysis.analyzers.git_contributions")
         except Exception:
             self.git_finder = None
+        
+        # Try to import contribution metrics analyzer
+        try:
+            self.contribution_metrics = importlib.import_module("app.services.analysis.analyzers.contribution_metrics")
+        except Exception:
+            self.contribution_metrics = None
     
     def process_zip(
         self,
@@ -353,7 +359,59 @@ class FolderUploadService:
             for root_path, tag in projects.items():
                 try:
                     contrib_result = self.git_finder.get_git_contributors(root_path)
-                    git_contrib_data[f"project_{tag}"] = contrib_result
+                    
+                    # Enrich contributor data with metrics if available
+                    if self.contribution_metrics and contrib_result and "contributors" in contrib_result:
+                        try:
+                            # Extract metrics once per project (not per contributor)
+                            metrics = self.contribution_metrics.extract_contributor_metrics(root_path, [])
+                            
+                            # Enrich each contributor with metrics
+                            enriched_contributors = {}
+                            for contributor_name, contributor_stats in contrib_result.get("contributors", {}).items():
+                                # Look up metrics by name (various formats)
+                                matched_metrics = None
+                                
+                                # Direct name match
+                                if contributor_name in metrics:
+                                    matched_metrics = metrics[contributor_name]
+                                else:
+                                    # Try case-insensitive and partial matches
+                                    for metric_name, metric_data in metrics.items():
+                                        if metric_name.lower() == contributor_name.lower():
+                                            matched_metrics = metric_data
+                                            break
+                                
+                                # Merge metrics into contributor if found
+                                if matched_metrics:
+                                    if 'activity_types' in matched_metrics:
+                                        contributor_stats['activity_types'] = matched_metrics['activity_types']
+                                    if 'contribution_duration_days' in matched_metrics:
+                                        contributor_stats['contribution_duration_days'] = matched_metrics['contribution_duration_days']
+                                    if 'contribution_duration_months' in matched_metrics:
+                                        contributor_stats['contribution_duration_months'] = matched_metrics['contribution_duration_months']
+                                    if 'first_commit' in matched_metrics:
+                                        contributor_stats['first_commit'] = matched_metrics['first_commit']
+                                    if 'last_commit' in matched_metrics:
+                                        contributor_stats['last_commit'] = matched_metrics['last_commit']
+                                    if 'file_type_distribution' in matched_metrics:
+                                        contributor_stats['file_type_distribution'] = matched_metrics['file_type_distribution']
+                                    if 'primary_languages' in matched_metrics:
+                                        contributor_stats['primary_languages'] = matched_metrics['primary_languages']
+                                
+                                enriched_contributors[contributor_name] = contributor_stats
+                            
+                            # Preserve total_commits if present
+                            enriched_result = {"contributors": enriched_contributors}
+                            if "total_commits" in contrib_result:
+                                enriched_result["total_commits"] = contrib_result["total_commits"]
+                            
+                            git_contrib_data[f"project_{tag}"] = enriched_result
+                        except Exception as e:
+                            # Fall back to basic contributor data if enrichment fails
+                            git_contrib_data[f"project_{tag}"] = contrib_result
+                    else:
+                        git_contrib_data[f"project_{tag}"] = contrib_result
                 except Exception as e:
                     git_contrib_data[f"project_{tag}"] = {"error": str(e)}
                 
@@ -454,28 +512,43 @@ class FolderUploadService:
     
         from app.services.llm.azure_client import ai_analyze
         from app.utils.prompt_loader import load_prompt_template
+        from app.services.human_file_filter import HumanFileFilter
         import logging
     
         logger = logging.getLogger(__name__)
         summaries = {}
+        human_filter = HumanFileFilter()
+        
+        # Max characters for code content to stay within token limits
+        MAX_CODE_CHARS = 8000
     
         for project_path, tag in projects.items():
             try:
                 # Build context for this project (similar to TopProjectsSummaryView)
                 # You can reuse the logic to extract languages, frameworks, etc.
                 context = self._build_summary_context(project_path, tmpdir_path, tag, project_classifications, git_contrib_data)
+                
+                # Extract human-readable file contents for deeper analysis
+                full_project_path = tmpdir_path / project_path if not project_path.is_absolute() else project_path
+                human_code_content = human_filter.get_human_readable_contents(
+                    full_project_path,
+                    max_chars=MAX_CODE_CHARS
+                )
             
                 context_str = f"""
-    Project Name: {context['project_name']}
-    Classification: {context['classification']}
-    Primary Languages: {context['languages']}
-    Frameworks: {context['frameworks']}
-    Contribution Score: {context['contribution_score']}
-    Commit Percentage: {context['commit_percentage']}
-    Lines Changed Percentage: {context['lines_changed_percentage']}
-    Total Commits: {context['total_commits']}
-    Date Range: {context['first_commit_date']}
-    """
+Project Name: {context['project_name']}
+Classification: {context['classification']}
+Primary Languages: {context['languages']}
+Frameworks: {context['frameworks']}
+Contribution Score: {context['contribution_score']}
+Commit Percentage: {context['commit_percentage']}
+Lines Changed Percentage: {context['lines_changed_percentage']}
+Total Commits: {context['total_commits']}
+Date Range: {context['first_commit_date']}
+
+=== Human-Written Code Files ===
+{human_code_content if human_code_content else "(No code files found)"}
+"""
 
                 # Load prompt template
                 prompt_template = load_prompt_template("project_contribution_summary")

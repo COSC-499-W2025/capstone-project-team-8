@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Prefetch
 from datetime import datetime
 from app.services.llm import ai_analyze
 from app.utils.prompt_loader import load_prompt_template
@@ -27,12 +27,25 @@ class ProjectsListView(APIView):
         Supports optional ?q= search by project name.
         """
         q = request.GET.get("q", "").strip()
-        qs = Project.objects.filter(user=request.user).order_by("-id")
+        
+        # Optimize queries with select_related and prefetch_related
+        qs = Project.objects.filter(
+            user=request.user
+        ).select_related(
+            'user'
+        ).prefetch_related(
+            'languages',
+            'frameworks'
+        ).order_by("-created_at")
+        
         if q:
             qs = qs.filter(name__icontains=q)
 
         out = []
         for p in qs:
+            # Get framework count without additional query (prefetched)
+            framework_count = p.frameworks.all().count()
+            
             out.append({
                 "id": p.id,
                 "name": p.name,
@@ -46,7 +59,9 @@ class ProjectsListView(APIView):
                 "image_files_count": int(p.image_files_count or 0),
                 "git_repository": bool(p.git_repository),
                 "first_commit_date": int(p.first_commit_date.timestamp()) if p.first_commit_date else None,
-                "created_at": int(p.created.timestamp()) if getattr(p, "created", None) else None,
+                "created_at": int(p.created_at.timestamp()) if p.created_at else None,
+                "thumbnail_url": request.build_absolute_uri(p.thumbnail.url) if p.thumbnail else None,
+                "framework_count": framework_count,
                 "resume_bullet_points": p.resume_bullet_points or []
             })
 
@@ -465,3 +480,50 @@ Output ONLY the summary text."""
         except Exception as e:
             logger.error(f"Error generating summary: {e}")
             return "Unable to generate summary at this time."
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ProjectThumbnailUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        """POST endpoint to upload project thumbnail image."""
+        try:
+            project = Project.objects.get(pk=pk, user=request.user)
+        except Project.DoesNotExist:
+            return JsonResponse({"error": "Project not found"}, status=404)
+        
+        if 'thumbnail' not in request.FILES:
+            return JsonResponse({'detail': 'No image file provided'}, status=400)
+        
+        image_file = request.FILES['thumbnail']
+        
+        # Validate file is an image
+        if not image_file.content_type.startswith('image/'):
+            return JsonResponse({'detail': 'File must be an image'}, status=400)
+        
+        # Optional: Check file size (e.g., max 5MB)
+        if image_file.size > 5 * 1024 * 1024:
+            return JsonResponse({'detail': 'Image must be smaller than 5MB'}, status=400)
+        
+        # Delete old thumbnail if exists
+        if project.thumbnail:
+            project.thumbnail.delete()
+        
+        # Save new thumbnail
+        project.thumbnail = image_file
+        project.save()
+        
+        # Build absolute URL for the thumbnail
+        thumbnail_url = project.thumbnail.url if project.thumbnail else None
+        if thumbnail_url:
+            thumbnail_url = request.build_absolute_uri(thumbnail_url)
+        
+        return JsonResponse({
+            'detail': 'Project thumbnail uploaded successfully',
+            'project': {
+                'id': project.id,
+                'name': project.name,
+                'thumbnail_url': thumbnail_url,
+            }
+        })
