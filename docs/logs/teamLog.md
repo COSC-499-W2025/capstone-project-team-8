@@ -28,6 +28,21 @@
 
 ## Milestone 2 Week 2
 
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| Feature/condensed human files | [@matin0014](https://github.com/matin0014) | [#115](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/115) | [#222](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/222) |
+| Frontend login | [@harperkerstens](https://github.com/harperkerstens) | [#235](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/235) | [#236](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/236) |
+| Dashboard and Upload Rework | [@harperkerstens](https://github.com/harperkerstens) | N/A | [#237](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/237) |
+| Profile/project uploadimage | [@harperkerstens](https://github.com/harperkerstens) | [#213](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213) | [#238](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/238) |
+| [bugfix] api error and profile img url shown | [@kylekmcleod](https://github.com/kylekmcleod) | [#240](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/240) | [#241](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/241) |
+| Feature/resume-model | [@matin0014](https://github.com/matin0014) | [#234](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/234) | [#244](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/244) |
+| Feature/resume crud endpoints | [@matin0014](https://github.com/matin0014) | [#245](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/245) | [#246](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/246) |
+| [bugfix] error message returns details | [@jordany78](https://github.com/jordany78) | [#239](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/239) | [#251](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/251) |
+| [bugfix] unix time bugfix & null database values fix | [@kylekmcleod](https://github.com/kylekmcleod) | [#249](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/249) | [#254](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/254) |
+| File deduplication | [@jordany78](https://github.com/jordany78) | [#217](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/217) | [#219](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/219) |
+| User Portfolios | [@cschwebi](https://github.com/cschwebi) | [#220](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/220) | [#247](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/247) |
+| [ui] font switch to montserrat | [@kylekmcleod](https://github.com/kylekmcleod) | N/A | [#252](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/252) |
 
 ## Milestone 2 Week 1
 
