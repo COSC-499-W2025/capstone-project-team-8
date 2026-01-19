@@ -56,11 +56,15 @@ We made a lot of code contibutions this week and split them up into numerous PR'
 
 ### What went well:
 
+Our task delegation at the beggining of the week went well, we really knew what to tackle for the week. Having basic UI makes dealing with file uploads a lot easier now and we can now cross off things from the Milestone 2 checklists, and we have set up ourselves to tackle other tasks. At our next meeting we will delegate our tasks acoordingly. 
+
 ### What didn't go well:
 
 ### Test Report
 
 ### Plan for next week:
+
+We want to work meet on Monday and delegate our tasks accordingly based off the Milestone 2 checklist. We want to focus on the LaTeX generator and resume builder as we now have our database model setup with our endpoints. We are also looking to simultaneously also work on the portfolio builder as well.
 
 ### Burn up chart
 
