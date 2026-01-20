@@ -162,3 +162,35 @@ class UploadFolderSerializer(serializers.Serializer):
     github_username = serializers.CharField(required=False, allow_blank=True, help_text="GitHub username for the projects")
     consent_scan = serializers.BooleanField(required=False, default=False, help_text="Consent to scan and analyze project files")
     consent_send_llm = serializers.BooleanField(required=False, default=False, help_text="Consent to send data to LLM for AI analysis")
+
+
+# Portfolio Serializers
+class PortfolioSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField()
+    description = serializers.CharField(allow_blank=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+    projects = serializers.ListField(required=False)
+
+
+class PortfolioGenerateSerializer(serializers.Serializer):
+    name = serializers.CharField(required=True, help_text="Portfolio name")
+    description = serializers.CharField(required=False, allow_blank=True, help_text="Portfolio description")
+
+
+class PortfolioEditSerializer(serializers.Serializer):
+    name = serializers.CharField(required=False, help_text="Portfolio name")
+    description = serializers.CharField(required=False, allow_blank=True, help_text="Portfolio description")
+
+
+class AddProjectSerializer(serializers.Serializer):
+    project_id = serializers.IntegerField(required=True, help_text="Project ID to add to portfolio")
+
+
+class ReorderProjectsSerializer(serializers.Serializer):
+    project_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=True,
+        help_text="Ordered list of project IDs"
+    )
