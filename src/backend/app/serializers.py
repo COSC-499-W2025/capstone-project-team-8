@@ -167,25 +167,40 @@ class UploadFolderSerializer(serializers.Serializer):
 # Portfolio Serializers
 class PortfolioSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
-    name = serializers.CharField()
+    title = serializers.CharField()
+    slug = serializers.SlugField(read_only=True)
     description = serializers.CharField(allow_blank=True)
+    summary = serializers.CharField(allow_blank=True, required=False)
+    is_public = serializers.BooleanField(default=False)
+    target_audience = serializers.CharField(allow_blank=True, required=False)
+    tone = serializers.CharField(default='professional')
     created_at = serializers.DateTimeField(read_only=True)
     updated_at = serializers.DateTimeField(read_only=True)
     projects = serializers.ListField(required=False)
 
 
 class PortfolioGenerateSerializer(serializers.Serializer):
-    name = serializers.CharField(required=True, help_text="Portfolio name")
+    title = serializers.CharField(required=True, help_text="Portfolio title")
+    slug = serializers.SlugField(required=False, allow_blank=True, help_text="Portfolio slug (auto-generated if not provided)")
     description = serializers.CharField(required=False, allow_blank=True, help_text="Portfolio description")
+    is_public = serializers.BooleanField(required=False, default=False, help_text="Make portfolio public")
+    target_audience = serializers.CharField(required=False, allow_blank=True, help_text="Target audience for AI summary")
+    tone = serializers.CharField(required=False, default='professional', help_text="Tone for AI summary")
 
 
 class PortfolioEditSerializer(serializers.Serializer):
-    name = serializers.CharField(required=False, help_text="Portfolio name")
+    title = serializers.CharField(required=False, help_text="Portfolio title")
     description = serializers.CharField(required=False, allow_blank=True, help_text="Portfolio description")
+    is_public = serializers.BooleanField(required=False, help_text="Make portfolio public")
+    target_audience = serializers.CharField(required=False, allow_blank=True, help_text="Target audience")
+    tone = serializers.CharField(required=False, help_text="Tone")
 
 
 class AddProjectSerializer(serializers.Serializer):
     project_id = serializers.IntegerField(required=True, help_text="Project ID to add to portfolio")
+    order = serializers.IntegerField(required=False, allow_null=True, help_text="Position in portfolio (auto-assigned if not provided)")
+    notes = serializers.CharField(required=False, allow_blank=True, default='', help_text="Custom notes for this project")
+    featured = serializers.BooleanField(required=False, default=False, help_text="Mark as featured project")
 
 
 class ReorderProjectsSerializer(serializers.Serializer):
