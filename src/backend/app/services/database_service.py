@@ -11,6 +11,7 @@ from django.db import transaction
 from django.utils import timezone
 import datetime as dt
 import re
+import hashlib
 
 from app.models import (
     User, Project, ProgrammingLanguage, Framework,
@@ -398,6 +399,7 @@ class ProjectDatabaseService:
     ) -> ProjectFile:
         """
         Create a ProjectFile record from file analysis data.
+        Implements file deduplication by checking content_hash.
         
         Args:
             project: The project instance
@@ -441,6 +443,24 @@ class ProjectDatabaseService:
                     defaults={'category': self._get_language_category(lang_name)}
                 )
         
+        # Compute content hash for deduplication
+        content_hash = self._compute_file_hash(file_info, content_preview)
+        
+        # Check for existing file with same hash (for this user)
+        original_file = None
+        is_duplicate = False
+        if content_hash:
+            existing = ProjectFile.objects.filter(
+                project__user=project.user,
+                content_hash=content_hash,
+                is_duplicate=False  # Only match against original files
+            ).first()
+            
+            if existing:
+                # This is a duplicate
+                original_file = existing
+                is_duplicate = True
+        
         return ProjectFile.objects.create(
             project=project,
             file_path=filename,
@@ -452,7 +472,10 @@ class ProjectDatabaseService:
             character_count=character_count,
             content_preview=content_preview[:10000] if content_preview else '',
             is_content_truncated=is_truncated,
-            detected_language=detected_language
+            detected_language=detected_language,
+            content_hash=content_hash,
+            is_duplicate=is_duplicate,
+            original_file=original_file
         )
     
     def _save_project_contributors(self, project: Project, project_data: Dict[str, Any]) -> None:
@@ -497,6 +520,40 @@ class ProjectDatabaseService:
                 lines_deleted=contributor_info.get('lines_deleted', 0),
                 percent_of_commits=contributor_info.get('percent_commits', 0.0)
             )
+    
+    def _compute_file_hash(self, file_info: Dict[str, Any], content_preview: str = '') -> str:
+        """
+        Compute SHA256 hash of file content for deduplication.
+        
+        Args:
+            file_info: File metadata dictionary
+            content_preview: Text content of the file (if available)
+            
+        Returns:
+            SHA256 hash as hex string, or empty string if content unavailable
+        """
+        # Build a hashable representation of the file
+        # For text files, use the content preview
+        # For binary files, use size + extension as a weak proxy
+        # In production, you'd want to hash actual file bytes during upload
+        
+        if content_preview:
+            # Hash text content
+            return hashlib.sha256(content_preview.encode('utf-8')).hexdigest()
+        
+        # For files without content (images, binary), create a weak hash
+        # from available metadata. This won't catch true duplicates but prevents
+        # exact metadata matches from being double-counted.
+        file_size = file_info.get('size', 0)
+        lines = file_info.get('lines', 0)
+        length = file_info.get('length', 0)
+        
+        if file_size or lines or length:
+            hash_input = f"size:{file_size}|lines:{lines}|length:{length}"
+            return hashlib.sha256(hash_input.encode('utf-8')).hexdigest()
+        
+        # No hashable content available
+        return ''
     
     def _find_matching_user(self, name: str, email: str, project_user: Optional[User] = None) -> Optional[User]:
         """
