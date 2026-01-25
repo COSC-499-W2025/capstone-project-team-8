@@ -1,5 +1,5 @@
 
-[Jump to latest week](#week-16-january-12-17)
+[Jump to latest week](#week-17-january-18-25)
 
 September 15-21
 
@@ -251,6 +251,41 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 
 
 
+## Week 17 January 18-25
+
+![alt text](image-4.png)
+
+**Coding tasks:**
+- Refactored the Django models into modular files for better maintainability and clarity.
+- Updated all model imports and resolved circular dependencies.
+- Fixed duplicate migrations ID issue
+
+- PR: 
+
+  - [#263](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/263) (Django models)
+
+  - [#258](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/258) (Fix Migrations ID)
+
+**Testing or debugging tasks:**
+- Ran the full backend test suite to ensure all tests pass after the refactor.
+- Fixed migration and import errors as they appeared during testing.
+- Verified that all API endpoints and database operations work as expected after the changes.
+- Fixed multiple migrations with the same ID issue 
+
+**Reviewing:**
+- Reviewed PRs from teammates and provided feedback on code structure and migration safety.
+- Helped teammates resolve merge conflicts related to model changes.
+
+**Connection to previous week:**
+- Last week, I worked on the resume model and endpoints. This week, I focused on backend maintainability by modularizing the models, which will make future feature development and testing easier.
+
+**Plan/goals for next week:**
+- Begin planning for proper resume generation
+- Implement part of if not full resume generation
+
+**Issues/blockers:**
+- Needed to carefully manage migrations to avoid data loss.
+- Some circular import issues required careful use of string references in Django relationships.
 
 
 
