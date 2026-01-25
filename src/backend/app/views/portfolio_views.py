@@ -100,6 +100,7 @@ Return ONLY the summary text, no headers or formatting."""
 class PortfolioListView(APIView):
     """List all portfolios for the authenticated user."""
     permission_classes = [IsAuthenticated]
+    serializer_class = PortfolioSerializer
 
     def get(self, request):
         portfolios = Portfolio.objects.filter(user=request.user).prefetch_related('portfolio_projects__project')
@@ -114,6 +115,7 @@ class PortfolioGenerateView(APIView):
     POST /portfolio/generate
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = PortfolioGenerateSerializer
 
     def post(self, request):
         serializer = PortfolioGenerateSerializer(data=request.data, context={'request': request})
@@ -181,6 +183,7 @@ class PortfolioDetailView(APIView):
     Public portfolios can be accessed without authentication.
     """
     permission_classes = [AllowAny]
+    serializer_class = PortfolioSerializer
 
     def get_portfolio(self, pk, user=None):
         """Get portfolio, respecting visibility rules."""
@@ -222,6 +225,7 @@ class PortfolioEditView(APIView):
     POST /portfolio/{id}/edit
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = PortfolioEditSerializer
 
     def post(self, request, pk):
         try:
@@ -273,6 +277,7 @@ class PortfolioAddProjectView(APIView):
     POST /portfolio/{id}/projects/add
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = AddProjectSerializer
 
     def post(self, request, pk):
         try:
@@ -328,6 +333,7 @@ class PortfolioRemoveProjectView(APIView):
     DELETE /portfolio/{id}/projects/{project_id}
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = AddProjectSerializer
 
     def delete(self, request, pk, project_id):
         try:
@@ -353,6 +359,7 @@ class PortfolioReorderProjectsView(APIView):
     POST /portfolio/{id}/projects/reorder
     """
     permission_classes = [IsAuthenticated]
+    serializer_class = ReorderProjectsSerializer
 
     def post(self, request, pk):
         try:

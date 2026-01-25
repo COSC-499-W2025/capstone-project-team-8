@@ -1,4 +1,5 @@
 from django.urls import path
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from .views.uploadFolderView import UploadFolderView
 from .views.auth import LoginView, SignupView
 from .views.token import CustomTokenObtainPairView, CustomTokenRefreshView, TokenLogoutView
@@ -31,6 +32,11 @@ from .views.resume_views import (
 )
 
 urlpatterns = [
+    # API Documentation
+    path('schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('schema/redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
+    
     # Upload and analysis
     path("upload-folder/", UploadFolderView.as_view(), name="upload-folder"),
     
