@@ -75,19 +75,7 @@ export default function ResumeTemplate({
         onClick={() => startEdit(path, value)}
         title="Click to edit"
       >
-        {value ? (
-          multiline ? (
-            <div className={styles.multilineContent}>
-              {value.split('\n').map((line, i) => (
-                <div key={i}>{line}</div>
-              ))}
-            </div>
-          ) : (
-            value
-          )
-        ) : (
-          <span className={styles.placeholder}>{placeholder}</span>
-        )}
+        {value || <span className={styles.placeholder}>{placeholder}</span>}
       </div>
     );
   };
@@ -171,7 +159,6 @@ export default function ResumeTemplate({
                   path={`sections.experience.${idx}.content`}
                   value={item.content}
                   placeholder="Describe your responsibilities and achievements..."
-                  multiline
                   className={styles.descriptionField}
                 />
               </div>

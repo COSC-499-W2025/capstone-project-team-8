@@ -120,6 +120,7 @@
   line-height: 1.5;
   margin-top: 6px;
   color: #333;
+  direction: ltr !important;
 }
 
 .deleteBtn {
@@ -156,6 +157,13 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   line-height: 1.5;
+  display: block;
+  direction: ltr !important;
+}
+
+.multilineContent > div {
+  display: block;
+  direction: ltr !important;
 }
 
 .editableField:hover {
