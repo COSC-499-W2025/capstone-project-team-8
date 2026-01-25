@@ -1,7 +1,9 @@
+
 from django.db import models
 from app.models.user import User
 
 
+class Portfolio(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolios')
 	title = models.CharField(max_length=255)
 	slug = models.SlugField(max_length=100, unique=True, db_index=True)
@@ -27,6 +29,7 @@ from app.models.user import User
 		through='PortfolioProject',
 		related_name='portfolios'
 	)
+
 	class Meta:
 		db_table = 'portfolios'
 		ordering = ['-created_at']
@@ -34,15 +37,19 @@ from app.models.user import User
 			models.Index(fields=['user', '-created_at']),
 			models.Index(fields=['is_public', '-created_at']),
 		]
+
 	def __str__(self):
 		return f"{self.user.username} - {self.title}"
 
+
+class PortfolioProject(models.Model):
 	portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='portfolio_projects')
 	project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='portfolio_entries')  # String reference
 	order = models.PositiveIntegerField(default=0)
 	notes = models.TextField(blank=True)
 	featured = models.BooleanField(default=False)
 	added_at = models.DateTimeField(auto_now_add=True)
+
 	class Meta:
 		db_table = 'portfolio_projects'
 		unique_together = ['portfolio', 'project']
@@ -50,6 +57,8 @@ from app.models.user import User
 		indexes = [
 			models.Index(fields=['portfolio', 'order']),
 		]
+
 	def __str__(self):
 		return f"{self.portfolio.title} - {self.project.name} (order: {self.order})"
+
 """Portfolio and PortfolioProject models."""
