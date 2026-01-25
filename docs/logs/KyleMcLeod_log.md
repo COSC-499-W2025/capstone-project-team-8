@@ -247,6 +247,7 @@ This week:
 - refactored serializer logic into multiple small files PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/265 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/262
 - fixed migration bugs with Matin PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/258 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/259
 - reviewed matins refactor PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/263
+- review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/264
 
 What went well:
 - prepped for heuristic evaluations
