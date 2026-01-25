@@ -1,6 +1,19 @@
 from django.db import models
 from django.utils import timezone
+
 from app.models.user import User
+from app.models.language import ProgrammingLanguage, Framework
+	# Relationships
+	languages = models.ManyToManyField(
+		ProgrammingLanguage,
+		through='ProjectLanguage',
+		related_name='projects'
+	)
+	frameworks = models.ManyToManyField(
+		Framework,
+		through='ProjectFramework',
+		related_name='projects'
+	)
 
 class Project(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects')
