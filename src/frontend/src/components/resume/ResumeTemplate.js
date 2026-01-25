@@ -75,7 +75,19 @@ export default function ResumeTemplate({
         onClick={() => startEdit(path, value)}
         title="Click to edit"
       >
-        {value || <span className={styles.placeholder}>{placeholder}</span>}
+        {value ? (
+          multiline ? (
+            <div className={styles.multilineContent}>
+              {value.split('\n').map((line, i) => (
+                <div key={i}>{line}</div>
+              ))}
+            </div>
+          ) : (
+            value
+          )
+        ) : (
+          <span className={styles.placeholder}>{placeholder}</span>
+        )}
       </div>
     );
   };

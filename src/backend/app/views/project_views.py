@@ -62,6 +62,10 @@ class ProjectsListView(APIView):
             # Get framework count without additional query (prefetched)
             framework_count = p.frameworks.all().count()
             
+            # Extract languages and frameworks for resume builder
+            languages = [{"id": l.id, "name": l.name} for l in p.languages.all()]
+            frameworks = [{"id": f.id, "name": f.name} for f in p.frameworks.all()]
+            
             out.append({
                 "id": p.id,
                 "name": p.name,
@@ -78,6 +82,8 @@ class ProjectsListView(APIView):
                 "created_at": int(p.created_at.timestamp()) if p.created_at else None,
                 "thumbnail_url": request.build_absolute_uri(p.thumbnail.url) if p.thumbnail else None,
                 "framework_count": framework_count,
+                "languages": languages,
+                "frameworks": frameworks,
                 "resume_bullet_points": p.resume_bullet_points or []
             })
 

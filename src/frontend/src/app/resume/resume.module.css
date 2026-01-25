@@ -17,39 +17,54 @@
 /* Main Resume Page Container */
 .resumePageContainer {
   display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 24px;
-  padding: 32px;
-  flex: 1;
-  max-width: 1800px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Side Panel */
-.sidePanel {
-  background: #1a1a1a;
-  border-radius: 4px;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
   padding: 24px;
-  height: fit-content;
-  border: 1px solid #333;
+  flex: 1;
+  width: 100%;
+  height: calc(100vh - 80px);
 }
 
+/* Left Sidebar - Projects Panel and Controls */
+.leftSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #333;
+  overflow-y: auto;
+  max-height: calc(100vh - 120px);
+}
+
+.sidebarSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebarDivider {
+  height: 1px;
+  background: #333;
+  margin: 8px 0;
+}
+
+/* Side Panel Header */
 .sidePanelHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid #333;
-  margin-bottom: 16px;
 }
 
 .sidePanelHeader h3 {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: #e0e0e0;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -58,18 +73,18 @@
 .templateNav {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .templateName {
   background: #2a2a2a;
   color: #b0b0b0;
-  padding: 12px;
-  border-radius: 3px;
+  padding: 10px;
+  border-radius: 4px;
   text-align: center;
-  font-size: 12px;
+  font-size: 11px;
   border: 1px solid #3a3a3a;
-  min-height: 40px;
+  min-height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -79,10 +94,10 @@
   background: #2a2a2a;
   color: #b0b0b0;
   border: 1px solid #3a3a3a;
-  padding: 10px 16px;
-  border-radius: 3px;
+  padding: 8px 12px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   transition: all 0.2s;
   font-weight: 500;
 }
@@ -98,48 +113,91 @@
   cursor: not-allowed;
 }
 
+/* Control Buttons */
+.controlsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.controlBtn {
+  background: #2a5a8a;
+  color: #fff;
+  border: 1px solid #3a7aaa;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.controlBtn:hover:not(:disabled) {
+  background: #3a7aaa;
+  border-color: #4a9aca;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.controlBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: #1a3a5a;
+}
+
 /* Main Resume */
 .mainResume {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   background: #fff;
   border-radius: 4px;
   overflow: hidden;
+  border: 1px solid #ddd;
 }
 
-/* Resume Editor Wrapper */
+/* Resume Editor Wrapper - Drop Zone */
 .resumeEditorWrapper {
   flex: 1;
   overflow-y: auto;
   background: #fff;
-  max-height: calc(100vh - 200px);
+  max-height: calc(100vh - 160px);
+  transition: background-color 0.2s;
+}
+
+.resumeEditorWrapper.dragOver {
+  background-color: #f5f5f5;
+  border-top: 2px solid #4caf50;
 }
 
 /* Export Buttons */
 .exportButtons {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   justify-content: flex-end;
-  padding: 16px 24px;
+  padding: 12px 16px;
   border-top: 1px solid #e8e8e8;
+  background: #fafafa;
   background: #f5f5f5;
 }
 
 .btn {
-  background: #1a1a1a;
+  background: #2a5a8a;
   color: #fff;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 3px;
+  border: 1px solid #3a7aaa;
+  padding: 8px 12px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   transition: all 0.2s;
 }
 
 .btn:hover {
-  background: #2a2a2a;
+  background: #3a7aaa;
+  border-color: #4a9aca;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .btn:active {
