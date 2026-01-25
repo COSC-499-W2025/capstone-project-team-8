@@ -244,14 +244,23 @@ We now have a UI that is connected to our Django backend. This will help plan ou
 
 This week:
 - created a comprehensive API documentation for our backend endpoints PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/257 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/256
+- refactored serializer logic into multiple small files PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/265 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/262
 - fixed migration bugs with Matin PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/258 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/259
+- reviewed matins refactor PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/263
 
 What went well:
-
-What went wrong:
+- prepped for heuristic evaluations
+- automatic api docs can be used for executing api commands for evaluation and also keep the team updated with every endpoint we have and the values returned
   
+What went wrong:
+- more bugs this week with migration issues, we need to start merging PR's more carefully
+
 Next week:
+- since our Azure AI free trial expired, we will need another group member to make an account and connect it
+- fix bugs with dates not shwoing correctly, some values NULL on return still
+- refine accuracy on classifiers
   
 Reflection:
+We now have a full API docs page and users are able to interact with the APIs listed. This can be used for our heuristic evaluations on monday since our UI is not complete. The bulk of our features are done, and we will be spending time on refining the accuracy and making sure the data that comes in and out of our system is feasible.
 
 
