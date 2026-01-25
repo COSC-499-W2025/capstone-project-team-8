@@ -1,8 +1,7 @@
 from django.db import models
 from app.models.user import User
-from app.models.project import Project
 
-class Portfolio(models.Model):
+
 	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolios')
 	title = models.CharField(max_length=255)
 	slug = models.SlugField(max_length=100, unique=True, db_index=True)
@@ -24,7 +23,7 @@ class Portfolio(models.Model):
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
 	projects = models.ManyToManyField(
-		Project,
+		'Project',  # String reference to avoid circular import
 		through='PortfolioProject',
 		related_name='portfolios'
 	)
@@ -38,9 +37,8 @@ class Portfolio(models.Model):
 	def __str__(self):
 		return f"{self.user.username} - {self.title}"
 
-class PortfolioProject(models.Model):
 	portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='portfolio_projects')
-	project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='portfolio_entries')
+	project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='portfolio_entries')  # String reference
 	order = models.PositiveIntegerField(default=0)
 	notes = models.TextField(blank=True)
 	featured = models.BooleanField(default=False)
