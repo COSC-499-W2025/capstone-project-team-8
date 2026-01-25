@@ -3,6 +3,8 @@ from django.utils import timezone
 
 from app.models.user import User
 from app.models.language import ProgrammingLanguage, Framework
+
+class Project(models.Model):
 	# Relationships
 	languages = models.ManyToManyField(
 		ProgrammingLanguage,
@@ -14,8 +16,6 @@ from app.models.language import ProgrammingLanguage, Framework
 		through='ProjectFramework',
 		related_name='projects'
 	)
-
-class Project(models.Model):
 	user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects')
 	name = models.CharField(max_length=255)
 	description = models.TextField(blank=True)
@@ -47,7 +47,6 @@ class Project(models.Model):
 	original_zip_name = models.CharField(max_length=255, blank=True)
 	created_at = models.DateTimeField(null=True, blank=True, default=timezone.now)
 	updated_at = models.DateTimeField(null=True, blank=True)
-	# languages, frameworks: imported in __init__.py
 	ai_summary = models.TextField(blank=True)
 	ai_summary_generated_at = models.DateTimeField(null=True, blank=True)
 	llm_consent = models.BooleanField(default=False)
