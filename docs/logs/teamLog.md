@@ -31,15 +31,15 @@
 ### Completed Tasks
 | Task | Assigned To | Issue # | Pull Request |
 |------|-------------|---------|--------------|
-|Automatic API docs | @kylekmcleod |https://github.com/COSC-499-W2025/capstone-project-team-8/issues/256  | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/257|
-| Resume Builder Frontend | @harperkerstens | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/231| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/264|
-|Fix Migration id| @matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/259| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/258|
-| Refactor Models| @matin0014 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/261| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/263|
-|Refactor Serializers file| @kylekmcleod | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/262| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/265|
-|Fix upload.zip false detection| @cschwebi| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/266|https://github.com/COSC-499-W2025/capstone-project-team-8/pull/267 |
-|Incremental upload| @jordany78| https://github.com/COSC-499-W2025/capstone-project-team-8/issues/223| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/268|
-|fix bytes and chars|  @kylekmcleod |https://github.com/COSC-499-W2025/capstone-project-team-8/issues/249| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/269|
-|change llm consent| @Porter-K |https://github.com/COSC-499-W2025/capstone-project-team-8/issues/232| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/270|
+|Automatic API docs | [@kylekmcleod](https://github.com/kylekmcleod) |https://github.com/COSC-499-W2025/capstone-project-team-8/issues/256  | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/257|
+| Resume Builder Frontend | [@harperkerstens](https://github.com/harperkerstens) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/231| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/264|
+|Fix Migration id| [@matin0014](https://github.com/matin0014) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/259| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/258|
+| Refactor Models| [@matin0014](https://github.com/matin0014) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/261| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/263|
+|Refactor Serializers file| [@kylekmcleod](https://github.com/kylekmcleod) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/262| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/265|
+|Fix upload.zip false detection| [@cschwebi](https://github.com/cschwebi) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/266|https://github.com/COSC-499-W2025/capstone-project-team-8/pull/267 |
+|Incremental upload| [@jordany78](https://github.com/jordany78) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/223| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/268|
+|fix bytes and chars|  [@kylekmcleod](https://github.com/kylekmcleod) |https://github.com/COSC-499-W2025/capstone-project-team-8/issues/249| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/269|
+|change llm consent| [@Porter-K](https://github.com/Porter-K) |https://github.com/COSC-499-W2025/capstone-project-team-8/issues/232| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/270|
 
 
 
