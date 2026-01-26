@@ -191,6 +191,15 @@ class IncrementalUploadService:
             classification_confidence=upload_project.get('classification', {}).get('confidence', 0.0),
             project_root_path=upload_project.get('root', target_project.project_root_path),
             project_tag=upload_project.get('id'),
+            
+            # Copy git-related fields from base project
+            git_repository=target_project.git_repository,
+            first_commit_date=target_project.first_commit_date,
+            
+            # Copy other metadata
+            original_zip_name=target_project.original_zip_name,
+            
+            # Incremental version fields
             base_project=target_project,
             version_number=next_version,
             is_incremental_update=True,
@@ -199,6 +208,15 @@ class IncrementalUploadService:
             created_at=timezone.now(),
             updated_at=timezone.now()
         )
+        
+        # Copy contributors from base project
+        self._copy_project_contributors(target_project, incremental_project)
+        
+        # Add new contributors from the current upload
+        self._process_new_contributors(upload_project, incremental_project)
+        
+        # Copy languages and frameworks relationships
+        self._copy_project_relationships(target_project, incremental_project)
         
         # Process files with deduplication against the base project
         files_added, files_deduplicated = self._process_incremental_files(
@@ -428,3 +446,104 @@ class IncrementalUploadService:
             'total_files': project.total_files,
             'classification': project.classification_type
         } for project in versions]
+    
+    def _copy_project_contributors(self, source_project: Project, target_project: Project) -> None:
+        """Copy contributors from source project to target project."""
+        from app.models import ProjectContribution, Contributor
+        
+        # Get all contributions from the source project
+        source_contributions = ProjectContribution.objects.filter(project=source_project)
+        
+        for contribution in source_contributions:
+            # Create new contribution record for target project
+            ProjectContribution.objects.create(
+                project=target_project,
+                contributor=contribution.contributor,
+                commit_count=contribution.commit_count,
+                lines_added=contribution.lines_added,
+                lines_deleted=contribution.lines_deleted,
+                percent_of_commits=contribution.percent_of_commits,
+                net_lines=contribution.net_lines
+            )
+    
+    def _copy_project_relationships(self, source_project: Project, target_project: Project) -> None:
+        """Copy language and framework relationships from source to target project."""
+        from app.models import ProjectLanguage, ProjectFramework
+        
+        # Copy language relationships
+        source_languages = ProjectLanguage.objects.filter(project=source_project)
+        for lang_rel in source_languages:
+            ProjectLanguage.objects.create(
+                project=target_project,
+                language=lang_rel.language,
+                file_count=lang_rel.file_count,
+                is_primary=lang_rel.is_primary
+            )
+        
+        # Copy framework relationships  
+        source_frameworks = ProjectFramework.objects.filter(project=source_project)
+        for fw_rel in source_frameworks:
+            ProjectFramework.objects.create(
+                project=target_project,
+                framework=fw_rel.framework,
+                detected_from=fw_rel.detected_from
+            )
+    
+    def _process_new_contributors(self, upload_project_data: Dict[str, Any], target_project: Project) -> None:
+        """Process and add new contributors from the upload data to the target project."""
+        from app.models import Contributor, ProjectContribution
+        
+        # Extract contributors from upload data
+        contributors_data = upload_project_data.get('contributors', [])
+        
+        for contributor_info in contributors_data:
+            # Handle different formats of contributor data
+            if isinstance(contributor_info, dict):
+                name = contributor_info.get('name', '')
+                email = contributor_info.get('email', '')
+                commits = contributor_info.get('commits', 1)
+                lines_added = contributor_info.get('lines_added', 0)
+                lines_deleted = contributor_info.get('lines_deleted', 0)
+            else:
+                # If it's just a string (name)
+                name = str(contributor_info)
+                email = ''
+                commits = 1
+                lines_added = 0
+                lines_deleted = 0
+            
+            if not name:
+                continue
+                
+            # Get or create the contributor
+            contributor, created = Contributor.objects.get_or_create(
+                name=name,
+                email=email,
+                defaults={
+                    'normalized_name': name.lower().replace(' ', ''),
+                    'email_domain': email.split('@')[-1] if '@' in email else ''
+                }
+            )
+            
+            # Check if this contributor already has a contribution record for this project
+            existing_contribution = ProjectContribution.objects.filter(
+                project=target_project,
+                contributor=contributor
+            ).first()
+            
+            if existing_contribution:
+                # Update existing contribution with new data
+                existing_contribution.commit_count += commits
+                existing_contribution.lines_added += lines_added
+                existing_contribution.lines_deleted += lines_deleted
+                existing_contribution.save()
+            else:
+                # Create new contribution record
+                ProjectContribution.objects.create(
+                    project=target_project,
+                    contributor=contributor,
+                    commit_count=commits,
+                    lines_added=lines_added,
+                    lines_deleted=lines_deleted,
+                    percent_of_commits=0.0  # Will be calculated later if needed
+                )
