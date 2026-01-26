@@ -89,53 +89,44 @@ class EnhancedFileScannerService:
     
     def _analyze_file(self, fpath: Path) -> Dict[str, Any]:
         """
-        Analyze a single file (simplified version).
+        Analyze a single file using the proper analyzer functions.
         
-        In production, this would call your existing analyzers
-        (analyze_image, analyze_code, analyze_content).
+        Uses analyze_image, analyze_code, analyze_content from file_analyzers
+        to ensure all metrics (bytes, chars, lines) are populated correctly.
         """
         from app.services.classifiers import classify_file
+        from app.services.analysis.analyzers.file_analyzers import analyze_code, analyze_content, analyze_image
         
         kind = classify_file(fpath)
-        result = {'type': kind or 'unknown'}
         
         if kind == 'code':
-            try:
-                with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
-                    lines = sum(1 for _ in f)
-                result['lines'] = lines
-            except Exception:
-                pass
+            result = analyze_code(fpath)
         
         elif kind == 'content':
+            result = analyze_content(fpath)
             try:
-                # Use the proper analyze_content function for PDF support
-                from app.services.analysis.analyzers import analyze_content
-                content_result = analyze_content(fpath)
-                result['length'] = content_result.get('length')
-                
-                # For content files, we need to get the actual text
                 if fpath.suffix.lower() == '.pdf':
                     from app.services.utils.pdfReader import read_pdf
                     text = read_pdf(str(fpath))
                     if text is None:
-                        text = ""  # fallback for failed PDF reads
+                        text = ""
                 else:
                     with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
                         text = f.read()
                 
-                result['length'] = len(text)
-                # Include text for hash computation in database service
-                result['text'] = text[:20000]  # Cap at 20KB
+                # Add text to result (always include it for content files)
+                result['text'] = text[:20000]
                 result['truncated'] = len(text) > 20000
             except Exception:
                 pass
         
         elif kind == 'image':
-            try:
-                result['size'] = fpath.stat().st_size
-            except Exception:
-                pass
+            # Use the proper image analyzer to get size and bytes
+            result = analyze_image(fpath)
+        
+        else:
+            # Unknown file type
+            result = {'type': 'unknown'}
         
         return result
     
