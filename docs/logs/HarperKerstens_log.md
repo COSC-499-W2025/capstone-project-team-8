@@ -286,6 +286,7 @@ I'm very please with both my work and the groups work this week as lots was done
 
 ## January 19-25
  
+<img width="1079" height="634" alt="January19-25th" src="https://github.com/user-attachments/assets/e88f1160-6f8b-49a2-899c-740724022445" />
 
 
 
