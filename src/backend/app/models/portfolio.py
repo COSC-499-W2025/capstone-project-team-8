@@ -24,6 +24,18 @@ class Portfolio(models.Model):
 	)
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
+	
+	# Incremental upload support
+	supports_incremental_updates = models.BooleanField(
+		default=True, 
+		help_text='Whether this portfolio accepts incremental updates'
+	)
+	last_incremental_upload = models.DateTimeField(
+		blank=True, 
+		null=True,
+		help_text='Timestamp of the last incremental upload'
+	)
+	
 	projects = models.ManyToManyField(
 		'Project',  # String reference to avoid circular import
 		through='PortfolioProject',

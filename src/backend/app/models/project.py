@@ -50,6 +50,30 @@ class Project(models.Model):
 	ai_summary = models.TextField(blank=True)
 	ai_summary_generated_at = models.DateTimeField(null=True, blank=True)
 	llm_consent = models.BooleanField(default=False)
+	
+	# Incremental upload support
+	version_number = models.IntegerField(
+		default=1, 
+		help_text='Version number for incremental updates, starts at 1'
+	)
+	base_project = models.ForeignKey(
+		'self', 
+		on_delete=models.CASCADE, 
+		null=True, 
+		blank=True,
+		related_name='incremental_versions',
+		help_text='Points to the original project if this is an incremental update'
+	)
+	is_incremental_update = models.BooleanField(
+		default=False,
+		help_text='True if this project is an incremental update of another'
+	)
+	incremental_upload_session = models.CharField(
+		max_length=255, 
+		blank=True,
+		help_text='Unique session ID for tracking incremental upload batches'
+	)
+	
 	class Meta:
 		db_table = 'projects'
 		ordering = ['-created_at']
@@ -57,6 +81,7 @@ class Project(models.Model):
 			models.Index(fields=['user', '-created_at']),
 			models.Index(fields=['classification_type']),
 			models.Index(fields=['git_repository']),
+			models.Index(fields=['base_project', 'version_number'], name='project_version_idx'),
 		]
 	def __str__(self):
 		return f"{self.user.username} - {self.name}"
