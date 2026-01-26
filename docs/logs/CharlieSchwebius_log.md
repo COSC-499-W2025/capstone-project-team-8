@@ -278,7 +278,7 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 
 ## Milestone 2 Week 3 (Jan 19-25)
 
-<img width="1878" height="1099" alt="image" src="https://github.com/user-attachments/assets/d2f50349-300f-48f9-9339-e51e0af4ecb1" />
+<img width="1885" height="1092" alt="image" src="https://github.com/user-attachments/assets/3c36fed2-1917-43b8-9875-d81fd7e4618b" />
 
 #### PR's Worked on
 
