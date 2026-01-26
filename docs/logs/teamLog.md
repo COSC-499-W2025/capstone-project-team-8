@@ -1,6 +1,7 @@
 # T8BG Team Log
 
 ## Weekly Logs
+- [Milestone 2 Week 3](#milestone-2-week-3)
 - [Milestone 2 Week 2](#milestone-2-week-2)
 - [Milestone 2 Week 1](#milestone-2-week-1)
 - [Week 14](#week-14)
@@ -24,6 +25,41 @@
 |matin0014|Matin Raoufi|
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
+
+## Milestone 2 Week 3
+
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+
+
+
+
+
+### Our Goals this week:
+
+
+### Reflection
+
+
+### What went well:
+
+
+### What didn't go well:
+
+
+### Test Report
+
+
+
+### Plan for next week:
+
+
+
+### Burn up chart
+
+
+
 
 
 ## Milestone 2 Week 2
