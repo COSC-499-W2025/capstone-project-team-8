@@ -100,27 +100,22 @@ class EnhancedFileScannerService:
         kind = classify_file(fpath)
         
         if kind == 'code':
-            # Use the proper code analyzer to get lines, chars, and bytes
             result = analyze_code(fpath)
         
         elif kind == 'content':
-            # Use the proper content analyzer to get all metrics
             result = analyze_content(fpath)
-            
-            # For content files, we need to include the actual text for LLM and hash computation
-            # Always add text field even if file is skipped (tests and LLM may need it)
             try:
                 if fpath.suffix.lower() == '.pdf':
                     from app.services.utils.pdfReader import read_pdf
                     text = read_pdf(str(fpath))
                     if text is None:
-                        text = ""  # fallback for failed PDF reads
+                        text = ""
                 else:
                     with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
                         text = f.read()
                 
                 # Add text to result (always include it for content files)
-                result['text'] = text[:20000]  # Cap at 20KB
+                result['text'] = text[:20000]
                 result['truncated'] = len(text) > 20000
             except Exception:
                 pass
