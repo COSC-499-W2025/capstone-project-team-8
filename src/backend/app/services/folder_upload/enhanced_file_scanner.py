@@ -108,6 +108,7 @@ class EnhancedFileScannerService:
             result = analyze_content(fpath)
             
             # For content files, we need to include the actual text for LLM and hash computation
+            # Always add text field even if file is skipped (tests and LLM may need it)
             try:
                 if fpath.suffix.lower() == '.pdf':
                     from app.services.utils.pdfReader import read_pdf
@@ -118,10 +119,9 @@ class EnhancedFileScannerService:
                     with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
                         text = f.read()
                 
-                # Add text to result if not skipped
-                if not result.get('skipped'):
-                    result['text'] = text[:20000]  # Cap at 20KB
-                    result['truncated'] = len(text) > 20000
+                # Add text to result (always include it for content files)
+                result['text'] = text[:20000]  # Cap at 20KB
+                result['truncated'] = len(text) > 20000
             except Exception:
                 pass
         
