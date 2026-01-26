@@ -38,3 +38,8 @@ class ProjectUpdateSerializer(serializers.Serializer):
 class ProjectStatsSerializer(serializers.Serializer):
     total = serializers.IntegerField()
     by_classification = serializers.DictField()
+
+
+class ProjectConsentSerializer(serializers.Serializer):
+    project_id = serializers.IntegerField()
+    consent = serializers.BooleanField()
