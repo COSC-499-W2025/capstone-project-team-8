@@ -33,6 +33,7 @@ export default function Header() {
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/upload', label: 'Upload' },
+    { href: '/incremental-upload', label: 'Update Portfolio' },
     { href: '/results', label: 'Generate Resume' },
     { href: '/projects', label: 'Previous Projects' },
   ];
@@ -126,6 +127,13 @@ export default function Header() {
                     className="block px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors md:hidden"
                   >
                     Upload
+                  </Link>
+                  <Link
+                    href="/incremental-upload"
+                    onClick={() => setIsDropdownOpen(false)}
+                    className="block px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors md:hidden"
+                  >
+                    Update Portfolio
                   </Link>
                   <Link
                     href="/results"
