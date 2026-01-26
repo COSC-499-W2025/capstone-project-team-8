@@ -1,26 +1,153 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #3e3c3b;
+  --foreground: #ffffff;
+  --primary-white: #ffffff;
+  --card-bg: #242627;
+  --ease-in-out-quart: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-montserrat);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif;
+  overflow-x: hidden;
+}
+
+html {
+  background: var(--background);
+  min-height: 100vh;
+}
+
+.fade-in {
+  opacity: 1;
+}
+
+.glow-box {
+  background: var(--card-bg);
+}
+
+/* Button Animation Styles */
+.button-lift {
+  align-items: center;
+  background: 0 0;
+  border: none;
+  border-radius: 6.25rem;
+  color: white;
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 1.2rem;
+  font-weight: 600;
+  gap: 0.363636em;
+  justify-content: center;
+  letter-spacing: -0.01em;
+  line-height: 1.04545;
+  overflow: hidden;
+  padding: 0.9375rem 1.5rem;
+  position: relative;
+  text-decoration: none;
+  word-break: break-word;
+  transition: all 0.3s ease;
+}
+
+@media (hover: hover) {
+  .button-lift:hover {
+    color: var(--card-bg);
+    text-decoration: none;
+  }
+}
+
+.button-lift::after {
+  bottom: 0;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  border: 0.0625rem solid white;
+  border-radius: 6.25rem;
+  content: "";
+  pointer-events: none;
+}
+
+.button__label {
+  position: relative;
+  text-align: center;
+  transition: color 50ms var(--ease-in-out-quart);
+}
+
+.button-lift:hover .button__label {
+  transition: color 0.15s var(--ease-in-out-quart);
+}
+
+.button__flair {
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: scale(0);
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+.button__flair::before {
+  aspect-ratio: 1/1;
+  background-color: white;
+  border-radius: 50%;
+  content: "";
+  display: block;
+  left: 0;
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  transform: translate(-50%, -50%);
+  width: 170%;
+}
+
+/* Text styling */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif;
+  font-weight: 700;
+  color: white;
+}
+
+p, span, div, label, a {
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif;
+  font-weight: 400;
+}
+
+input, textarea, select {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
+  font-family: var(--font-montserrat), 'Montserrat', sans-serif;
+}
+
+input::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: white !important;
+  outline: none !important;
+}
+/* Global utility classes for consistent theming */
+.bg-primary {
+  background: var(--background);
+}
+
+.bg-card {
+  background: var(--card-bg);
+}
+
+.text-primary {
+  color: var(--foreground);
 }

@@ -69,8 +69,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     portfolio_url = models.URLField(max_length=255, blank=True)
     twitter_username = models.CharField(max_length=100, blank=True)
     
-    # Profile image
-    profile_image_url = models.URLField(max_length=500, blank=True)
+    # Profile image - stored as file upload
+    profile_image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
     
     # Education fields
     university = models.CharField(max_length=255, blank=True)
@@ -122,6 +122,13 @@ class User(AbstractBaseUser, PermissionsMixin):
     def display_name(self):
         """Best name to display for this user"""
         return self.get_full_name()
+    
+    @property
+    def profile_image_url(self):
+        """Return URL to profile image file or empty string"""
+        if self.profile_image:
+            return self.profile_image.url
+        return ''
 
 
 # Programming Languages and Frameworks
@@ -200,6 +207,9 @@ class Project(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects')
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    
+    # Project thumbnail image
+    thumbnail = models.ImageField(upload_to='project_thumbnails/', null=True, blank=True)
     
     # Project classification from AI analysis
     classification_type = models.CharField(
@@ -324,6 +334,17 @@ class ProjectFile(models.Model):
     filename = models.CharField(max_length=255)
     file_extension = models.CharField(max_length=20, blank=True)
     
+    # File deduplication (SHA256 hash of file content)
+    content_hash = models.CharField(max_length=64, blank=True, db_index=True)
+    is_duplicate = models.BooleanField(default=False)  # True if this file is a duplicate
+    original_file = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='duplicates'
+    )  # Points to the original file if this is a duplicate
+    
     # File classification
     file_type = models.CharField(
         max_length=20,
@@ -444,3 +465,129 @@ class ProjectContribution(models.Model):
     
     def __str__(self):
         return f"{self.contributor.name} -> {self.project.name} ({self.commit_count} commits)"
+
+
+class Resume(models.Model):
+    """
+    Model to store generated resumes for users.
+    
+    Each user can have multiple resumes with different configurations.
+    The content field stores the resume data as JSON for flexibility.
+    """
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='resumes',
+        help_text="The user who owns this resume"
+    )
+    
+    name = models.CharField(
+        max_length=255,
+        blank=True,
+        default="",
+        help_text="Optional name/title for this resume"
+    )
+    
+    content = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Resume content stored as JSON (skills, projects, education, etc.)"
+    )
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        db_table = 'resumes'
+        ordering = ['-updated_at']
+        indexes = [
+            models.Index(fields=['user', '-updated_at']),
+        ]
+    
+    def __str__(self):
+        name_display = self.name or f"Resume {self.id}"
+        return f"{name_display} ({self.user.username})"
+
+# Portfolio Models
+class Portfolio(models.Model):
+    """
+    Model to represent a portfolio containing curated projects.
+    Users can create portfolios to showcase their work with AI-generated summaries.
+    """
+    # Owner
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='portfolios')
+
+    # Core fields
+    title = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=100, unique=True, db_index=True)  # Globally unique
+    description = models.TextField(blank=True)
+
+    # AI-generated summary
+    summary = models.TextField(blank=True)
+    summary_generated_at = models.DateTimeField(null=True, blank=True)
+
+    # Visibility
+    is_public = models.BooleanField(default=False)
+
+    # Customization
+    target_audience = models.CharField(max_length=100, blank=True)  # e.g., "recruiters", "developers"
+    tone = models.CharField(
+        max_length=20,
+        choices=[
+            ('professional', 'Professional'),
+            ('casual', 'Casual'),
+            ('technical', 'Technical'),
+            ('creative', 'Creative'),
+        ],
+        default='professional'
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Relationships
+    projects = models.ManyToManyField(
+        Project,
+        through='PortfolioProject',
+        related_name='portfolios'
+    )
+
+    class Meta:
+        db_table = 'portfolios'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['is_public', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+
+class PortfolioProject(models.Model):
+    """
+    Through model linking portfolios to projects with ordering and notes.
+    """
+    portfolio = models.ForeignKey(Portfolio, on_delete=models.CASCADE, related_name='portfolio_projects')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='portfolio_entries')
+
+    # Ordering and customization
+    order = models.PositiveIntegerField(default=0)
+    notes = models.TextField(blank=True)  # Custom description for this project in portfolio context
+    featured = models.BooleanField(default=False)  # Highlight this project
+
+    # Timestamps
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'portfolio_projects'
+        unique_together = ['portfolio', 'project']
+        ordering = ['order', '-added_at']
+        indexes = [
+            models.Index(fields=['portfolio', 'order']),
+        ]
+
+    def __str__(self):
+        return f"{self.portfolio.title} - {self.project.name} (order: {self.order})"
