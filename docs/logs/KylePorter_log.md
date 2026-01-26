@@ -55,3 +55,25 @@ Finished 2 PRs.
 
 ### Recap
 - Revied teamates code
+
+## Week 3 T2
+### January 19th - January 23rd:
+<img width="1621" height="948" alt="Screenshot 2026-01-25 at 19-56-56 Evaluations - COSC 499 Capstone" src="https://github.com/user-attachments/assets/03503541-a294-4573-b388-125dec5afc4f" />
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/258 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/259 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/265 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/262 |
+
+### What went well
+Was able to finish a PR.
+
+### What didn't go well
+Started working on PR late.
+
+### What's next
+Start working on peer reviews and continue on creating more API routes.
+
+### Reflection:
+- Need to start working on features and reviews earlier in week.

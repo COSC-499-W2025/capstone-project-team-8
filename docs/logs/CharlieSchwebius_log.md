@@ -1,7 +1,7 @@
 # Charlie Schwebius' weekly logs
 
 ### Milestone 2
-| [Week 1](#milestone-2-week-1-jan-5---jan-11) | [Week 2](#milestone-2-week-2-jan-12-18)
+| [Week 1](#milestone-2-week-1-jan-5---jan-11) | [Week 2](#milestone-2-week-2-jan-12-18) | [Week 3](#milestone-2-week-3-jan-19-25)
 
 
 ### Milestone 1
@@ -276,3 +276,42 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 - Had issues with a faked migration that I had to troubleshoot, but everyhting came out smooth
 
 
+## Milestone 2 Week 3 (Jan 19-25)
+
+<img width="1885" height="1092" alt="image" src="https://github.com/user-attachments/assets/3c36fed2-1917-43b8-9875-d81fd7e4618b" />
+
+#### PR's Worked on
+
+- **[#267](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/267) uplaod.zip being detected and saved as a project**
+
+#### PR's Reviewed
+
+- **[#269](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/269) Fix bytes and chars**
+- **[#268](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/268) Incremental Upload**
+
+
+#### Coding
+- Created PR which solves issue of extraneous projects being generated and saved due to an issue with the extraction process
+   - Creates new temporary directory for unzipped files
+
+#### Testing or Debugging
+- Updated existing tests to ensure they were compatible with the changes made on my PR
+- Throubleshooted local docker issues
+- Tested PR  # 267, # 268 and # 269
+
+#### Reviewing or Collaboration
+- reviewed 2 PR's
+- Caught a bug which may have been missed (Incremental Upload PR)
+
+#### Last week to this week
+- This week was fine tuning before the heuristic testing
+- Bug fixes and planning
+- Did not expand on portfolio functionality as planned last week
+
+#### Upcoming goals
+- Implement portfolio functionality into the front end
+- Expand on existing portfolio implementation (tentative)
+
+#### Issues
+- Had to completely wipe database volume and rebuild it due to mismaches with my local machine and the new migrations
+- Things went very smooth compared to last week

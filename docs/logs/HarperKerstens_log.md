@@ -13,6 +13,7 @@
 - [November 30-December 6](#november-30-december-6)
 - [January 5-11](#january-5-11)
 - [January 12-18](#january-12-18)
+- [January 19-25](#january-19-25)
 
 ## September 15-21
 
@@ -282,3 +283,34 @@ Next week would be continuing what we built off of and focusing on putting toget
 
 ### Reflection:
 I'm very please with both my work and the groups work this week as lots was done. We are feeling good ahead of the peer testing in a few weeks and our product is continuing to go. There were minimal conflicts this week which was also nice, stress free weeks are very much appreciated.
+
+## January 19-25
+ 
+<img width="1079" height="634" alt="January19-25th" src="https://github.com/user-attachments/assets/e88f1160-6f8b-49a2-899c-740724022445" />
+
+
+
+- Implemented resume builder interface
+- Connected backend features to resume builder frontend
+- Users can now select from analyzed projects to include in their resume
+- Users can customize the layout and design of their resume
+- Users can download their resume
+- Reviewed team members code and provided feedback
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/264  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/231  |
+
+### What went well
+This week development was smooth and there was no major hitchups outside of one. I was able to get the interface done and looking nice. Connecting the backend features to the frontend was also nice as we were able to see the features start to come together more.
+### What didn't go well
+This week I spent a lot of time trying to fix a bug in my newly implemented feature. For some reason when typing in one of the text fields the text would be entered backwards. After spending a good amount of time trying to debug it I finally figured out the issue and was able to fix things.
+
+
+### What's next
+The system still has some refining to do and theres more work to be done before the resume builder interface is finished. Next week I plan to continue working on developing the resume builder and fixing any bugs that arise along the way.
+
+### Reflection:
+Overall I'm happy with the progress made individually this week. As classes ramp up again I know it will be harder to spend extra time on the project so I'm glad I was able to lay a strong foundation for the resume builder. Future development should be smoother now that the base is there.
