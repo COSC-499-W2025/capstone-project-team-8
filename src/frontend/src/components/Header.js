@@ -34,7 +34,7 @@ export default function Header() {
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/upload', label: 'Upload' },
     { href: '/incremental-upload', label: 'Update Portfolio' },
-    { href: '/results', label: 'Generate Resume' },
+    { href: '/resume', label: 'Build Resume' },
     { href: '/projects', label: 'Previous Projects' },
   ];
 
@@ -140,7 +140,7 @@ export default function Header() {
                     onClick={() => setIsDropdownOpen(false)}
                     className="block px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors md:hidden"
                   >
-                    Generate Resume
+                    Build Resume
                   </Link>
                   <Link
                     href="/projects"

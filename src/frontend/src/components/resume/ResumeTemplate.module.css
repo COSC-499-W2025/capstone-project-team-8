@@ -1,0 +1,324 @@
+.resumeTemplate {
+  background: #fff;
+  color: #222;
+  padding: 60px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+}
+
+/* Header */
+.header {
+  margin-bottom: 28px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #000;
+}
+
+.nameField {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* Section */
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin: 0;
+  padding: 0;
+}
+
+.sectionContent {
+  margin-top: 8px;
+}
+
+.addBtn {
+  background: transparent;
+  color: #222;
+  border: 1px solid #222;
+  padding: 5px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.addBtn:hover {
+  background: #f0f0f0;
+}
+
+/* Experience Item */
+.experienceItem {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.experienceItem:last-child {
+  border-bottom: none;
+}
+
+.educationItem,
+.certificationItem {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.educationItem:last-child,
+.certificationItem:last-child {
+  border-bottom: none;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.itemTitle {
+  flex: 1;
+}
+
+.boldField {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.companyField {
+  font-size: 13px;
+  color: #555;
+  margin-top: 2px;
+}
+
+.durationField {
+  font-size: 12px;
+  color: #777;
+  margin-top: 2px;
+}
+
+.descriptionField {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 6px;
+  color: #333;
+  direction: ltr !important;
+}
+
+.deleteBtn {
+  background: transparent;
+  color: #999;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover {
+  color: #e74c3c;
+}
+
+/* Editable Field */
+.editableField {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 2px;
+  transition: background 0.2s;
+  border: 1px solid transparent;
+  display: block;
+  word-break: break-word;
+  width: 100%;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.multilineContent {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.5;
+  display: block;
+  direction: ltr !important;
+}
+
+.multilineContent > div {
+  display: block;
+  direction: ltr !important;
+}
+
+.editableField:hover {
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+}
+
+.placeholder {
+  color: #bbb;
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* Editing Container */
+.editingContainer {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.input,
+.textarea {
+  flex: 1;
+  padding: 6px 8px;
+  border: 2px solid #333 !important;
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 13px;
+  color: #000 !important;
+  background: #fff !important;
+  box-sizing: border-box;
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+  max-height: 160px;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none !important;
+  border-color: #000 !important;
+  background: #fff !important;
+  color: #000 !important;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Skills */
+.skillsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.skillTag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 2px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
+.skillField {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.skillTag .deleteBtn {
+  padding: 2px 4px;
+}
+
+/* Summaries */
+.summaryField {
+  font-size: 13px;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Empty State */
+.emptyState {
+  font-size: 12px;
+  color: #aaa;
+  font-style: italic;
+  margin: 8px 0;
+  padding: 8px 0;
+}
+
+.noTemplate {
+  padding: 40px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .resumeTemplate {
+    padding: 40px 20px;
+  }
+
+  .sectionTitle {
+    font-size: 10px;
+  }
+
+  .nameField {
+    font-size: 20px;
+  }
+
+  .boldField {
+    font-size: 13px;
+  }
+
+  .companyField,
+  .durationField {
+    font-size: 12px;
+  }
+
+  .descriptionField {
+    font-size: 12px;
+  }
+
+  .sectionHeader {
+    gap: 8px;
+  }
+
+  .addBtn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .editableField:hover {
+    background: transparent;
+    border: none;
+  }
+
+  .addBtn,
+  .deleteBtn {
+    display: none !important;
+  }
+
+  .resumeTemplate {
+    box-shadow: none;
+    padding: 40px;
+  }
+}

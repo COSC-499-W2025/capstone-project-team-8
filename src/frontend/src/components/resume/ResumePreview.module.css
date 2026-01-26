@@ -1,0 +1,171 @@
+.preview {
+  background: white;
+  padding: 30px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  line-height: 1.6;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 15px;
+}
+
+.title {
+  margin: 0 0 10px 0;
+  font-size: 1.5rem;
+  color: #667eea;
+}
+
+.templateName {
+  margin: 0;
+  color: #999;
+  font-size: 0.9rem;
+}
+
+.section {
+  margin-bottom: 25px;
+}
+
+.sectionTitle {
+  margin: 15px 0 10px 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.list {
+  margin: 0;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.listItem {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.item {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.itemTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.itemCompany {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+.itemContent {
+  margin: 8px 0 0 0;
+  color: #555;
+  line-height: 1.5;
+}
+
+.skillsItem {
+  margin-bottom: 12px;
+}
+
+.skillsCategory {
+  margin: 0 0 5px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #667eea;
+}
+
+.skillsList {
+  margin: 0;
+  color: #555;
+  line-height: 1.4;
+}
+
+.emptyPreview {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f9f9f9;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  color: #999;
+}
+
+.emptyPreview p {
+  margin: 0;
+  font-style: italic;
+}
+
+@media print {
+  .preview {
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    background: white;
+    font-size: 11pt;
+  }
+
+  .section {
+    page-break-inside: avoid;
+  }
+
+  .item {
+    page-break-inside: avoid;
+  }
+}
+
+@media (max-width: 768px) {
+  .preview {
+    padding: 20px;
+    font-size: 0.9rem;
+  }
+
+  .title {
+    font-size: 1.3rem;
+  }
+
+  .sectionTitle {
+    font-size: 1rem;
+  }
+
+  .itemHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .itemTitle {
+    font-size: 0.95rem;
+  }
+
+  .itemCompany {
+    font-size: 0.85rem;
+  }
+}
