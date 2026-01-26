@@ -154,6 +154,8 @@ class IncrementalUploadServiceTests(TestCase):
 
     def test_file_deduplication_across_versions(self):
         """Test that files are deduplicated across project versions."""
+        import hashlib
+        
         # Create base project with files
         base_project = Project.objects.create(
             user=self.user,
@@ -161,13 +163,17 @@ class IncrementalUploadServiceTests(TestCase):
             project_root_path='project'
         )
 
+        # Calculate the same hash that the service would calculate
+        shared_content = 'def shared(): pass'
+        shared_hash = hashlib.sha256(shared_content.encode('utf-8')).hexdigest()
+
         ProjectFile.objects.create(
             project=base_project,
             file_path='shared.py',
             filename='shared.py',
-            content_hash='shared123',
+            content_hash=shared_hash,
             file_type='code',
-            content_preview='def shared(): pass'
+            content_preview=shared_content
         )
 
         # Upload increment with same file
