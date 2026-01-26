@@ -211,12 +211,20 @@ class IncrementalUploadServiceTests(TestCase):
         self.assertEqual(files_added, 1)  # Only new.py
         self.assertEqual(files_deduplicated, 1)  # shared.py is duplicate
 
-        # Check duplicate file is marked correctly
-        duplicate_file = ProjectFile.objects.get(
+        # Check that we have both the original file and the duplicate marked file
+        shared_files = ProjectFile.objects.filter(
             project=incremental_project,
             filename='shared.py'
         )
-        self.assertTrue(duplicate_file.is_duplicate)
+        self.assertEqual(shared_files.count(), 2)  # Original + duplicate
+        
+        # Check that one is marked as duplicate
+        duplicate_files = shared_files.filter(is_duplicate=True)
+        self.assertEqual(duplicate_files.count(), 1)
+        
+        # Check that one is not marked as duplicate (the original)
+        original_files = shared_files.filter(is_duplicate=False)
+        self.assertEqual(original_files.count(), 1)
 
     def test_get_project_history(self):
         """Test retrieving project version history."""

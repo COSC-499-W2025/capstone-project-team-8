@@ -223,8 +223,9 @@ class IncrementalUploadService:
             incremental_project, upload_project, target_project
         )
         
-        # Update file counts
-        incremental_project.total_files = files_added
+        # Update file counts (total = existing + new)
+        existing_files_count = ProjectFile.objects.filter(project=target_project).count()
+        incremental_project.total_files = existing_files_count + files_added
         incremental_project.save(update_fields=['total_files'])
         
         return {
@@ -350,15 +351,32 @@ class IncrementalUploadService:
         files_added = 0
         files_deduplicated = 0
         
-        # Get existing file hashes from base project and all its versions
+        # STEP 1: Copy all existing files from base project to incremental project
+        existing_files = ProjectFile.objects.filter(project=base_project)
+        for existing_file in existing_files:
+            ProjectFile.objects.create(
+                project=incremental_project,
+                file_path=existing_file.file_path,
+                filename=existing_file.filename,
+                file_extension=existing_file.file_extension,
+                content_hash=existing_file.content_hash,
+                is_duplicate=False,  # These are the original files
+                file_type=existing_file.file_type,
+                line_count=existing_file.line_count,
+                character_count=existing_file.character_count,
+                file_size_bytes=existing_file.file_size_bytes,
+                content_preview=existing_file.content_preview,
+                is_content_truncated=existing_file.is_content_truncated
+            )
+        
+        # STEP 2: Get existing file hashes for deduplication
         existing_hashes = set(
-            ProjectFile.objects.filter(
-                project__in=[base_project] + list(base_project.incremental_versions.all())
-            ).exclude(
-                content_hash=''
-            ).values_list('content_hash', flat=True)
+            ProjectFile.objects.filter(project=incremental_project)
+            .exclude(content_hash='')
+            .values_list('content_hash', flat=True)
         )
         
+        # STEP 3: Process new files from the upload
         files_data = upload_project_data.get('files', {})
         
         for file_type in ['code', 'content', 'image', 'unknown']:
