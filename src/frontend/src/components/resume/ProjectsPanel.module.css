@@ -1,0 +1,269 @@
+.panel {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 16px;
+  height: calc(100vh - 200px);
+  overflow-y: auto;
+  border: 1px solid #ddd;
+}
+
+.panelTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hint {
+  font-size: 11px;
+  color: #666;
+  margin: 0 0 12px 0;
+  font-style: italic;
+}
+
+.empty {
+  text-align: center;
+  color: #999;
+  font-size: 12px;
+  padding: 20px;
+}
+
+.projectsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.projectItem {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.projectItem:hover {
+  border-color: #bbb;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.projectHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px;
+  cursor: pointer;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+  transition: background 0.2s;
+}
+
+.projectHeader:hover {
+  background: #f0f0f0;
+}
+
+.arrow {
+  display: flex;
+  align-items: center;
+  color: #666;
+  font-size: 10px;
+  width: 16px;
+}
+
+.projectInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.projectName {
+  font-size: 12px;
+  font-weight: 600;
+  color: #000;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.projectType {
+  font-size: 10px;
+  color: #999;
+  margin: 2px 0 0 0;
+  text-transform: capitalize;
+}
+
+.projectContent {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sectionTitle {
+  font-size: 10px;
+  font-weight: 700;
+  color: #666;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.skillsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+  border-radius: 4px;
+  cursor: move;
+  transition: all 0.2s;
+  font-size: 11px;
+}
+
+.skill:hover {
+  background: #dcedc8;
+  border-color: #9ccc65;
+  transform: translateX(2px);
+}
+
+.skill.dragging {
+  opacity: 0.6;
+  background: #fff9c4;
+  border-color: #fbc02d;
+}
+
+.skillText {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #1b5e20;
+  font-weight: 500;
+}
+
+.bulletsList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bullet {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 8px;
+  background: #e3f2fd;
+  border: 1px solid #bbdefb;
+  border-radius: 4px;
+  cursor: move;
+  transition: all 0.2s;
+}
+
+.bullet:hover {
+  background: #bbdefb;
+  border-color: #42a5f5;
+  transform: translateX(2px);
+}
+
+.bullet.dragging {
+  opacity: 0.6;
+  background: #fff9c4;
+  border-color: #fbc02d;
+}
+
+.bulletDot {
+  flex-shrink: 0;
+  color: #1976d2;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.bulletText {
+  flex: 1;
+  font-size: 11px;
+  color: #0d47a1;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.quickAddBtn {
+  flex-shrink: 0;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.2s;
+  opacity: 0.7;
+}
+
+.quickAddBtn:hover {
+  background: #45a049;
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.quickAddBtn:active {
+  transform: scale(0.95);
+}
+
+/* Scrollbar styling */
+.projectContent::-webkit-scrollbar {
+  width: 4px;
+}
+
+.projectContent::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.projectContent::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+
+.projectContent::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+.panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.panel::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.panel::-webkit-scrollbar-thumb {
+  background: #bbb;
+  border-radius: 3px;
+}
+
+.panel::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
