@@ -102,11 +102,12 @@ class ZipExtractorTests(TestCase):
             tmpdir_path = Path(tmpdir)
             result_path = extractor.extract(upload, tmpdir_path)
             
-            # Check that extraction was successful
-            self.assertEqual(result_path, tmpdir_path)
+            # Check that extraction returns the content subdirectory
+            expected_content_dir = tmpdir_path / "content"
+            self.assertEqual(result_path, expected_content_dir)
             
-            # Check that file exists
-            extracted_file = tmpdir_path / "test.txt"
+            # Check that file exists in content subdirectory
+            extracted_file = expected_content_dir / "test.txt"
             self.assertTrue(extracted_file.exists())
             self.assertEqual(extracted_file.read_text(), "hello world")
     
@@ -125,14 +126,14 @@ class ZipExtractorTests(TestCase):
         
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
-            extractor.extract(upload, tmpdir_path)
+            content_dir = extractor.extract(upload, tmpdir_path)
             
-            # Check nested structure
-            self.assertTrue((tmpdir_path / "folder" / "subfolder" / "deep.txt").exists())
-            self.assertTrue((tmpdir_path / "folder" / "file.txt").exists())
+            # Check nested structure in content subdirectory
+            self.assertTrue((content_dir / "folder" / "subfolder" / "deep.txt").exists())
+            self.assertTrue((content_dir / "folder" / "file.txt").exists())
     
     def test_extract_creates_archive_file(self):
-        """Test that the archive file is created in temp dir."""
+        """Test that the archive file is created in archive subdirectory."""
         from app.services.folder_upload.zip_extractor import ZipExtractor
         
         files = {"test.txt": "content"}
@@ -145,8 +146,8 @@ class ZipExtractorTests(TestCase):
             tmpdir_path = Path(tmpdir)
             extractor.extract(upload, tmpdir_path)
             
-            # Check that upload.zip was created
-            archive_path = tmpdir_path / "upload.zip"
+            # Check that upload.zip was created in archive subdirectory (separate from content)
+            archive_path = tmpdir_path / "archive" / "upload.zip"
             self.assertTrue(archive_path.exists())
 
 

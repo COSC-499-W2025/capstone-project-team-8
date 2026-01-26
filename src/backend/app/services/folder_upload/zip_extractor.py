@@ -24,21 +24,30 @@ class ZipExtractor:
         """
         Extract ZIP archive to temporary directory.
         
+        The ZIP file is stored in a separate 'archive' subdirectory to prevent
+        it from being included in file scans of the extracted content.
+        
         Args:
             upload: The uploaded ZIP file
             tmpdir_path: Path to temporary directory for extraction
             
         Returns:
-            Path to the extraction directory (same as tmpdir_path)
+            Path to the extraction directory (content subdirectory)
         """
-        # Write uploaded file to disk first
-        archive_path = tmpdir_path / "upload.zip"
+        # Create separate directories for archive and extracted content
+        archive_dir = tmpdir_path / "archive"
+        content_dir = tmpdir_path / "content"
+        archive_dir.mkdir(exist_ok=True)
+        content_dir.mkdir(exist_ok=True)
+        
+        # Write uploaded file to archive directory (separate from extracted files)
+        archive_path = archive_dir / "upload.zip"
         with open(archive_path, "wb") as f:
             for chunk in upload.chunks():
                 f.write(chunk)
         
-        # Extract the archive
+        # Extract the archive to content directory
         with zipfile.ZipFile(archive_path, "r") as z:
-            z.extractall(tmpdir_path)
+            z.extractall(content_dir)
         
-        return tmpdir_path
+        return content_dir
