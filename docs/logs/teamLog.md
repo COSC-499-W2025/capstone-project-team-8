@@ -47,22 +47,26 @@
 
 ### Our Goals this week:
 
+We had a few things that came to attention that needed to be fixed, outside of that we wanted to continue working on the resume builder as well as the incremental upload feature. The bug fixes were high priority this week as they were causing issues with other features. We also wanted to put in work preparing for peer evaluations coming up this week.
+
 
 ### Reflection
+Development was smooth this week in fixing bugs and implementing new features. We feel good about our progress and are looking forward to peer evaluations this week. We were able to work together well to get things done and help each other with progress. The week was very seamless all around for everyone.
 
 
 ### What went well:
+Development and teamwork was the highlight of this week. We were able to get a lot done as a result of our teamwork. The bug fixes were resolved quickly which helped make way for the development of new features.
 
 
 ### What didn't go well:
-
+Ensuring that our timeline with fixing bugs in order to make way for a development was a bit tricky. We were able to put in some good work early to help avoid any unexpected delays. However, the pressure in getting ready for the evaluations was felt by all team members.
 
 ### Test Report
 
 
 
 ### Plan for next week:
-
+Next week we plan to continue building off the new features we implemented this week such as the resume builder alongside continue ensuring we are working towards the requirements for milestone 2. We also want to keep looking ahead at milestone 3 and start planning for that as well.
 
 
 ### Burn up chart
