@@ -272,6 +272,27 @@ class Project(models.Model):
     ai_summary_generated_at = models.DateTimeField(null=True, blank=True)
     llm_consent = models.BooleanField(default=False)  # Track if user consented to LLM
     
+    # Incremental upload support
+    base_project = models.ForeignKey(
+        'self',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='incremental_versions',
+        help_text='Points to the original project if this is an incremental update'
+    )
+    version_number = models.IntegerField(default=1, help_text='Version number for incremental updates')
+    is_incremental_update = models.BooleanField(
+        default=False, 
+        help_text='True if this project is an incremental update to another project'
+    )
+    incremental_upload_session = models.CharField(
+        max_length=100, 
+        blank=True, 
+        db_index=True,
+        help_text='Session ID to group related incremental uploads together'
+    )
+    
     class Meta:
         db_table = 'projects'
         ordering = ['-created_at']
@@ -279,6 +300,7 @@ class Project(models.Model):
             models.Index(fields=['user', '-created_at']),
             models.Index(fields=['classification_type']),
             models.Index(fields=['git_repository']),
+            models.Index(fields=['user', 'base_project', 'version_number'], name='project_version_idx'),
         ]
     
     def __str__(self):
@@ -546,6 +568,17 @@ class Portfolio(models.Model):
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    # Incremental upload support
+    supports_incremental_updates = models.BooleanField(
+        default=True, 
+        help_text='Whether this portfolio accepts incremental updates'
+    )
+    last_incremental_upload = models.DateTimeField(
+        blank=True, 
+        null=True,
+        help_text='Timestamp of the last incremental upload'
+    )
 
     # Relationships
     projects = models.ManyToManyField(
