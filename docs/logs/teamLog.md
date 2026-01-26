@@ -62,6 +62,7 @@ Development and teamwork was the highlight of this week. We were able to get a l
 Ensuring that our timeline with fixing bugs in order to make way for a development was a bit tricky. We were able to put in some good work early to help avoid any unexpected delays. However, the pressure in getting ready for the evaluations was felt by all team members.
 
 ### Test Report
+<img width="1370" height="417" alt="Sem2Week3Test" src="https://github.com/user-attachments/assets/aaf4e4c3-b251-4c87-b198-09d1909803cd" />
 
 
 
@@ -72,6 +73,7 @@ Next week we plan to continue building off the new features we implemented this 
 ### Burn up chart
 
 
+<img width="1040" height="553" alt="Sem2Week3Burnup" src="https://github.com/user-attachments/assets/b0b88c4c-5aaa-4b09-b16f-f919d2794b07" />
 
 
 

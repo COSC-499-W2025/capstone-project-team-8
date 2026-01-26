@@ -8,9 +8,27 @@ from .views.project_views import (
     ProjectStatsView,
     RankedProjectsView,
     TopProjectsSummaryView,
+    ProjectThumbnailUploadView,
 )
-from .views.user_views import UserMeView, PublicUserView
+from .views.user_views import UserMeView, PublicUserView, PasswordChangeView, ProfileImageUploadView
 from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView
+from .views.portfolio_views import (
+    PortfolioListView,
+    PortfolioGenerateView,
+    PortfolioDetailView,
+    PortfolioEditView,
+    PortfolioAddProjectView,
+    PortfolioRemoveProjectView,
+    PortfolioReorderProjectsView
+)
+from .views.resume_views import (
+    ResumeTemplatesView, 
+    ResumePreviewView, 
+    GenerateLatexResumeView,
+    ResumeGenerateView,
+    ResumeDetailView,
+    ResumeEditView,
+)
 
 urlpatterns = [
     # Upload and analysis
@@ -23,10 +41,22 @@ urlpatterns = [
     path("projects/ranked/summary/", TopProjectsSummaryView.as_view(), name="projects-ranked-summary"),
     path("projects/<int:pk>/", ProjectDetailView.as_view(), name="projects-detail"),
 
+    # Portfolio endpoints
+    path("portfolio/", PortfolioListView.as_view(), name="portfolio-list"),
+    path("portfolio/generate/", PortfolioGenerateView.as_view(), name="portfolio-generate"),
+    path("portfolio/<int:pk>/", PortfolioDetailView.as_view(), name="portfolio-detail"),
+    path("portfolio/<int:pk>/edit/", PortfolioEditView.as_view(), name="portfolio-edit"),
+    path("portfolio/<int:pk>/projects/add/", PortfolioAddProjectView.as_view(), name="portfolio-add-project"),
+    path("portfolio/<int:pk>/projects/<int:project_id>/", PortfolioRemoveProjectView.as_view(), name="portfolio-remove-project"),
+    path("portfolio/<int:pk>/projects/reorder/", PortfolioReorderProjectsView.as_view(), name="portfolio-reorder-projects"),
+
     # Resume endpoints
     path("resume/templates/", ResumeTemplatesView.as_view(), name="resume-templates"),
     path("resume/preview/", ResumePreviewView.as_view(), name="resume-preview"),
     path("resume/generate/latex/", GenerateLatexResumeView.as_view(), name="resume-generate-latex"),
+    path("resume/generate/", ResumeGenerateView.as_view(), name="resume-generate"),
+    path("resume/<int:pk>/", ResumeDetailView.as_view(), name="resume-detail"),
+    path("resume/<int:pk>/edit/", ResumeEditView.as_view(), name="resume-edit"),
     
     # Authentication
     path("signup/", SignupView.as_view(), name="signup"),
@@ -39,5 +69,10 @@ urlpatterns = [
     
     # User profile endpoints
     path("users/me/", UserMeView.as_view(), name="user-me"),
+    path("users/me/profile-image/", ProfileImageUploadView.as_view(), name="user-profile-image-upload"),
+    path("users/password/", PasswordChangeView.as_view(), name="user-password-change"),
     path("users/<str:username>/", PublicUserView.as_view(), name="user-public"),
+    
+    # Project thumbnail endpoints
+    path("projects/<int:pk>/thumbnail/", ProjectThumbnailUploadView.as_view(), name="project-thumbnail-upload"),
 ]

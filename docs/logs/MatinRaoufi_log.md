@@ -273,6 +273,9 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 - Fixed multiple migrations with the same ID issue 
 
 **Reviewing:**
+
+- https://github.com/COSC-499-W2025/capstone-project-team-8/pull/270#pullrequestreview-3704636103
+- https://github.com/COSC-499-W2025/capstone-project-team-8/pull/267
 - Reviewed PRs from teammates and provided feedback on code structure and migration safety.
 - Helped teammates resolve merge conflicts related to model changes.
 
@@ -282,6 +285,7 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 **Plan/goals for next week:**
 - Begin planning for proper resume generation
 - Implement part of if not full resume generation
+- I want to setup our Azure LLM service again for LLM analysis as our credits ran out
 
 **Issues/blockers:**
 - Needed to carefully manage migrations to avoid data loss.
