@@ -215,3 +215,9 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
+# File Upload Configuration
+# Set higher limits for large portfolio uploads
+FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100MB in memory
+DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024   # 100MB total request size
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000              # Allow more form fields for large uploads
