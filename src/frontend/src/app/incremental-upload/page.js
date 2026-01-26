@@ -19,8 +19,6 @@ export default function IncrementalUploadPage() {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('');
   const [error, setError] = useState('');
-  const [mergeStrategy, setMergeStrategy] = useState('merge_similar'); // 'merge_similar', 'add_to_portfolio', 'create_new'
-
   useEffect(() => {
     if (!isAuthenticated) {
       router.push('/login');
@@ -70,6 +68,15 @@ export default function IncrementalUploadPage() {
       return;
     }
 
+    // Auto-determine strategy based on target type
+    const strategy = targetType === 'project' ? 'merge_similar' : 'add_to_portfolio';
+    
+    // For now, portfolio functionality is not implemented
+    if (targetType === 'portfolio') {
+      setError('Portfolio target functionality is not yet implemented');
+      return;
+    }
+
     setUploading(true);
     setProgress(0);
     setStatus('Starting incremental upload...');
@@ -80,7 +87,7 @@ export default function IncrementalUploadPage() {
         selectedFile,
         targetType,
         parseInt(targetId),
-        mergeStrategy,
+        strategy,
         token,
         (progress, status) => {
           setProgress(progress);
@@ -242,30 +249,26 @@ export default function IncrementalUploadPage() {
               </select>
             </div>
 
-            {/* Merge Strategy */}
-            <div>
-              <label className="block text-white/80 mb-2">How should we handle similar files?</label>
-              <select
-                value={mergeStrategy}
-                onChange={(e) => setMergeStrategy(e.target.value)}
-                className="w-full p-3 rounded-lg bg-white/5 border border-white/20 text-white focus:border-blue-500 focus:outline-none"
-                disabled={uploading}
-              >
-                <option value="merge_similar" className="bg-gray-800">
-                  Merge with similar files (recommended)
-                </option>
-                <option value="add_to_portfolio" className="bg-gray-800">
-                  Add as separate project to portfolio
-                </option>
-                <option value="create_new" className="bg-gray-800">
-                  Create completely new project
-                </option>
-              </select>
-              <p className="text-white/60 text-sm mt-2">
-                {mergeStrategy === 'merge_similar' && 'Files will be analyzed and merged with similar existing projects'}
-                {mergeStrategy === 'add_to_portfolio' && 'Files will be added as a new project in the selected portfolio'}
-                {mergeStrategy === 'create_new' && 'Files will create a brand new project with a new version number'}
-              </p>
+            {/* Strategy Info */}
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <div className="text-blue-400 mt-0.5">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-blue-300 font-semibold mb-1">
+                    {targetType === 'project' ? 'Merge with Existing Project' : 'Add to Portfolio'}
+                  </h3>
+                  <p className="text-blue-200/80 text-sm">
+                    {targetType === 'project' 
+                      ? 'Files will be analyzed and merged with the selected project, creating a new version with your additions.'
+                      : 'Files will be added as a new project within the selected portfolio.'}
+                  </p>
+                  {targetType === 'portfolio'}
+                </div>
+              </div>
             </div>
           </div>
 
