@@ -2,7 +2,7 @@
 ### Milestone 1
 | [Week 3](#week-3) | [Week 4](#week-4) | [Week 5](#week-5) | [Week 6](#week-6) | [Week 7](#week-7) | [Week 8](#week-8) | [Week 9](#week-9) | [Week 10](#week-10) | [Week 12](#week-12) | [Week 13](#week-13) | [Week 14](#week-14) |
 ### Milestone 2
-| [Week 1](#week-1-t2) | [Week 2](#week-2-t2) |
+| [Week 1](#week-1-t2) | [Week 2](#week-2-t2) | [Week 3](#week-3-t2) | 
 
 ## Week 3
 ### September 15th - September 19th:
@@ -229,3 +229,29 @@ Next week, continue working on the Milestone#2 requirements and prepare for the 
 ### Reflection:
 - Used my time more efficiently this week
 - Got a better understanding of how the peer evals will look like after we setup our frontend
+
+## Week 3 T2
+### January 19th - January 23rd:
+<img width="1070" height="626" alt="image" src="https://github.com/user-attachments/assets/4d8a0eb8-3768-4972-9ff3-64abb7690ef7" /></br>
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/257 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/256 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/258 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/259 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/263 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/261 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/264 |  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/265 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/262 |
+
+### What went well
+Was able to finish up my PR before the end of the week. We plan on meeting so that we all understand what to do for the peer testing on Monday. Got to review a lot of PR which helped me get a better understanding of where our frontend is at and what needs to be done.
+
+### What didn't go well
+Started a little late to the PR which had a bit more content than usual and had to spend a lot of time fixing minor bugs and merge conflicts once I thought I was done. 
+
+### What's next
+Next week, we'll do our peer testing and continue to focus on Milestone#2 requirements. We'll also discuss on what needs to be done in priority and how we can branch off of the resume template effectively.
+
+### Reflection:
+- Need to focus on working on PR earlier so I have more time in case bugs and conflicts appear.
+- Aim for 3-4 reviews per week so I can get a better understanding of our code.

@@ -1,6 +1,7 @@
 # T8BG Team Log
 
 ## Weekly Logs
+- [Milestone 2 Week 3](#milestone-2-week-3)
 - [Milestone 2 Week 2](#milestone-2-week-2)
 - [Milestone 2 Week 1](#milestone-2-week-1)
 - [Week 14](#week-14)
@@ -24,6 +25,56 @@
 |matin0014|Matin Raoufi|
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
+
+## Milestone 2 Week 3
+
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+|Automatic API docs | [@kylekmcleod](https://github.com/kylekmcleod) |https://github.com/COSC-499-W2025/capstone-project-team-8/issues/256  | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/257|
+| Resume Builder Frontend | [@harperkerstens](https://github.com/harperkerstens) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/231| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/264|
+|Fix Migration id| [@matin0014](https://github.com/matin0014) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/259| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/258|
+| Refactor Models| [@matin0014](https://github.com/matin0014) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/261| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/263|
+|Refactor Serializers file| [@kylekmcleod](https://github.com/kylekmcleod) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/262| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/265|
+|Fix upload.zip false detection| [@cschwebi](https://github.com/cschwebi) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/266|https://github.com/COSC-499-W2025/capstone-project-team-8/pull/267 |
+|Incremental upload| [@jordany78](https://github.com/jordany78) | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/223| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/268|
+|fix bytes and chars|  [@kylekmcleod](https://github.com/kylekmcleod) |https://github.com/COSC-499-W2025/capstone-project-team-8/issues/249| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/269|
+|change llm consent| [@Porter-K](https://github.com/Porter-K) |https://github.com/COSC-499-W2025/capstone-project-team-8/issues/232| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/270|
+
+
+
+
+
+### Our Goals this week:
+
+We had a few things that came to attention that needed to be fixed, outside of that we wanted to continue working on the resume builder as well as the incremental upload feature. The bug fixes were high priority this week as they were causing issues with other features. We also wanted to put in work preparing for peer evaluations coming up this week.
+
+
+### Reflection
+Development was smooth this week in fixing bugs and implementing new features. We feel good about our progress and are looking forward to peer evaluations this week. We were able to work together well to get things done and help each other with progress. The week was very seamless all around for everyone.
+
+
+### What went well:
+Development and teamwork was the highlight of this week. We were able to get a lot done as a result of our teamwork. The bug fixes were resolved quickly which helped make way for the development of new features.
+
+
+### What didn't go well:
+Ensuring that our timeline with fixing bugs in order to make way for a development was a bit tricky. We were able to put in some good work early to help avoid any unexpected delays. However, the pressure in getting ready for the evaluations was felt by all team members.
+
+### Test Report
+<img width="1370" height="417" alt="Sem2Week3Test" src="https://github.com/user-attachments/assets/aaf4e4c3-b251-4c87-b198-09d1909803cd" />
+
+
+
+### Plan for next week:
+Next week we plan to continue building off the new features we implemented this week such as the resume builder alongside continue ensuring we are working towards the requirements for milestone 2. We also want to keep looking ahead at milestone 3 and start planning for that as well.
+
+
+### Burn up chart
+
+
+<img width="1040" height="553" alt="Sem2Week3Burnup" src="https://github.com/user-attachments/assets/b0b88c4c-5aaa-4b09-b16f-f919d2794b07" />
+
 
 
 ## Milestone 2 Week 2

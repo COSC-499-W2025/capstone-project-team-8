@@ -15,6 +15,7 @@
 ### Term 2
 - [Week 15 (Jan 5–9)](#week-15-january-5-9)
 - [Week 16 (Jan 12–16)](#week-16-january-12-16)
+- [Week 17 (Jan 19-23)](#week-17-january-19-23)
 
 
 ## Week 3 September 15-21
@@ -237,3 +238,31 @@ Next week:
   
 Reflection:
 We now have a UI that is connected to our Django backend. This will help plan out future backend features since we will be able to find shortcomings in our app. I feel like we were slightly bottlenecked in which features to work on since we didn't have an idea of how the user would actually interact with the system. But now since we have a quick UI to see, I can already see a lot of bugs and such that our backend has. We can include these tasks in our next week.
+
+## Week 17 January 19-23
+(TODO) - img
+
+This week:
+- created a comprehensive API documentation for our backend endpoints PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/257 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/256
+- refactored serializer logic into multiple small files PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/265 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/262
+- fixed migration bugs with Matin PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/258 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/259
+- quick bug fix again with PR last week not merged properly PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/269
+- reviewed matins refactor PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/263
+- review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/264
+
+What went well:
+- prepped for heuristic evaluations
+- automatic api docs can be used for executing api commands for evaluation and also keep the team updated with every endpoint we have and the values returned
+  
+What went wrong:
+- more bugs this week with migration issues, we need to start merging PR's more carefully
+
+Next week:
+- since our Azure AI free trial expired, we will need another group member to make an account and connect it
+- fix bugs with dates not shwoing correctly, some values NULL on return still
+- refine accuracy on classifiers
+  
+Reflection:
+We now have a full API docs page and users are able to interact with the APIs listed. This can be used for our heuristic evaluations on monday since our UI is not complete. The bulk of our features are done, and we will be spending time on refining the accuracy and making sure the data that comes in and out of our system is feasible.
+
+
