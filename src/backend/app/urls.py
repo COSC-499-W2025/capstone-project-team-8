@@ -30,6 +30,11 @@ from .views.resume_views import (
     ResumeDetailView,
     ResumeEditView,
 )
+from .views.incremental_upload_views import (
+    IncrementalUploadView,
+    ProjectHistoryView,
+    PortfolioIncrementalStatsView,
+)
 
 urlpatterns = [
     # API Documentation
@@ -39,6 +44,7 @@ urlpatterns = [
     
     # Upload and analysis
     path("upload-folder/", UploadFolderView.as_view(), name="upload-folder"),
+    path("incremental-upload/", IncrementalUploadView.as_view(), name="incremental-upload"),
     
     # Projects endpoints
     path("projects/", ProjectsListView.as_view(), name="projects-list"),
@@ -46,6 +52,7 @@ urlpatterns = [
     path("projects/ranked/", RankedProjectsView.as_view(), name="projects-ranked"),
     path("projects/ranked/summary/", TopProjectsSummaryView.as_view(), name="projects-ranked-summary"),
     path("projects/<int:pk>/", ProjectDetailView.as_view(), name="projects-detail"),
+    path("projects/<int:project_id>/history/", ProjectHistoryView.as_view(), name="project-history"),
 
     # Portfolio endpoints
     path("portfolio/", PortfolioListView.as_view(), name="portfolio-list"),
@@ -55,6 +62,7 @@ urlpatterns = [
     path("portfolio/<int:pk>/projects/add/", PortfolioAddProjectView.as_view(), name="portfolio-add-project"),
     path("portfolio/<int:pk>/projects/<int:project_id>/", PortfolioRemoveProjectView.as_view(), name="portfolio-remove-project"),
     path("portfolio/<int:pk>/projects/reorder/", PortfolioReorderProjectsView.as_view(), name="portfolio-reorder-projects"),
+    path("portfolio/<int:portfolio_id>/incremental-stats/", PortfolioIncrementalStatsView.as_view(), name="portfolio-incremental-stats"),
 
     # Resume endpoints
     path("resume/templates/", ResumeTemplatesView.as_view(), name="resume-templates"),
