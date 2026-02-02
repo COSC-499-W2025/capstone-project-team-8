@@ -16,7 +16,8 @@ from .project import (
     ProjectSerializer,
     ProjectDetailSerializer,
     ProjectUpdateSerializer,
-    ProjectStatsSerializer
+    ProjectStatsSerializer,
+    ProjectConsentSerializer
 )
 from .resume import (
     ResumeTemplateSerializer,
