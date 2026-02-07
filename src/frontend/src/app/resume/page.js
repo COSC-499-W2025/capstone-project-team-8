@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
+import { getCurrentUser } from '@/utils/api';
 import { 
-  getResumeTemplates, 
   getProjects, 
   generateLatexResume,
   generateResume,
@@ -115,10 +115,21 @@ export default function ResumePage() {
 
     const initializeResumePage = async () => {
       try {
-        const [projectsData, previewData] = await Promise.all([
+        const [userData, projectsData, previewData] = await Promise.all([
+          getCurrentUser(token),
           getProjects(token),
           getResumePreview(token),
         ]);
+
+        // Build name from user data
+        const userFullName = (() => {
+          const firstName = userData.user?.first_name || '';
+          const lastName = userData.user?.last_name || '';
+          if (firstName && lastName) return `${firstName} ${lastName}`;
+          if (firstName) return firstName;
+          if (lastName) return lastName;
+          return 'Your Name';
+        })();
 
         // Handle projects - ensure it's an array with all details
         const projectsList = Array.isArray(projectsData) 
@@ -127,26 +138,60 @@ export default function ResumePage() {
         console.log('Projects loaded:', projectsList);
         setProjects(projectsList);
 
+        // Build initial education entry from user data
+        const userEducation = [];
+        if (userData.user?.university || userData.user?.degree_major) {
+          const degreeTitle = userData.user?.degree_major ? 
+            `${userData.user.degree_major}` : 'Degree';
+          const university = userData.user?.university || '';
+          
+          let duration = '';
+          if (userData.user?.expected_graduation) {
+            const gradDate = new Date(userData.user.expected_graduation);
+            duration = `Expected ${gradDate.getFullYear()}`;
+          }
+          
+          userEducation.push({
+            id: 1,
+            title: degreeTitle,
+            company: university,
+            duration: duration,
+            content: userData.user?.education_city || ''
+          });
+        }
+
         // Load resume from backend context (has user's actual data)
         if (previewData && previewData.context) {
           const context = previewData.context;
           setResumeData(prev => ({
             ...prev,
-            name: context.summary?.user_name || prev.name,
+            name: context.summary?.user_name || userFullName,
             sections: {
               summary: context.summary?.summary || prev.sections.summary,
               experience: context.experience || prev.sections.experience,
-              education: context.education || prev.sections.education,
+              education: context.education && context.education.length > 0 
+                ? context.education 
+                : userEducation.length > 0 ? userEducation : prev.sections.education,
               skills: context.skills || prev.sections.skills,
               certifications: context.certifications || prev.sections.certifications,
               projects: []
             }
           }));
         } else {
-          // Fallback: Load saved draft or use defaults
+          // Fallback: Load saved draft or use user data
           const savedDraft = getCurrentDraft();
           if (savedDraft && savedDraft.resumeData) {
             setResumeData(savedDraft.resumeData);
+          } else {
+            // Use user data to populate resume
+            setResumeData(prev => ({
+              ...prev,
+              name: userFullName,
+              sections: {
+                ...prev.sections,
+                education: userEducation.length > 0 ? userEducation : prev.sections.education
+              }
+            }));
           }
         }
 
