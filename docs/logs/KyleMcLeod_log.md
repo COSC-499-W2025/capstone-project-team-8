@@ -13,9 +13,10 @@
 - [Week 13 (Nov 24–28)](#week-13-november-24-28)
 - [Week 14 (Dec 1–5)](#week-14-december-1-5)
 ### Term 2
-- [Week 15 (Jan 5–9)](#week-15-january-5-9)
-- [Week 16 (Jan 12–16)](#week-16-january-12-16)
-- [Week 17 (Jan 19-23)](#week-17-january-19-23)
+- [T2 Week 1 (Jan 5–9)](#week-15-january-5-9)
+- [T2 Week 2 (Jan 12–16)](#week-16-january-12-16)
+- [T2 Week 3 (Jan 19-23)](#week-17-january-19-23)
+- [T2 Week 4-5 (Jan 5-23)](#week-18--19-january-26---february-6)
 
 
 ## Week 3 September 15-21
@@ -265,4 +266,17 @@ Next week:
 Reflection:
 We now have a full API docs page and users are able to interact with the APIs listed. This can be used for our heuristic evaluations on monday since our UI is not complete. The bulk of our features are done, and we will be spending time on refining the accuracy and making sure the data that comes in and out of our system is feasible.
 
+
+## Week 18 & 19 January 26 - February 6
+(TODO) - img
+
+This week:
+
+What went well:
+
+What went wrong:
+
+Next week:
+
+Reflection:
 
