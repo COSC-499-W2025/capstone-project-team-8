@@ -19,7 +19,13 @@ import {
   clearCurrentDraft 
 } from '@/utils/draftStorage';
 import { cleanResumeForExport, getProjectDateRange, formatTimestampToDate } from '@/utils/resumeCleanup';
-import ResumeTemplate from '@/components/resume/ResumeTemplate';
+import { 
+  getTemplateComponent, 
+  getTemplateMetadata,
+  getNextTemplateIndex,
+  getPreviousTemplateIndex,
+  getTemplateCount
+} from '@/utils/TemplateRegistry';
 import ProjectsPanel from '@/components/resume/ProjectsPanel';
 import styles from './resume.module.css';
 
@@ -35,7 +41,6 @@ export default function ResumePage() {
   const historyRef = useRef(null);
 
   // Main state
-  const [templates, setTemplates] = useState([]);
   const [templateIndex, setTemplateIndex] = useState(0);
   const [projects, setProjects] = useState([]);
   const [resumeData, setResumeData] = useState({
@@ -93,7 +98,8 @@ export default function ResumePage() {
   const [showProjectMenu, setShowProjectMenu] = useState(false);
   const [selectedProjects, setSelectedProjects] = useState(new Set());
 
-  const currentTemplate = templates[templateIndex] || null;
+  const currentTemplate = getTemplateMetadata(templateIndex);
+  const TemplateComponent = getTemplateComponent(templateIndex);
 
   // Initialize page
   useEffect(() => {
@@ -109,16 +115,11 @@ export default function ResumePage() {
 
     const initializeResumePage = async () => {
       try {
-        const [templatesData, projectsData, previewData] = await Promise.all([
-          getResumeTemplates(token),
+        const [projectsData, previewData] = await Promise.all([
           getProjects(token),
           getResumePreview(token),
         ]);
 
-        // Handle templates
-        const templatesList = templatesData.templates || templatesData || [];
-        setTemplates(Array.isArray(templatesList) ? templatesList : []);
-        
         // Handle projects - ensure it's an array with all details
         const projectsList = Array.isArray(projectsData) 
           ? projectsData 
@@ -192,12 +193,12 @@ export default function ResumePage() {
 
   // Navigation
   const nextTemplate = useCallback(() => {
-    setTemplateIndex((prev) => (prev + 1) % templates.length);
-  }, [templates.length]);
+    setTemplateIndex(getNextTemplateIndex(templateIndex));
+  }, [templateIndex]);
 
   const prevTemplate = useCallback(() => {
-    setTemplateIndex((prev) => (prev - 1 + templates.length) % templates.length);
-  }, [templates.length]);
+    setTemplateIndex(getPreviousTemplateIndex(templateIndex));
+  }, [templateIndex]);
 
   // Editing functions
   const updateResumeData = (path, value) => {
@@ -745,8 +746,7 @@ export default function ResumePage() {
             id="resume-preview"
             onDragOver={handleDragOver}
           >
-            <ResumeTemplate
-              template={currentTemplate}
+            <TemplateComponent
               data={resumeData}
               onEdit={updateResumeData}
               onAddSection={addSection}
