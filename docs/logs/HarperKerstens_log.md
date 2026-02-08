@@ -318,7 +318,9 @@ Overall I'm happy with the progress made individually this week. As classes ramp
 
 
 ## January 26-February 7
- 
+
+ <img width="1103" height="643" alt="January26-Febuary7th" src="https://github.com/user-attachments/assets/a932c5b3-e812-4654-bb15-1323c8370d10" />
+
 - Implemented additional features for resume builder
 - Users can now chose from multiple templates for their resume
 - Users name and education now automatically populate on the resume based off their account information
