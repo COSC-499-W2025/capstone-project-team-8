@@ -2,7 +2,7 @@
 Tests for file_type_registry module.
 """
 import pytest
-from src.backend.app.services.classifiers.file_type_registry import (
+from app.services.classifiers.file_type_registry import (
     CODE_EXTS,
     TEXT_EXTS,
     IMAGE_EXTS,
