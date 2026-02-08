@@ -14,6 +14,7 @@
 - [January 5-11](#january-5-11)
 - [January 12-18](#january-12-18)
 - [January 19-25](#january-19-25)
+- [January 26-February 7](#january-26-february-7)
 
 ## September 15-21
 
@@ -314,3 +315,31 @@ The system still has some refining to do and theres more work to be done before 
 
 ### Reflection:
 Overall I'm happy with the progress made individually this week. As classes ramp up again I know it will be harder to spend extra time on the project so I'm glad I was able to lay a strong foundation for the resume builder. Future development should be smoother now that the base is there.
+
+
+## January 26-February 7
+ 
+- Implemented additional features for resume builder
+- Users can now chose from multiple templates for their resume
+- Users name and education now automatically populate on the resume based off their account information
+- Reviewed team members code and provided feedback
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+|https://github.com/COSC-499-W2025/capstone-project-team-8/pull/275   | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/272 https://github.com/COSC-499-W2025/capstone-project-team-8/issues/273|
+
+### What went well
+This week development went well and I was able to implement everything I had planned to do. Nothing got too complicated and I didn't run into any overberaing issues. The resume builder is starting to come along more which is nice to see
+
+### What didn't go well
+We wanted to go back and work on some things based off the feaedback from heuritic evaluation. Development for these adjustments went well but it just ended up taking up some unplanned time this week.
+
+
+
+### What's next
+Next would be to continue expanding upon features for the user. Consistent flow and styling, more interatctivity and a more in the loop feedback system to help ease the understanding and the state of the system.
+
+### Reflection:
+Overall I am very happy with the progress made and the project itself. Things continue to come together and we are making good progress. Looks of exciting features are being implemented and things are increasingly becoming more developed.
