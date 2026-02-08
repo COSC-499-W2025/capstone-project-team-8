@@ -274,10 +274,12 @@ This week:
 - created a terminal interface for our backend PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278
 - redesign login, signup, landing PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/279
 - review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/275
+- reviewe matins PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281
   
 What went well:
 - we started integrating a UI to our backend
-- 
+- system is working as expected with our UI
+  
 What went wrong:
 - still numerous bugs throughout our system
 - accuracy of system still not well known since we havent tested on lots of test files/folders
@@ -285,6 +287,8 @@ What went wrong:
 Next week:
 - work on analysis for less coding type projects and more other subjects
 - continue to refine accuracy and test system with new types of data
+- refactor any more messy components
   
 Reflection:
+Our team is working on refining our system and getting things looking good. We still have a couple requirements to check off for milestone 2, but I am happy with our progress. Some parts of our codebase are messy still, but we will continue to refactor to make it easier to contribute to.
 
