@@ -1,11 +1,9 @@
-# This is where we define our serializers for converting complex data types, 
-# such as querysets and model instances, 
-# into native Python datatypes that can then be easily rendered 
-# into JSON, XML or other content types.
+"""Portfolio serializers for creating, managing, and organizing portfolios."""
 
 from rest_framework import serializers
 from django.utils.text import slugify
-from .models import Portfolio, PortfolioProject, Project
+
+from app.models import Portfolio, PortfolioProject, Project
 
 
 class PortfolioProjectSerializer(serializers.ModelSerializer):
@@ -165,5 +163,6 @@ class ReorderProjectsSerializer(serializers.Serializer):
     """Serializer for reordering projects in portfolio."""
     project_ids = serializers.ListField(
         child=serializers.IntegerField(),
+        required=True,
         help_text="Ordered list of project IDs"
     )

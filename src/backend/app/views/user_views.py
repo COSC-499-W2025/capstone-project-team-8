@@ -5,6 +5,14 @@ from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from app.serializers import (
+    UserProfileSerializer,
+    UserUpdateSerializer,
+    PasswordChangeSerializer,
+    PublicUserSerializer,
+    ErrorResponseSerializer,
+)
 import re
 import logging
 
@@ -53,10 +61,24 @@ class UserMeView(APIView):
 			out['email'] = user.email
 		return out
 
+	@extend_schema(
+		responses={200: UserProfileSerializer},
+		description="Get current authenticated user's profile information",
+		tags=["Users"],
+	)
 	def get(self, request):
 		user = request.user
 		return JsonResponse({'user': self._user_to_dict(user, request=request, include_email=True)})
 
+	@extend_schema(
+		request=UserUpdateSerializer,
+		responses={
+			200: UserProfileSerializer,
+			400: ErrorResponseSerializer,
+		},
+		description="Update current authenticated user's profile information",
+		tags=["Users"],
+	)
 	def put(self, request):
 		user = request.user
 		try:
@@ -141,6 +163,14 @@ class PublicUserView(APIView):
 			'date_joined': user.date_joined.isoformat() if user.date_joined else None,
 		}
 
+	@extend_schema(
+		responses={
+			200: PublicUserSerializer,
+			404: ErrorResponseSerializer,
+		},
+		description="Get public profile information for a user by username",
+		tags=["Users"],
+	)
 	def get(self, request, username):
 		user = get_object_or_404(User, username=username)
 		return JsonResponse({'user': self._user_to_dict(user, request=request)})
@@ -152,6 +182,15 @@ class PasswordChangeView(APIView):
 
 	permission_classes = [IsAuthenticated]
 
+	@extend_schema(
+		request=PasswordChangeSerializer,
+		responses={
+			200: OpenApiResponse(description="Password changed successfully"),
+			400: ErrorResponseSerializer,
+		},
+		description="Change the current user's password",
+		tags=["Users"],
+	)
 	def put(self, request):
 		user = request.user
 		try:
@@ -202,6 +241,15 @@ class ProfileImageUploadView(APIView):
 
 	permission_classes = [IsAuthenticated]
 
+	@extend_schema(
+		request={'multipart/form-data': {'type': 'object', 'properties': {'profile_image': {'type': 'string', 'format': 'binary'}}}},
+		responses={
+			200: OpenApiResponse(description="Profile image uploaded successfully"),
+			400: ErrorResponseSerializer,
+		},
+		description="Upload a profile image for the current user",
+		tags=["Users"],
+	)
 	def post(self, request):
 		user = request.user
 		

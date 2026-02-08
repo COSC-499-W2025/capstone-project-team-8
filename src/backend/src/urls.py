@@ -25,13 +25,27 @@ from django.conf.urls.static import static
 def index(request):
         html = """
         <html>
-            <head><title>Backend API</title></head>
+            <head>
+                <title>Backend API</title>
+            </head>
             <body>
                 <h1>Backend API</h1>
+                
+                <h2>API Documentation</h2>
+                <ul>
+                    <li><a href="/api/schema/swagger-ui/">Swagger UI</a></li>
+                    <li><a href="/api/schema/redoc/">ReDoc</a></li>
+                    <li><a href="/api/schema/">Download OpenAPI Schema</a></li>
+                </ul>
+                
+                <h2>API Endpoints</h2>
+                <ul>
+                    <li><a href="/api/upload-folder/">Upload Folder</a></li>
+                </ul>
+                
+                <h2>Administration</h2>
                 <ul>
                     <li><a href="/admin/">Django Admin</a></li>
-                    <li><a href="/api/upload-folder/">Upload Folder API (POST)</a></li>
-                    
                 </ul>
             </body>
         </html>

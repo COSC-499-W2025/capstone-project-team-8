@@ -9,8 +9,8 @@ GitPython
 requests
 PyMuPDF>=1.23.0
 openai
+drf-spectacular
 pytest
 pytest-django
-ango
-
+django-cors-headers
 Pillow

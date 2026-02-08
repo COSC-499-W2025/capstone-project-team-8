@@ -5,6 +5,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Sum, Count, Prefetch
 from datetime import datetime
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from app.serializers import (
+    ProjectSerializer,
+    ProjectDetailSerializer,
+    ProjectUpdateSerializer,
+    ProjectStatsSerializer,
+    ErrorResponseSerializer,
+)
 from app.services.llm import ai_analyze
 from app.utils.prompt_loader import load_prompt_template
 import logging
@@ -21,6 +29,14 @@ from app.models import (
 class ProjectsListView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='q', description='Search projects by name', required=False, type=str),
+        ],
+        responses={200: ProjectSerializer(many=True)},
+        description="List all projects for the authenticated user. Optionally filter by name using the 'q' query parameter.",
+        tags=["Projects"],
+    )
     def get(self, request):
         """
         List projects for the authenticated user.
@@ -46,6 +62,10 @@ class ProjectsListView(APIView):
             # Get framework count without additional query (prefetched)
             framework_count = p.frameworks.all().count()
             
+            # Extract languages and frameworks for resume builder
+            languages = [{"id": l.id, "name": l.name} for l in p.languages.all()]
+            frameworks = [{"id": f.id, "name": f.name} for f in p.frameworks.all()]
+            
             out.append({
                 "id": p.id,
                 "name": p.name,
@@ -62,6 +82,8 @@ class ProjectsListView(APIView):
                 "created_at": int(p.created_at.timestamp()) if p.created_at else None,
                 "thumbnail_url": request.build_absolute_uri(p.thumbnail.url) if p.thumbnail else None,
                 "framework_count": framework_count,
+                "languages": languages,
+                "frameworks": frameworks,
                 "resume_bullet_points": p.resume_bullet_points or []
             })
 
@@ -78,6 +100,14 @@ class ProjectDetailView(APIView):
         except Project.DoesNotExist:
             return None
 
+    @extend_schema(
+        responses={
+            200: ProjectDetailSerializer,
+            404: ErrorResponseSerializer,
+        },
+        description="Get detailed information about a specific project",
+        tags=["Projects"],
+    )
     def get(self, request, pk):
         p = self._get_project(pk, request.user)
         if not p:
@@ -129,6 +159,15 @@ class ProjectDetailView(APIView):
         }
         return JsonResponse(resp)
 
+    @extend_schema(
+        request=ProjectUpdateSerializer,
+        responses={
+            200: OpenApiResponse(description="Project updated successfully"),
+            404: ErrorResponseSerializer,
+        },
+        description="Update project name and/or description",
+        tags=["Projects"],
+    )
     def patch(self, request, pk):
         p = self._get_project(pk, request.user)
         if not p:
@@ -157,6 +196,14 @@ class ProjectDetailView(APIView):
 
         return JsonResponse({"ok": True, "id": p.id})
 
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(description="Project deleted successfully"),
+            404: ErrorResponseSerializer,
+        },
+        description="Delete a project",
+        tags=["Projects"],
+    )
     def delete(self, request, pk):
         p = self._get_project(pk, request.user)
         if not p:
@@ -169,6 +216,11 @@ class ProjectDetailView(APIView):
 class ProjectStatsView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        responses={200: ProjectStatsSerializer},
+        description="Get overall project statistics for the authenticated user including totals, languages, and frameworks",
+        tags=["Projects"],
+    )
     def get(self, request):
         """
         Return overall project statistics for the authenticated user.
@@ -211,6 +263,11 @@ class ProjectStatsView(APIView):
 class RankedProjectsView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        responses={200: OpenApiResponse(description="Projects ranked by contribution score")},
+        description="Return projects ranked by user's contribution score (commit_percentage * 0.4 + lines_changed_percentage * 0.6)",
+        tags=["Projects"],
+    )
     def get(self, request):
         """
         Return projects ranked by user's contribution score.
@@ -302,6 +359,11 @@ class RankedProjectsView(APIView):
 class TopProjectsSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        responses={200: OpenApiResponse(description="Top 3 ranked projects with AI summaries")},
+        description="Return top 3 ranked projects with pre-generated AI summaries",
+        tags=["Projects"],
+    )
     def get(self, request):
         """Return top 3 ranked projects with pre-generated AI summaries."""
         projects = self._get_ranked_projects_with_tech(request.user)[:3]
@@ -486,6 +548,16 @@ Output ONLY the summary text."""
 class ProjectThumbnailUploadView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request={'multipart/form-data': {'type': 'object', 'properties': {'thumbnail': {'type': 'string', 'format': 'binary'}}}},
+        responses={
+            200: OpenApiResponse(description="Thumbnail uploaded successfully"),
+            400: ErrorResponseSerializer,
+            404: ErrorResponseSerializer,
+        },
+        description="Upload a thumbnail image for a project",
+        tags=["Projects"],
+    )
     def post(self, request, pk):
         """POST endpoint to upload project thumbnail image."""
         try:

@@ -9,11 +9,33 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework import status as http_status
 from django.template import engines
 from rest_framework_simplejwt.tokens import RefreshToken
+from drf_spectacular.utils import extend_schema, OpenApiResponse
+from app.serializers import (
+    SignupSerializer,
+    SignupResponseSerializer,
+    LoginSerializer,
+    LoginResponseSerializer,
+    ErrorResponseSerializer,
+)
 
 
 class SignupView(APIView):
-    parser_classes = (MultiPartParser, FormParser, JSONParser)
+    parser_classes = (JSONParser, MultiPartParser, FormParser)
 
+    @extend_schema(
+        request={
+            'application/json': SignupSerializer,
+            'multipart/form-data': SignupSerializer,
+            'application/x-www-form-urlencoded': SignupSerializer,
+        },
+        responses={
+            201: SignupResponseSerializer,
+            400: OpenApiResponse(response=ErrorResponseSerializer, description="Bad request - missing fields, passwords don't match, or username/email already exists"),
+            500: OpenApiResponse(response=ErrorResponseSerializer, description="Internal server error"),
+        },
+        description="Create a new user account. Returns JWT tokens for immediate authentication.",
+        tags=["Authentication"],
+    )
     def post(self, request: Request):
         # Check if request is JSON or form data
         is_json = request.content_type == 'application/json'
@@ -111,6 +133,9 @@ class SignupView(APIView):
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
 
+    @extend_schema(
+        exclude=True,  # Hide from API docs since it's just for HTML form
+    )
     def get(self, request):
         """Return signupusage or HTML form."""
 
@@ -153,8 +178,21 @@ class SignupView(APIView):
 
 
 class LoginView(APIView):
-    parser_classes = (MultiPartParser, FormParser, JSONParser)
+    parser_classes = (JSONParser, MultiPartParser, FormParser)
 
+    @extend_schema(
+        request={
+            'application/json': LoginSerializer,
+            'multipart/form-data': LoginSerializer,
+            'application/x-www-form-urlencoded': LoginSerializer,
+        },
+        responses={
+            200: LoginResponseSerializer,
+            400: OpenApiResponse(response=ErrorResponseSerializer, description="Bad request - missing fields or invalid credentials"),
+        },
+        description="Authenticate a user with username and password. Returns JWT tokens on success.",
+        tags=["Authentication"],
+    )
     def post(self, request: Request):
         # Check if request is JSON or form data
         is_json = request.content_type == 'application/json'
@@ -207,6 +245,9 @@ class LoginView(APIView):
                 status=http_status.HTTP_401_UNAUTHORIZED,
             )
 
+    @extend_schema(
+        exclude=True,  # Hide from API docs since it's just for HTML form
+    )
     def get(self, request):
         """Return signupusage or HTML form."""
 

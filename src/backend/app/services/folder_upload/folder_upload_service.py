@@ -93,43 +93,41 @@ class FolderUploadService:
         with tempfile.TemporaryDirectory() as tmpdir:
             tmpdir_path = Path(tmpdir)
             
-            # Step 2: Extract
-            archive_path = tmpdir_path / "upload.zip"
-            self.extractor.extract(upload, tmpdir_path)
+            # Step 2: Extract - returns the content directory where files are extracted
+            # The ZIP file is stored separately in tmpdir/archive/upload.zip
+            content_dir = self.extractor.extract(upload, tmpdir_path)
+            archive_path = tmpdir_path / "archive" / "upload.zip"
             
-            # Step 3: Discover projects
-            projects = self.project_discovery.discover(tmpdir_path)
+            # Step 3: Discover projects in the content directory (not the tmpdir root)
+            projects = self.project_discovery.discover(content_dir)
             
             # Build relative projects mapping
-            projects_rel = self._build_projects_rel(projects, tmpdir_path)
+            projects_rel = self._build_projects_rel(projects, content_dir)
             
             # Step 4: Scan files with enhanced hashing for deduplication
-            # Save ZIP path for enhanced scanner
-            zip_file_path = tmpdir_path / "upload.zip"
-            
             # Use enhanced scanner if ZIP is available, otherwise fall back to standard scanner
             try:
-                if zip_file_path.exists():
+                if archive_path.exists():
                     results = self.enhanced_file_scanner.scan_with_hashing(
-                        tmpdir_path=tmpdir_path,
-                        zip_path=zip_file_path,
+                        tmpdir_path=content_dir,
+                        zip_path=archive_path,
                         projects=projects,
                         projects_rel=projects_rel
                     )
                 else:
                     # Fallback to standard scanner
-                    results = self.file_scanner.scan(tmpdir_path, projects, projects_rel)
+                    results = self.file_scanner.scan(content_dir, projects, projects_rel)
             except Exception as e:
                 # If enhanced scanner fails, fall back to standard
                 import logging
                 logging.warning(f"Enhanced file scanner failed: {str(e)}. Falling back to standard scanner.")
-                results = self.file_scanner.scan(tmpdir_path, projects, projects_rel)
+                results = self.file_scanner.scan(content_dir, projects, projects_rel)
             
             # Step 5: Classify projects
             project_classifications = self._classify_projects(
                 archive_path, 
                 projects, 
-                tmpdir_path
+                content_dir
             )
             
             # Step 5.5: Classify unorganized files (project 0) if any exist
@@ -147,7 +145,7 @@ class FolderUploadService:
                         file_path = r.get("path", "")
                         if file_path:
                             try:
-                                source_path = tmpdir_path / file_path
+                                source_path = content_dir / file_path
                                 if source_path.exists():
                                     # Maintain directory structure
                                     dest_path = unorg_tmpdir_path / file_path
@@ -181,21 +179,21 @@ class FolderUploadService:
             git_contrib_data, project_timestamps = self._get_git_contributors(projects)
             
             # Step 7: Get timestamps for non-git projects from ZIP metadata
-            zip_timestamps = self._get_zip_file_timestamps(archive_path, projects, tmpdir_path)
+            zip_timestamps = self._get_zip_file_timestamps(archive_path, projects, content_dir)
             # Merge with git timestamps (git timestamps take priority)
             for tag, timestamp in zip_timestamps.items():
                 if tag not in project_timestamps or project_timestamps[tag] == 0:
                     project_timestamps[tag] = timestamp
 
             # Step 7b: Get end timestamps (newest files) for non-git projects from ZIP metadata
-            zip_end_timestamps = self._get_zip_file_end_timestamps(archive_path, projects, tmpdir_path)
+            zip_end_timestamps = self._get_zip_file_end_timestamps(archive_path, projects, content_dir)
             # TODO: In future, could get git last commit timestamps here and merge (git takes priority)
             
 
             # Step 8: Generate AI summaries if consent given
             project_summaries = self._generate_project_summaries(
                 projects, 
-                tmpdir_path, 
+                content_dir, 
                 send_to_llm,
                 project_classifications,
                 git_contrib_data

@@ -1,0 +1,288 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.section {
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.2s;
+}
+
+.section:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.btnAddSection {
+  padding: 6px 12px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnAddSection:hover {
+  background: #764ba2;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Bullet Points Styles */
+.bulletPoints {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bulletPoint {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px;
+  background: white;
+  border: 1px solid #ddd;
+  border-left: 4px solid #667eea;
+  border-radius: 4px;
+  transition: all 0.2s;
+  cursor: grab;
+}
+
+.bulletPoint:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.bulletPoint:active {
+  cursor: grabbing;
+  opacity: 0.7;
+}
+
+.dragHandle {
+  flex-shrink: 0;
+  color: #ccc;
+  font-size: 0.9rem;
+  cursor: grab;
+  user-select: none;
+  line-height: 1.4;
+}
+
+.bulletPoint:hover .dragHandle {
+  color: #667eea;
+}
+
+.bulletContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.bulletContent p {
+  margin: 0;
+  line-height: 1.4;
+  color: #444;
+  font-size: 0.95rem;
+  word-wrap: break-word;
+}
+
+.bulletActions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btnEdit,
+.btnRemove {
+  padding: 6px 8px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnEdit:hover {
+  background: #e3f2fd;
+  border-color: #667eea;
+}
+
+.btnRemove:hover {
+  background: #ffebee;
+  border-color: #f44336;
+}
+
+.editingBullet {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editInput {
+  flex: 1;
+  padding: 10px;
+  border: 2px solid #667eea;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.editInput:focus {
+  outline: none;
+  border-color: #764ba2;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+}
+
+.btnSave,
+.btnCancel {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSave {
+  background: #4caf50;
+  color: white;
+}
+
+.btnSave:hover {
+  background: #45a049;
+}
+
+.btnCancel {
+  background: #f44336;
+  color: white;
+}
+
+.btnCancel:hover {
+  background: #da190b;
+}
+
+.emptySection {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px;
+  background: white;
+  border-radius: 4px;
+  border: 1px dashed #ddd;
+  margin: 0;
+}
+
+/* Form Styles */
+.formItems {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.formItem {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 15px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.formItem:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+.input,
+.textarea {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.btnRemoveItem {
+  align-self: flex-end;
+  padding: 8px 16px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.btnRemoveItem:hover {
+  background: #da190b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 15px;
+  }
+
+  .bulletPoint {
+    flex-direction: column;
+  }
+
+  .bulletActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .formItem {
+    padding: 10px;
+  }
+}
