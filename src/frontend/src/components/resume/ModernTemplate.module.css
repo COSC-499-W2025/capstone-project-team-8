@@ -1,0 +1,257 @@
+/* Modern Template Styles - Clean, Contemporary Design */
+
+.resumeTemplate {
+  padding: 32px;
+  background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: #222;
+  line-height: 1.6;
+}
+
+/* Header */
+.header {
+  margin-bottom: 28px;
+  border-bottom: 3px solid #3498db;
+  padding-bottom: 16px;
+}
+
+.nameField {
+  font-size: 32px !important;
+  font-weight: 700 !important;
+  color: #2c3e50 !important;
+  letter-spacing: -0.5px;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 24px;
+}
+
+.sectionTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: #3498db;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 16px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.sectionContent {
+  padding-left: 0;
+}
+
+/* Items */
+.experienceItem,
+.educationItem,
+.certificationItem {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-left: 3px solid #ecf0f1;
+  padding-left: 16px;
+}
+
+.experienceItem:last-child,
+.educationItem:last-child,
+.certificationItem:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.itemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.itemTitle {
+  flex: 1;
+}
+
+.boldField {
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  color: #2c3e50 !important;
+}
+
+.companyField {
+  font-size: 13px;
+  color: #3498db;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.durationField {
+  font-size: 12px;
+  color: #7f8c8d;
+  margin: 4px 0 0 0;
+  font-style: italic;
+}
+
+.descriptionField {
+  font-size: 13px;
+  color: #555;
+  margin-top: 8px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.summaryField {
+  font-size: 14px !important;
+  color: #555 !important;
+  line-height: 1.6 !important;
+}
+
+/* Skills Layout */
+.skillsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.skillTag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ecf0f1;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.skillField {
+  color: #2c3e50 !important;
+  margin: 0 !important;
+}
+
+/* Editing */
+.editingContainer {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.input,
+.textarea {
+  flex: 1;
+  padding: 6px 8px;
+  border: 2px solid #3498db !important;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 13px;
+  color: #000 !important;
+  background: #fff !important;
+  box-sizing: border-box;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+  max-height: 160px;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none !important;
+  border-color: #2980b9 !important;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1) !important;
+}
+
+/* Fields */
+.editableField {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background 0.2s;
+  border: 1px solid transparent;
+  display: block;
+  width: 100%;
+  white-space: pre-wrap;
+}
+
+.editableField:hover {
+  background: #f8f9fa;
+  border: 1px solid #ecf0f1;
+}
+
+.placeholder {
+  color: #bdc3c7;
+  font-style: italic;
+  font-size: 13px;
+}
+
+/* Buttons */
+.addBtn {
+  background: #3498db;
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.addBtn:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.deleteBtn {
+  background: transparent;
+  color: #e74c3c;
+  border: none;
+  padding: 4px 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover {
+  color: #c0392b;
+}
+
+.emptyState {
+  color: #95a5a6;
+  font-style: italic;
+  font-size: 13px;
+  margin: 12px 0 0 0;
+}
+
+.noTemplate {
+  padding: 32px;
+  text-align: center;
+  color: #7f8c8d;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .resumeTemplate {
+    padding: 24px;
+  }
+
+  .nameField {
+    font-size: 28px !important;
+  }
+
+  .itemHeader {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
