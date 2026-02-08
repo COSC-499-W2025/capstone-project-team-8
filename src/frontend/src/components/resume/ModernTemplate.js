@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import styles from './ResumeTemplate.module.css';
+import styles from './ModernTemplate.module.css';
 
 /**
- * ResumeTemplate Component
+ * ModernTemplate Component
  * 
- * Renders a professional resume template with direct inline editing.
+ * Clean, contemporary resume template with modern design principles.
+ * Features: accent colors, better spacing, modern typography
  * Users can click text to edit, delete sections, and add new sections.
  */
-export default function ResumeTemplate({
+export default function ModernTemplate({
   data,
   onEdit,
   onAddSection,
@@ -81,7 +82,7 @@ export default function ResumeTemplate({
 
   return (
     <div className={styles.resumeTemplate}>
-      {/* Header */}
+      {/* Header with accent */}
       <div className={styles.header}>
         <EditableField
           path="name"
@@ -93,12 +94,12 @@ export default function ResumeTemplate({
 
       {/* Summary Section */}
       <section className={styles.section}>
-        <h3 className={styles.sectionTitle}>Professional Summary</h3>
+        <h3 className={styles.sectionTitle}>Summary</h3>
         <div className={styles.sectionContent}>
           <EditableField
             path="sections.summary"
             value={data.sections.summary}
-            placeholder="Write a brief professional summary..."
+            placeholder="Professional summary..."
             multiline
             className={styles.summaryField}
           />
@@ -122,28 +123,27 @@ export default function ResumeTemplate({
             data.sections.experience.map((item, idx) => (
               <div key={item.id} className={styles.experienceItem}>
                 <div className={styles.itemHeader}>
-                  <div className={styles.itemTitle}>
+                  <div>
                     <EditableField
                       path={`sections.experience.${idx}.title`}
                       value={item.title}
-                      placeholder="Job Title"
+                      placeholder="Position"
                       className={styles.boldField}
+                    />
+                    <EditableField
+                      path={`sections.experience.${idx}.company`}
+                      value={item.company}
+                      placeholder="Company"
+                      className={styles.companyField}
                     />
                   </div>
                   <button 
                     onClick={() => onRemoveSection('experience', item.id)}
                     className={styles.deleteBtn}
-                    title="Delete experience"
                   >
                     ✕
                   </button>
                 </div>
-                <EditableField
-                  path={`sections.experience.${idx}.company`}
-                  value={item.company}
-                  placeholder="Company Name"
-                  className={styles.companyField}
-                />
                 <EditableField
                   path={`sections.experience.${idx}.duration`}
                   value={item.duration}
@@ -153,13 +153,13 @@ export default function ResumeTemplate({
                 <EditableField
                   path={`sections.experience.${idx}.content`}
                   value={item.content}
-                  placeholder="Describe your responsibilities and achievements..."
+                  placeholder="Describe achievements..."
                   className={styles.descriptionField}
                 />
               </div>
             ))
           ) : (
-            <p className={styles.emptyState}>No experience added. Click + to add one.</p>
+            <p className={styles.emptyState}>No experience added</p>
           )}
         </div>
       </section>
@@ -171,7 +171,6 @@ export default function ResumeTemplate({
           <button 
             onClick={() => onAddSection('education')}
             className={styles.addBtn}
-            title="Add education"
           >
             +
           </button>
@@ -181,28 +180,27 @@ export default function ResumeTemplate({
             data.sections.education.map((item, idx) => (
               <div key={item.id} className={styles.educationItem}>
                 <div className={styles.itemHeader}>
-                  <div className={styles.itemTitle}>
+                  <div>
                     <EditableField
                       path={`sections.education.${idx}.title`}
                       value={item.title}
-                      placeholder="Degree and Major"
+                      placeholder="Degree"
                       className={styles.boldField}
+                    />
+                    <EditableField
+                      path={`sections.education.${idx}.company`}
+                      value={item.company}
+                      placeholder="School"
+                      className={styles.companyField}
                     />
                   </div>
                   <button 
                     onClick={() => onRemoveSection('education', item.id)}
                     className={styles.deleteBtn}
-                    title="Delete education"
                   >
                     ✕
                   </button>
                 </div>
-                <EditableField
-                  path={`sections.education.${idx}.company`}
-                  value={item.company}
-                  placeholder="School/University"
-                  className={styles.companyField}
-                />
                 <EditableField
                   path={`sections.education.${idx}.duration`}
                   value={item.duration}
@@ -212,13 +210,13 @@ export default function ResumeTemplate({
                 <EditableField
                   path={`sections.education.${idx}.content`}
                   value={item.content}
-                  placeholder="Additional details (GPA, honors, etc.)"
+                  placeholder="GPA, honors..."
                   className={styles.descriptionField}
                 />
               </div>
             ))
           ) : (
-            <p className={styles.emptyState}>No education added. Click + to add one.</p>
+            <p className={styles.emptyState}>No education added</p>
           )}
         </div>
       </section>
@@ -230,7 +228,6 @@ export default function ResumeTemplate({
           <button 
             onClick={() => onAddSection('skills')}
             className={styles.addBtn}
-            title="Add skill"
           >
             +
           </button>
@@ -249,7 +246,6 @@ export default function ResumeTemplate({
                   <button 
                     onClick={() => onRemoveSection('skills', skill.id)}
                     className={styles.deleteBtn}
-                    title="Delete skill"
                   >
                     ✕
                   </button>
@@ -257,7 +253,7 @@ export default function ResumeTemplate({
               ))}
             </div>
           ) : (
-            <p className={styles.emptyState}>No skills added. Click + to add one.</p>
+            <p className={styles.emptyState}>No skills added</p>
           )}
         </div>
       </section>
@@ -269,7 +265,6 @@ export default function ResumeTemplate({
           <button 
             onClick={() => onAddSection('certifications')}
             className={styles.addBtn}
-            title="Add certification"
           >
             +
           </button>
@@ -279,44 +274,43 @@ export default function ResumeTemplate({
             data.sections.certifications.map((item, idx) => (
               <div key={item.id} className={styles.certificationItem}>
                 <div className={styles.itemHeader}>
-                  <div className={styles.itemTitle}>
+                  <div>
                     <EditableField
                       path={`sections.certifications.${idx}.title`}
                       value={item.title}
-                      placeholder="Certification Name"
+                      placeholder="Certification"
                       className={styles.boldField}
+                    />
+                    <EditableField
+                      path={`sections.certifications.${idx}.company`}
+                      value={item.company}
+                      placeholder="Organization"
+                      className={styles.companyField}
                     />
                   </div>
                   <button 
                     onClick={() => onRemoveSection('certifications', item.id)}
                     className={styles.deleteBtn}
-                    title="Delete certification"
                   >
                     ✕
                   </button>
                 </div>
                 <EditableField
-                  path={`sections.certifications.${idx}.company`}
-                  value={item.company}
-                  placeholder="Issuing Organization"
-                  className={styles.companyField}
-                />
-                <EditableField
                   path={`sections.certifications.${idx}.duration`}
                   value={item.duration}
-                  placeholder="2021"
+                  placeholder="Year"
                   className={styles.durationField}
                 />
                 <EditableField
                   path={`sections.certifications.${idx}.content`}
                   value={item.content}
-                  placeholder="Credential ID or additional details..."
+                  placeholder="Details..."
                   className={styles.descriptionField}
                 />
               </div>
             ))
           ) : (
-            <p className={styles.emptyState}>No certifications added. Click + to add one.</p>
+            <p className={styles.emptyState}>No certifications added</p>
           )}
         </div>
       </section>
