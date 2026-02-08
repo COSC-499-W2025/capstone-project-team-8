@@ -357,7 +357,7 @@ class IncrementalUploadService:
         files_deduplicated = 0
         
         # STEP 1: Collect all files being uploaded and their metadata
-        upload_files = {}  # filepath -> (content_hash, file_data, file_type)
+        upload_files = {}  # filepath -> (content_hash, file_content, file_data, file_type)
         files_data = upload_project_data.get('files', {})
         
         for file_type in ['code', 'content', 'image', 'unknown']:
@@ -379,7 +379,7 @@ class IncrementalUploadService:
                 
                 # Normalize file path for comparison
                 normalized_path = file_path.replace('\\', '/').strip('/')
-                upload_files[normalized_path] = (content_hash, file_data, file_type)
+                upload_files[normalized_path] = (content_hash, file_content, file_data, file_type)
         
         # STEP 2: Copy files from base project that are NOT being re-uploaded, 
         # or are being re-uploaded with identical content (keep the original)
@@ -392,7 +392,7 @@ class IncrementalUploadService:
             
             # Check if this file is being re-uploaded
             if normalized_existing_path in upload_files:
-                upload_hash, upload_data, upload_type = upload_files[normalized_existing_path]
+                upload_hash, upload_content, upload_data, upload_type = upload_files[normalized_existing_path]
                 
                 # If content is the same, keep the original and skip the upload
                 if upload_hash and upload_hash == existing_file.content_hash:
@@ -442,13 +442,7 @@ class IncrementalUploadService:
         # STEP 3: Add remaining files from upload (new files + modified files)
         processed_hashes = set()  # Avoid duplicates within the upload itself
         
-        for file_path, (content_hash, file_data, file_type) in upload_files_to_process.items():
-            # Extract content
-            if isinstance(file_data, str):
-                file_content = ''
-            else:
-                file_content = file_data.get('text', '') or file_data.get('content', '')
-            
+        for file_path, (content_hash, file_content, file_data, file_type) in upload_files_to_process.items():
             # Skip if we already processed a file with this exact content (duplicate within upload)
             if content_hash and content_hash in processed_hashes:
                 files_deduplicated += 1
