@@ -268,10 +268,12 @@ We now have a full API docs page and users are able to interact with the APIs li
 
 
 ## Week 18 & 19 January 26 - February 6
-(TODO) - img
+<img width="610" height="319" alt="image" src="https://github.com/user-attachments/assets/b1fa5487-6b3e-4114-b8e6-c967714f153c" />
 
 This week:
-
+- created a terminal interface for our backend PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278
+- redesign login, signup, landing PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/279
+  
 What went well:
 
 What went wrong:
