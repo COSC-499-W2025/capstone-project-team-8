@@ -1,5 +1,5 @@
 
-[Jump to latest week](#week-17-january-18-25)
+[Jump to latest week](#week-18-january-26---february-8)
 
 September 15-21
 
@@ -291,5 +291,40 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 - Needed to carefully manage migrations to avoid data loss.
 - Some circular import issues required careful use of string references in Django relationships.
 
+## Week 18 January 26 - February 8
+
+![alt text](image-5.png)
+
+**Coding tasks:**
+- Refactored the `project_classifier.py` module to improve code maintainability and testability by following the Single Responsibility Principle.
+- Split the original 412-line file into 5 focused modules:
+  - `file_type_registry.py`
+  - `feature_extractor.py` 
+  - `scoring_classifier.py`
+  - `confidence_calculator.py`
+  - `project_classifier.py`
+
+- PR: [#281](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281) 
+
+
+**Reviewing:**
+- Reviewed PRs from teammates:
+  - [#278](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278) - Provided feedback on code structure
+  - [#279](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/279) - Tested functionality and UI changes
+  - [#275](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/275) - Reviewed implementation and suggested improvements
+
+**Connection to previous week:**
+- Last week, I refactored Django models into modular files. This week continued the modularization effort by refactoring the project classifier, making the codebase more maintainable and easier to extend.
+
+**Plan/goals for next week:**
+- Address any feedback from the classifier refactor PR
+- Work on remaining milestone requirements
+- Meet with team to discuss next steps
+- Mention LLM requirements to setup system again
+
+**Issues/blockers:**
+- Two tests initially failed after refactor but were easily fixed by updating expectations to match improved classification behavior
+
+- No use for LLM service at the moment so maintained on using free credits as of right now
 
 
