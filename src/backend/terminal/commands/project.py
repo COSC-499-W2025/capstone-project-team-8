@@ -18,10 +18,17 @@ class ProjectCommands:
         try:
             response = self.client.session.get(url)
             if response.status_code == 200:
-                projects = response.json()
-                print_success(f"Found {len(projects)} projects")
-                self.client.print_json(projects)
-                return projects
+                data = response.json()
+                # Handle both dict with 'projects' key and list response
+                if isinstance(data, dict) and 'projects' in data:
+                    projects = data['projects']
+                    print_success(f"Found {len(projects)} project{'s' if len(projects) != 1 else ''}")
+                    self.client.print_json(data)
+                else:
+                    projects = data
+                    print_success(f"Found {len(projects)} project{'s' if len(projects) != 1 else ''}")
+                    self.client.print_json(projects)
+                return data
             else:
                 print_error(f"Failed to list projects: {response.status_code}")
                 return None
