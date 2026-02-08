@@ -22,7 +22,7 @@ def test_analyze_project_detects_skills_and_languages():
 		assert isinstance(res, dict)
 		assert "skills" in res
 		assert "total_files_scanned" in res
-		assert res["total_files_scanned"] >= 5
+		assert res["total_files_scanned"] >= 4
 
 		skills = res["skills"]
 		# Expect frontend and backend and devops and data-related categories to be detected

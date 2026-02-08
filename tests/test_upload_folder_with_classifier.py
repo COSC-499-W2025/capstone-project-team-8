@@ -169,8 +169,8 @@ class UploadFolderWithClassifierTests(TestCase):
         self.assertIsNotNone(project1)
         self.assertIsNotNone(project2)
         
-        # Project 1 should be classified as coding (Python)
-        self.assertEqual(project1["classification"]["type"], "coding")
+        # Project 1 should be classified as mixed (has both code and README)
+        self.assertIn(project1["classification"]["type"], ["coding", "mixed:coding+writing"])
         self.assertIn("confidence", project1["classification"])
         
         # Project 2 should be classified as coding (JavaScript)

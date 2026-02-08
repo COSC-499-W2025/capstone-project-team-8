@@ -15,9 +15,11 @@ import django
 django.setup()
 
 from app.services.classifiers.project_classifier import (
-    extract_project_features,
-    simple_score_classify,
     classify_project,
+)
+from app.services.classifiers.feature_extractor import extract_project_features
+from app.services.classifiers.scoring_classifier import simple_score_classify
+from app.services.classifiers.file_type_registry import (
     CODE_EXTS,
     TEXT_EXTS,
     IMAGE_EXTS,
