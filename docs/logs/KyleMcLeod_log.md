@@ -273,12 +273,18 @@ We now have a full API docs page and users are able to interact with the APIs li
 This week:
 - created a terminal interface for our backend PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278
 - redesign login, signup, landing PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/279
+- review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/275
   
 What went well:
-
+- we started integrating a UI to our backend
+- 
 What went wrong:
+- still numerous bugs throughout our system
+- accuracy of system still not well known since we havent tested on lots of test files/folders
 
 Next week:
-
+- work on analysis for less coding type projects and more other subjects
+- continue to refine accuracy and test system with new types of data
+  
 Reflection:
 
