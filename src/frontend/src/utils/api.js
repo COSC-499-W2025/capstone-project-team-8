@@ -76,6 +76,20 @@ export async function getCurrentUser(token) {
 }
 
 /**
+ * Update current user profile
+ */
+export async function updateUserProfile(profileData, token) {
+  const data = await apiCall('/api/users/me/', {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(profileData),
+  }, token);
+  return data;
+}
+
+/**
  * Upload folder with token
  */
 export async function uploadFolder(file, scanConsent, llmConsent, token) {

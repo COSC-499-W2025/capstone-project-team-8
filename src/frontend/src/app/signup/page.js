@@ -42,7 +42,7 @@ export default function SignupPage() {
 
       const data = await signup(username, password, email, confirmPassword);
       authLogin(data.access, data.refresh);
-      router.push('/dashboard');
+      router.push('/onboarding');
     } catch (err) {
       setError(err.message || 'Signup failed');
     } finally {
