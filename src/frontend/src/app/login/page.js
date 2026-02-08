@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { login } from '@/utils/api';
 import { initializeButtons } from '@/utils/buttonAnimation';
@@ -40,88 +41,104 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-primary flex items-center justify-center p-8">
-      <div className="max-w-md w-full fade-in">
-        <div className="glow-box rounded-lg p-8">
-          <h1 className="text-3xl font-bold mb-2 text-primary">Login</h1>
-          <p className="mb-8 text-primary">Sign in to your account</p>
+    <div className="min-h-screen flex">
+      {/* Left side - Login form */}
+      <div className="w-full lg:w-1/2 flex flex-col" style={{ background: '#09090b' }}>
 
-          {error && (
-            <div className="mb-4 p-4 rounded-lg" style={{ background: 'rgba(220, 38, 38, 0.1)', borderLeft: '3px solid #dc2626' }}>
-              <p style={{ color: '#ff6b6b' }}>{error}</p>
-            </div>
-          )}
+        {/* Form area */}
+        <div className="flex-1 flex items-center justify-center px-8 pb-8">
+          <div className="w-full max-w-sm">
+            <h1 className="text-2xl font-semibold text-white mb-2">Login to your account</h1>
+            <p className="mb-8" style={{ color: '#a1a1aa' }}>
+              Enter your details below to login to your account
+            </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium mb-1 text-primary">
-                Username
-              </label>
-              <input
-                id="username"
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition-all text-gray-900"
-                style={{ 
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  color: 'white'
-                }}
-                placeholder="Enter your username"
+            {error && (
+              <div className="mb-4 px-4 py-3 rounded-md" style={{ background: 'rgba(220, 38, 38, 0.15)', border: '1px solid rgba(220, 38, 38, 0.3)' }}>
+                <p className="text-sm" style={{ color: '#fca5a5' }}>{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="username" className="block text-sm font-medium mb-2 text-white">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full px-3 py-2 rounded-md text-sm focus:outline-none transition-all"
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #27272a',
+                    color: 'white',
+                  }}
+                  placeholder="Enter your username"
+                  disabled={loading}
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium mb-2 text-white">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2 rounded-md text-sm focus:outline-none transition-all"
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid #27272a',
+                    color: 'white',
+                  }}
+                  placeholder="Enter your password"
+                  disabled={loading}
+                />
+              </div>
+
+              <button
+                type="submit"
                 disabled={loading}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-1 text-primary">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition-all text-gray-900"
-                style={{ 
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  color: 'white'
+                className="w-full py-2 px-4 rounded-md text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  background: '#fafafa',
+                  color: '#09090b',
                 }}
-                placeholder="Enter your password"
-                disabled={loading}
-              />
-            </div>
+                onMouseEnter={(e) => { e.target.style.background = '#e4e4e7'; }}
+                onMouseLeave={(e) => { e.target.style.background = '#fafafa'; }}
+              >
+                {loading ? 'Logging in...' : 'Login'}
+              </button>
+            </form>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full font-semibold button-lift disabled:opacity-50 disabled:cursor-not-allowed"
-              data-block="button"
-            >
-              <span className="button__flair"></span>
-              <span className="button__label">{loading ? 'Logging in...' : 'Login'}</span>
-            </button>
-          </form>
-
-          <div className="mt-6 pt-6" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
-            <p className="text-center text-primary">
-              Don't have an account?{' '}
-              <Link href="/signup" className="font-semibold transition-colors text-primary" style={{ textDecoration: 'underline' }}>
+            {/* Sign up link */}
+            <p className="text-center text-sm mt-6" style={{ color: '#a1a1aa' }}>
+              Don&apos;t have an account?{' '}
+              <Link
+                href="/signup"
+                className="font-medium transition-colors no-underline"
+                style={{ color: 'white', textDecoration: 'underline', textUnderlineOffset: '4px' }}
+              >
                 Sign up
               </Link>
             </p>
           </div>
-
-          <div className="mt-4">
-            <Link
-              href="/"
-              className="text-center block text-sm transition-colors text-primary"
-            >
-              Back to home
-            </Link>
-          </div>
         </div>
+      </div>
+
+      {/* Right side - Background image */}
+      <div className="hidden lg:block lg:w-1/2 relative overflow-hidden">
+        <Image
+          src="/images/signin.jpg"
+          alt="Sign in background"
+          fill
+          className="object-cover"
+          priority
+        />
       </div>
     </div>
   );
