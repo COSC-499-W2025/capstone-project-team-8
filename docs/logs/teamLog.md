@@ -1,6 +1,7 @@
 # T8BG Team Log
 
 ## Weekly Logs
+- [Milestone 2 Week 4-5](#milestone-2-week-4-5)
 - [Milestone 2 Week 3](#milestone-2-week-3)
 - [Milestone 2 Week 2](#milestone-2-week-2)
 - [Milestone 2 Week 1](#milestone-2-week-1)
@@ -25,6 +26,44 @@
 |matin0014|Matin Raoufi|
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
+
+## Milestone 2 Week 4-5
+
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| Refactor Project Classifier | [@matin0014](https://github.com/matin0014) | [#205](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/205) | [#281](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281) |
+
+
+
+
+
+### Our Goals this week:
+
+
+
+### Reflection
+
+
+
+### What went well:
+
+
+
+### What didn't go well:
+
+
+### Test Report
+
+
+
+### Plan for next week:
+
+
+
+### Burn up chart
+
+
 
 ## Milestone 2 Week 3
 
