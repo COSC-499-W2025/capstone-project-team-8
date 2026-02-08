@@ -343,7 +343,12 @@ class IncrementalUploadService:
         base_project: Project
     ) -> Tuple[int, int]:
         """
-        Process files for an incremental project with deduplication.
+        Process files for an incremental project with smart deduplication.
+        
+        Only keeps one version of each file:
+        - If file is unchanged, keeps original (no duplicate)
+        - If file is modified, uses new version (replaces original)
+        - If file is new, adds it
         
         Returns:
             Tuple of (files_added, files_deduplicated)
@@ -351,32 +356,8 @@ class IncrementalUploadService:
         files_added = 0
         files_deduplicated = 0
         
-        # STEP 1: Copy all existing files from base project to incremental project
-        existing_files = ProjectFile.objects.filter(project=base_project)
-        for existing_file in existing_files:
-            ProjectFile.objects.create(
-                project=incremental_project,
-                file_path=existing_file.file_path,
-                filename=existing_file.filename,
-                file_extension=existing_file.file_extension,
-                content_hash=existing_file.content_hash,
-                is_duplicate=False,  # These are the original files
-                file_type=existing_file.file_type,
-                line_count=existing_file.line_count,
-                character_count=existing_file.character_count,
-                file_size_bytes=existing_file.file_size_bytes,
-                content_preview=existing_file.content_preview,
-                is_content_truncated=existing_file.is_content_truncated
-            )
-        
-        # STEP 2: Get existing file hashes for deduplication
-        existing_hashes = set(
-            ProjectFile.objects.filter(project=incremental_project)
-            .exclude(content_hash='')
-            .values_list('content_hash', flat=True)
-        )
-        
-        # STEP 3: Process new files from the upload
+        # STEP 1: Collect all files being uploaded and their metadata
+        upload_files = {}  # filepath -> (content_hash, file_data, file_type)
         files_data = upload_project_data.get('files', {})
         
         for file_type in ['code', 'content', 'image', 'unknown']:
@@ -385,11 +366,9 @@ class IncrementalUploadService:
             for file_data in files_of_type:
                 # Handle both string and dictionary formats
                 if isinstance(file_data, str):
-                    # If file_data is just a string (filepath), convert to dict format
                     file_path = file_data
                     file_content = ''
                 else:
-                    # Normal dictionary format
                     file_path = file_data.get('path', '')
                     file_content = file_data.get('text', '') or file_data.get('content', '')
                 
@@ -398,39 +377,102 @@ class IncrementalUploadService:
                 if file_content:
                     content_hash = hashlib.sha256(file_content.encode('utf-8')).hexdigest()
                 
-                # Check if file already exists
-                if content_hash and content_hash in existing_hashes:
+                # Normalize file path for comparison
+                normalized_path = file_path.replace('\\', '/').strip('/')
+                upload_files[normalized_path] = (content_hash, file_data, file_type)
+        
+        # STEP 2: Copy files from base project that are NOT being re-uploaded, 
+        # or are being re-uploaded with identical content (keep the original)
+        existing_files = ProjectFile.objects.filter(project=base_project)
+        upload_files_to_process = upload_files.copy()  # Make a copy to modify
+        
+        for existing_file in existing_files:
+            # Normalize path for comparison
+            normalized_existing_path = existing_file.file_path.replace('\\', '/').strip('/')
+            
+            # Check if this file is being re-uploaded
+            if normalized_existing_path in upload_files:
+                upload_hash, upload_data, upload_type = upload_files[normalized_existing_path]
+                
+                # If content is the same, keep the original and skip the upload
+                if upload_hash and upload_hash == existing_file.content_hash:
                     files_deduplicated += 1
-                    # Still create a record but mark as duplicate
-                    ProjectFile.objects.create(
-                        project=incremental_project,
-                        file_path=file_path,
-                        filename=os.path.basename(file_path),
-                        file_extension=os.path.splitext(file_path)[1].lower(),
-                        content_hash=content_hash,
-                        is_duplicate=True,
-                        file_type=file_type,
-                        content_preview=file_content[:1000] if file_content else '',
-                        is_content_truncated=len(file_content) > 1000 if file_content else False
-                    )
-                else:
-                    files_added += 1
-                    existing_hashes.add(content_hash)  # Track for subsequent files
+                    # Remove from files to process (we'll keep the original)
+                    del upload_files_to_process[normalized_existing_path]
                     
+                    # Copy the original file to incremental project
                     ProjectFile.objects.create(
                         project=incremental_project,
-                        file_path=file_path,
-                        filename=os.path.basename(file_path),
-                        file_extension=os.path.splitext(file_path)[1].lower(),
-                        content_hash=content_hash,
+                        file_path=existing_file.file_path,
+                        filename=existing_file.filename,
+                        file_extension=existing_file.file_extension,
+                        content_hash=existing_file.content_hash,
                         is_duplicate=False,
-                        file_type=file_type,
-                        line_count=file_data.get('lines') if file_type == 'code' else None,
-                        character_count=len(file_content) if file_content else None,
-                        file_size_bytes=file_data.get('size') if file_type == 'image' else None,
-                        content_preview=file_content[:1000] if file_content else '',
-                        is_content_truncated=len(file_content) > 1000 if file_content else False
+                        file_type=existing_file.file_type,
+                        line_count=existing_file.line_count,
+                        character_count=existing_file.character_count,
+                        file_size_bytes=existing_file.file_size_bytes,
+                        content_preview=existing_file.content_preview,
+                        is_content_truncated=existing_file.is_content_truncated,
+                        detected_language=existing_file.detected_language
                     )
+                    continue
+                
+                # If content is different, don't copy the old file 
+                # (the new version will be added in step 3)
+                continue
+            
+            # File is not being re-uploaded, so copy it from base project
+            ProjectFile.objects.create(
+                project=incremental_project,
+                file_path=existing_file.file_path,
+                filename=existing_file.filename,
+                file_extension=existing_file.file_extension,
+                content_hash=existing_file.content_hash,
+                is_duplicate=False,
+                file_type=existing_file.file_type,
+                line_count=existing_file.line_count,
+                character_count=existing_file.character_count,
+                file_size_bytes=existing_file.file_size_bytes,
+                content_preview=existing_file.content_preview,
+                is_content_truncated=existing_file.is_content_truncated,
+                detected_language=existing_file.detected_language
+            )
+        
+        # STEP 3: Add remaining files from upload (new files + modified files)
+        processed_hashes = set()  # Avoid duplicates within the upload itself
+        
+        for file_path, (content_hash, file_data, file_type) in upload_files_to_process.items():
+            # Extract content
+            if isinstance(file_data, str):
+                file_content = ''
+            else:
+                file_content = file_data.get('text', '') or file_data.get('content', '')
+            
+            # Skip if we already processed a file with this exact content (duplicate within upload)
+            if content_hash and content_hash in processed_hashes:
+                files_deduplicated += 1
+                continue
+            
+            # Add the file (either new or modified)
+            files_added += 1
+            if content_hash:
+                processed_hashes.add(content_hash)
+            
+            ProjectFile.objects.create(
+                project=incremental_project,
+                file_path=file_path,
+                filename=os.path.basename(file_path),
+                file_extension=os.path.splitext(file_path)[1].lower(),
+                content_hash=content_hash,
+                is_duplicate=False,
+                file_type=file_type,
+                line_count=file_data.get('lines') if isinstance(file_data, dict) and file_type == 'code' else None,
+                character_count=len(file_content) if file_content else None,
+                file_size_bytes=file_data.get('size') if isinstance(file_data, dict) and file_type == 'image' else None,
+                content_preview=file_content[:1000] if file_content else '',
+                is_content_truncated=len(file_content) > 1000 if file_content else False
+            )
         
         return files_added, files_deduplicated
     

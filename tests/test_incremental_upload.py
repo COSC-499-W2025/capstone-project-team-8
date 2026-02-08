@@ -153,7 +153,7 @@ class IncrementalUploadServiceTests(TestCase):
             self.assertIsNotNone(project.incremental_upload_session)
 
     def test_file_deduplication_across_versions(self):
-        """Test that files are deduplicated across project versions."""
+        """Test that unchanged files are preserved without creating duplicates."""
         import hashlib
         
         # Create base project with files
@@ -207,24 +207,28 @@ class IncrementalUploadServiceTests(TestCase):
             incremental_project, upload_project_data, base_project
         )
 
-        # Verify deduplication
+        # Verify deduplication - new behavior: no duplicate file records
         self.assertEqual(files_added, 1)  # Only new.py
-        self.assertEqual(files_deduplicated, 1)  # shared.py is duplicate
+        self.assertEqual(files_deduplicated, 1)  # shared.py kept original
 
-        # Check that we have both the original file and the duplicate marked file
+        # Check that we have only the original shared.py file (no duplicates)
         shared_files = ProjectFile.objects.filter(
             project=incremental_project,
             filename='shared.py'
         )
-        self.assertEqual(shared_files.count(), 2)  # Original + duplicate
+        self.assertEqual(shared_files.count(), 1)  # Only original, no duplicate
         
-        # Check that one is marked as duplicate
-        duplicate_files = shared_files.filter(is_duplicate=True)
-        self.assertEqual(duplicate_files.count(), 1)
+        # Check that the file is not marked as duplicate
+        shared_file = shared_files.first()
+        self.assertFalse(shared_file.is_duplicate)
+        self.assertIsNone(shared_file.original_file)
         
-        # Check that one is not marked as duplicate (the original)
-        original_files = shared_files.filter(is_duplicate=False)
-        self.assertEqual(original_files.count(), 1)
+        # Verify we also have the new file
+        new_files = ProjectFile.objects.filter(
+            project=incremental_project,
+            filename='new.py'
+        )
+        self.assertEqual(new_files.count(), 1)
 
     def test_get_project_history(self):
         """Test retrieving project version history."""
