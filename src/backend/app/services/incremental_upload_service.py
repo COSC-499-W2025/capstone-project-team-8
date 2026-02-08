@@ -370,7 +370,17 @@ class IncrementalUploadService:
                     file_content = ''
                 else:
                     file_path = file_data.get('path', '')
-                    file_content = file_data.get('text', '') or file_data.get('content', '')
+                    # Try multiple possible keys for file content
+                    file_content = (
+                        file_data.get('text', '') or 
+                        file_data.get('content', '') or 
+                        file_data.get('body', '') or
+                        file_data.get('source', '') or
+                        ''
+                    )
+                    
+                    if not file_content and file_type == 'code':
+                        print(f"DEBUG: No content found for {file_path}, available keys: {list(file_data.keys())}")
                 
                 # Calculate content hash
                 content_hash = ''
@@ -453,6 +463,51 @@ class IncrementalUploadService:
             if content_hash:
                 processed_hashes.add(content_hash)
             
+            # Calculate character count using the same logic as regular uploads
+            char_count = None
+            if isinstance(file_data, dict):
+                # First try to get pre-calculated character count (like regular uploads)
+                char_count = file_data.get('length') or file_data.get('chars') or file_data.get('character_count')
+                
+                # Fallback: calculate from content if available
+                if char_count is None and file_content:
+                    char_count = len(file_content)
+            else:
+                # For string file_data, calculate from content if available
+                if file_content:
+                    char_count = len(file_content)
+            
+            # Calculate file size in bytes using the same logic as regular uploads
+            file_size_bytes = None
+            if isinstance(file_data, dict):
+                # First try to get pre-calculated file size
+                file_size_bytes = file_data.get('size') or file_data.get('bytes')
+                
+                # Fallback: approximate from character count if not provided
+                if file_size_bytes is None and char_count:
+                    file_size_bytes = char_count  # Approximate bytes from chars
+            else:
+                # For string file_data, approximate from content if available
+                if file_content:
+                    file_size_bytes = len(file_content.encode('utf-8'))
+            
+            print(f"DEBUG: Creating file {file_path}")
+            print(f"  - Content length: {len(file_content) if file_content else 0}")
+            print(f"  - Character count: {char_count}")
+            print(f"  - File size bytes: {file_size_bytes}")
+            print(f"  - File data keys: {list(file_data.keys()) if isinstance(file_data, dict) else 'string'}")
+            if isinstance(file_data, dict):
+                if 'lines' in file_data:
+                    print(f"  - Lines: {file_data.get('lines')}")
+                if 'length' in file_data:
+                    print(f"  - Length field: {file_data.get('length')}")
+                if 'chars' in file_data:
+                    print(f"  - Chars field: {file_data.get('chars')}")
+                if 'size' in file_data:
+                    print(f"  - Size field: {file_data.get('size')}")
+                if 'bytes' in file_data:
+                    print(f"  - Bytes field: {file_data.get('bytes')}")
+            
             ProjectFile.objects.create(
                 project=incremental_project,
                 file_path=file_path,
@@ -462,8 +517,8 @@ class IncrementalUploadService:
                 is_duplicate=False,
                 file_type=file_type,
                 line_count=file_data.get('lines') if isinstance(file_data, dict) and file_type == 'code' else None,
-                character_count=len(file_content) if file_content else None,
-                file_size_bytes=file_data.get('size') if isinstance(file_data, dict) and file_type == 'image' else None,
+                character_count=char_count,
+                file_size_bytes=file_size_bytes,
                 content_preview=file_content[:1000] if file_content else '',
                 is_content_truncated=len(file_content) > 1000 if file_content else False
             )
