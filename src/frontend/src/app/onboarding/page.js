@@ -118,7 +118,7 @@ export default function OnboardingPage() {
               key={i}
               className="flex-1 h-1 rounded-full transition-all"
               style={{
-                background: i < step ? '#00b4d8' : '#27272a',
+                background: i < step ? '#4f7cf7' : '#27272a',
               }}
             />
           ))}
@@ -214,7 +214,7 @@ export default function OnboardingPage() {
             <button
               onClick={handleNext}
               className="px-6 py-2 rounded-md text-sm font-medium transition-all"
-              style={{ background: '#00b4d8', color: 'white' }}
+              style={{ background: '#4f7cf7', color: 'white' }}
             >
               Continue
             </button>
@@ -223,7 +223,7 @@ export default function OnboardingPage() {
               onClick={handleSubmit}
               disabled={loading}
               className="px-6 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ background: '#00b4d8', color: 'white' }}
+              style={{ background: '#4f7cf7', color: 'white' }}
             >
               {loading ? 'Saving...' : 'Finish'}
             </button>
