@@ -274,7 +274,8 @@ This week:
 - created a terminal interface for our backend PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278
 - redesign login, signup, landing PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/279
 - review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/275
-- reviewe matins PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281
+- review matins PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281
+- quick review jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/282
   
 What went well:
 - we started integrating a UI to our backend
