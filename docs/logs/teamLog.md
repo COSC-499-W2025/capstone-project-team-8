@@ -33,7 +33,7 @@
 | Task | Assigned To | Issue # | Pull Request |
 |------|-------------|---------|--------------|
 | Refactor Project Classifier | [@matin0014](https://github.com/matin0014) | [#280](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/280) | [#281](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281) |
-
+| Frontend Portfolio | [@cschwebi](https://github.com/cschwebi) | [283](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/283) | [#284](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/284) |
 
 
 
