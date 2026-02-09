@@ -8,18 +8,26 @@ from app.models import Portfolio, PortfolioProject, Project
 
 class PortfolioProjectSerializer(serializers.ModelSerializer):
     """Serializer for PortfolioProject through model with nested project info."""
-    project_id = serializers.IntegerField(source='project.id', read_only=True)
-    project_name = serializers.CharField(source='project.name', read_only=True)
-    project_description = serializers.CharField(source='project.description', read_only=True)
-    classification_type = serializers.CharField(source='project.classification_type', read_only=True)
+    project = serializers.SerializerMethodField()
     
     class Meta:
         model = PortfolioProject
         fields = [
-            'id', 'project_id', 'project_name', 'project_description',
-            'classification_type', 'order', 'notes', 'featured', 'added_at'
+            'id', 'project', 'order', 'notes', 'featured', 'added_at'
         ]
         read_only_fields = ['id', 'added_at']
+    
+    def get_project(self, obj):
+        """Return nested project data."""
+        project = obj.project
+        return {
+            'id': project.id,
+            'name': project.name,
+            'description': project.description,
+            'classification_type': project.classification_type,
+            'total_files': project.total_files,
+            'thumbnail_url': project.thumbnail_url if hasattr(project, 'thumbnail_url') else None,
+        }
 
 
 class PortfolioSerializer(serializers.ModelSerializer):
@@ -31,13 +39,14 @@ class PortfolioSerializer(serializers.ModelSerializer):
         required=False,
         help_text="List of project IDs to add to portfolio"
     )
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
     user_username = serializers.CharField(source='user.username', read_only=True)
     project_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Portfolio
         fields = [
-            'id', 'user_username', 'title', 'slug', 'description', 'summary',
+            'id', 'user_id', 'user_username', 'title', 'slug', 'description', 'summary',
             'summary_generated_at', 'is_public', 'target_audience', 'tone',
             'created_at', 'updated_at', 'projects', 'project_ids', 'project_count'
         ]
