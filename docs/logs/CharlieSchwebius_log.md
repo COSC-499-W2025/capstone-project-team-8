@@ -322,37 +322,35 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 
 #### PR's Worked on
 
-- **[#267](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/267) uplaod.zip being detected and saved as a project**
+- **[#284](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/284) Added portfolios to frontend**
 
 #### PR's Reviewed
 
-- **[#269](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/269) Fix bytes and chars**
-- **[#268](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/268) Incremental Upload**
+- **[#270](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/270) Add llm consent endpoint**
 
 
 #### Coding
-- Created PR which solves issue of extraneous projects being generated and saved due to an issue with the extraction process
-   - Creates new temporary directory for unzipped files
+- Created PR which implements our backend portfolios in the frontend, with adding/deleting/editing
 
 #### Testing or Debugging
-- Updated existing tests to ensure they were compatible with the changes made on my PR
-- Throubleshooted local docker issues
-- Tested PR  # 267, # 268 and # 269
+- Created a new Microsoft Azure account to get our LLM up and running once again
+- Tested to make sure my PR doesn't cause any old tests to fail
+- Tested PR  # 270
+- Tested group 7 and 5's programs to see how they were doing and gave them feedback
+- Ran the peer testing machine and gathered feedback from 2 people
 
 #### Reviewing or Collaboration
-- reviewed 2 PR's
-- Caught a bug which may have been missed (Incremental Upload PR)
+- reviewed 1 PR
+- Collaborated with Kyle McLeod to get the LLM working
 
 #### Last week to this week
-- This week was fine tuning before the heuristic testing
-- Bug fixes and planning
-- Did not expand on portfolio functionality as planned last week
+- This week was in line with what was planned previously (implementing portfolio functionality in the frontend)
+- Did not expand on the existign funtionality, but that can be done soon
 
 #### Upcoming goals
-- Implement portfolio functionality into the front end
-- Expand on existing portfolio implementation (tentative)
+- Expand on existing portfolio implementation
+- Review Milestone 2 requirements with team and adjust for future planning
 
 #### Issues
-- Had to completely wipe database volume and rebuild it due to mismaches with my local machine and the new migrations
-- Things went very smooth compared to last week
+- Nothing major comes to mind, was able to work quickly with minimal troubleshooting this week.
 
