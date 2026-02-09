@@ -58,7 +58,7 @@
 
 ### Test Report
 
-
+<img width="1025" height="167" alt="image" src="https://github.com/user-attachments/assets/8b07d9b0-61ff-48ce-a1e8-f309a8abd442" />
 
 ### Plan for next week:
 
@@ -66,7 +66,7 @@
 
 ### Burn up chart
 
-
+<img width="1787" height="874" alt="image" src="https://github.com/user-attachments/assets/573407c4-42c6-4140-885e-a0f5aca91edb" />
 
 ## Milestone 2 Week 3
 
