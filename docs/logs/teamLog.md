@@ -1,6 +1,7 @@
 # T8BG Team Log
 
 ## Weekly Logs
+- [Milestone 2 Week 4-5](#milestone-2-week-4-5)
 - [Milestone 2 Week 3](#milestone-2-week-3)
 - [Milestone 2 Week 2](#milestone-2-week-2)
 - [Milestone 2 Week 1](#milestone-2-week-1)
@@ -25,6 +26,53 @@
 |matin0014|Matin Raoufi|
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
+
+## Milestone 2 Week 4-5
+
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| Change Resume Template + Enhanced Autofill | [@harperkerstens](https://github.com/harperkerstens) | [#272](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/272), [#273](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/273) | [#275](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/275) |
+| Terminal Interface | [@kylekmcleod](https://github.com/kylekmcleod) | [#277](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/277) | [#278](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278) |
+| Login, Signup, Landing Redesign | [@kylekmcleod](https://github.com/kylekmcleod) | N/A | [#279](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/279) |
+| Refactor Project Classifier | [@matin0014](https://github.com/matin0014) | [#280](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/280) | [#281](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281) |
+| Delete Projects from 'Previous Projects' Tab | [@jordany78](https://github.com/jordany78) | N/A | [#282](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/282) |
+| Frontend Portfolio | [@cschwebi](https://github.com/cschwebi) | [#283](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/283) | [#284](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/284) |
+
+
+
+### Our Goals this week:
+
+This week our primary goals were to enhance the user experience through UI improvements and implement key portfolio management features. We aimed to complete the resume template redesign with better autofill capabilities, create an interactive terminal interface, refactor the project classifier for better performance, and build out the complete frontend portfolio management system. We also wanted to improve the overall design across the application, which was done through a redesign of login, signup, and landing pages.
+
+
+### Reflection
+
+This week was productive with good progress on both frontend and backend features. We successfully integrated the portfolio feature using the existing backend endpoints, and made significant improvements to the user interface. The terminal interface implementation adds another way to interact with our application, while the resume template changes provide users with a customizable output.
+
+
+### What went well:
+
+DOur velocity was good this week with multiple large features being completed and merged. The portfolio frontend implementation came together smoothly, leveraging the previously built backend endpoints effectively. The terminal interface provides another way for users to interact with the system, but unfortunately wasn't ready for peer testing. We collaborated well, with members helping each other debug issues and review PRs promptly. The UI redesign created a more cohesive and professional look across the application. The project classifier refactor improved code maintainability and performance without breaking existing functionality.
+
+
+### What didn't go well:
+
+Some merge conflicts occurred due to simultaneous work on overlapping frontend components, requiring careful coordination to resolve. The portfolio implementation took longer than initially estimated due to the complexity of managing project reordering and nested data structures. Testing the terminal interface across different environments revealed some compatibility issues that needed addressing. The resume template changes required multiple iterations to get the autofill logic working correctly with the new format.
+
+
+### Test Report
+
+<img width="1025" height="167" alt="image" src="https://github.com/user-attachments/assets/8b07d9b0-61ff-48ce-a1e8-f309a8abd442" />
+
+### Plan for next week:
+
+Next week we plan to continue building on the features implemented this week. We'll focus on adding more robust error handling to the portfolio system, extending the terminal interface with additional commands, and gathering user feedback on the new resume template. We also want to begin work on the portfolio export functionality and start planning for Milestone 3 requirements. Additional polish and bug fixes based on testing feedback will be prioritized.
+
+
+### Burn up chart
+
+<img width="1787" height="874" alt="image" src="https://github.com/user-attachments/assets/573407c4-42c6-4140-885e-a0f5aca91edb" />
 
 ## Milestone 2 Week 3
 

@@ -13,9 +13,10 @@
 - [Week 13 (Nov 24–28)](#week-13-november-24-28)
 - [Week 14 (Dec 1–5)](#week-14-december-1-5)
 ### Term 2
-- [Week 15 (Jan 5–9)](#week-15-january-5-9)
-- [Week 16 (Jan 12–16)](#week-16-january-12-16)
-- [Week 17 (Jan 19-23)](#week-17-january-19-23)
+- [T2 Week 1 (Jan 5–9)](#week-15-january-5-9)
+- [T2 Week 2 (Jan 12–16)](#week-16-january-12-16)
+- [T2 Week 3 (Jan 19-23)](#week-17-january-19-23)
+- [T2 Week 4-5 (Jan 5-23)](#week-18--19-january-26---february-6)
 
 
 ## Week 3 September 15-21
@@ -265,4 +266,30 @@ Next week:
 Reflection:
 We now have a full API docs page and users are able to interact with the APIs listed. This can be used for our heuristic evaluations on monday since our UI is not complete. The bulk of our features are done, and we will be spending time on refining the accuracy and making sure the data that comes in and out of our system is feasible.
 
+
+## Week 18 & 19 January 26 - February 6
+<img width="610" height="319" alt="image" src="https://github.com/user-attachments/assets/b1fa5487-6b3e-4114-b8e6-c967714f153c" />
+
+This week:
+- created a terminal interface for our backend PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278
+- redesign login, signup, landing PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/279
+- review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/275
+- review matins PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281
+- quick review jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/282
+  
+What went well:
+- we started integrating a UI to our backend
+- system is working as expected with our UI
+  
+What went wrong:
+- still numerous bugs throughout our system
+- accuracy of system still not well known since we havent tested on lots of test files/folders
+
+Next week:
+- work on analysis for less coding type projects and more other subjects
+- continue to refine accuracy and test system with new types of data
+- refactor any more messy components
+  
+Reflection:
+Our team is working on refining our system and getting things looking good. We still have a couple requirements to check off for milestone 2, but I am happy with our progress. Some parts of our codebase are messy still, but we will continue to refactor to make it easier to contribute to.
 

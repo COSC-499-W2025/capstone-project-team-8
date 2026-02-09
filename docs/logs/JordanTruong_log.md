@@ -2,7 +2,7 @@
 ### Milestone 1
 | [Week 3](#week-3) | [Week 4](#week-4) | [Week 5](#week-5) | [Week 6](#week-6) | [Week 7](#week-7) | [Week 8](#week-8) | [Week 9](#week-9) | [Week 10](#week-10) | [Week 12](#week-12) | [Week 13](#week-13) | [Week 14](#week-14) |
 ### Milestone 2
-| [Week 1](#week-1-t2) | [Week 2](#week-2-t2) | [Week 3](#week-3-t2) | 
+| [Week 1](#week-1-t2) | [Week 2](#week-2-t2) | [Week 3](#week-3-t2) | [Week 5](#week-5-t2) | 
 
 ## Week 3
 ### September 15th - September 19th:
@@ -255,3 +255,28 @@ Next week, we'll do our peer testing and continue to focus on Milestone#2 requir
 ### Reflection:
 - Need to focus on working on PR earlier so I have more time in case bugs and conflicts appear.
 - Aim for 3-4 reviews per week so I can get a better understanding of our code.
+
+## Week 5 T2
+### January 26th - February 6th:
+<img width="1067" height="628" alt="image" src="https://github.com/user-attachments/assets/53a1eefe-85e9-44d6-b46f-e9828da2234d" /></br>
+
+### PRs Completed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/282 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/213 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/268 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/223 |
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/280 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/277 |
+
+### What went well
+Last week I was able to work on the project early in the week and build a better routine. I also received great feedback from the peer testings and used it to create the PR#282. This week I finished the PR#282, fixed some bugs on PR#268, and started working on implementing the portfolio system in the frontend.
+
+### What didn't go well
+Found a few bugs in my the incremental upload PR, it wouldn't show char count or file size when the new file replaces the orignal one. This ended up taking some extra time, which led me to finish things a bit last minute again.
+
+### What's next
+Next week I want to implement our portfolio system to the frontend and change the incremental upload feature to use it. I've started working on it a bit, but hope to finish it at the end of the break.

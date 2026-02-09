@@ -1,7 +1,7 @@
 # Charlie Schwebius' weekly logs
 
 ### Milestone 2
-| [Week 1](#milestone-2-week-1-jan-5---jan-11) | [Week 2](#milestone-2-week-2-jan-12-18) | [Week 3](#milestone-2-week-3-jan-19-25)
+| [Week 1](#milestone-2-week-1-jan-5---jan-11) | [Week 2](#milestone-2-week-2-jan-12-18) | [Week 3](#milestone-2-week-3-jan-19-25) | [Week 4-5](#milestone-2-week-4-5-jan-26-feb-8)
 
 
 ### Milestone 1
@@ -315,3 +315,42 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 #### Issues
 - Had to completely wipe database volume and rebuild it due to mismaches with my local machine and the new migrations
 - Things went very smooth compared to last week
+
+## Milestone 2 Week 4-5 (Jan 26-Feb 8)
+
+<img width="1881" height="1092" alt="image" src="https://github.com/user-attachments/assets/862ce2f6-aea3-4046-9118-613940d59032" />
+
+#### PR's Worked on
+
+- **[#284](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/284) Added portfolios to frontend**
+
+#### PR's Reviewed
+
+- **[#270](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/270) Add llm consent endpoint**
+
+
+#### Coding
+- Created PR which implements our backend portfolios in the frontend, with adding/deleting/editing
+
+#### Testing or Debugging
+- Created a new Microsoft Azure account to get our LLM up and running once again
+- Tested to make sure my PR doesn't cause any old tests to fail
+- Tested PR  # 270
+- Tested group 7 and 5's programs to see how they were doing and gave them feedback
+- Ran the peer testing machine and gathered feedback from 2 people
+
+#### Reviewing or Collaboration
+- reviewed 1 PR
+- Collaborated with Kyle McLeod to get the LLM working
+
+#### Last week to this week
+- This week was in line with what was planned previously (implementing portfolio functionality in the frontend)
+- Did not expand on the existign funtionality, but that can be done soon
+
+#### Upcoming goals
+- Expand on existing portfolio implementation
+- Review Milestone 2 requirements with team and adjust for future planning
+
+#### Issues
+- Nothing major comes to mind, was able to work quickly with minimal troubleshooting this week.
+
