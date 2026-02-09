@@ -43,17 +43,22 @@
 
 ### Our Goals this week:
 
+This week our primary goals were to enhance the user experience through UI improvements and implement key portfolio management features. We aimed to complete the resume template redesign with better autofill capabilities, create an interactive terminal interface, refactor the project classifier for better performance, and build out the complete frontend portfolio management system. We also wanted to improve the overall design across the application, which was done through a redesign of login, signup, and landing pages.
 
 
 ### Reflection
 
+This week was productive with good progress on both frontend and backend features. We successfully integrated the portfolio feature using the existing backend endpoints, and made significant improvements to the user interface. The terminal interface implementation adds another way to interact with our application, while the resume template changes provide users with a customizable output.
 
 
 ### What went well:
 
+DOur velocity was good this week with multiple large features being completed and merged. The portfolio frontend implementation came together smoothly, leveraging the previously built backend endpoints effectively. The terminal interface provides another way for users to interact with the system, but unfortunately wasn't ready for peer testing. We collaborated well, with members helping each other debug issues and review PRs promptly. The UI redesign created a more cohesive and professional look across the application. The project classifier refactor improved code maintainability and performance without breaking existing functionality.
 
 
 ### What didn't go well:
+
+Some merge conflicts occurred due to simultaneous work on overlapping frontend components, requiring careful coordination to resolve. The portfolio implementation took longer than initially estimated due to the complexity of managing project reordering and nested data structures. Testing the terminal interface across different environments revealed some compatibility issues that needed addressing. The resume template changes required multiple iterations to get the autofill logic working correctly with the new format.
 
 
 ### Test Report
@@ -62,6 +67,7 @@
 
 ### Plan for next week:
 
+Next week we plan to continue building on the features implemented this week. We'll focus on adding more robust error handling to the portfolio system, extending the terminal interface with additional commands, and gathering user feedback on the new resume template. We also want to begin work on the portfolio export functionality and start planning for Milestone 3 requirements. Additional polish and bug fixes based on testing feedback will be prioritized.
 
 
 ### Burn up chart
