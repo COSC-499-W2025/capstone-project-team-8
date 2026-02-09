@@ -32,9 +32,12 @@
 ### Completed Tasks
 | Task | Assigned To | Issue # | Pull Request |
 |------|-------------|---------|--------------|
+| Change Resume Template + Enhanced Autofill | [@harperkerstens](https://github.com/harperkerstens) | [#272](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/272), [#273](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/273) | [#275](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/275) |
+| Terminal Interface | [@kylekmcleod](https://github.com/kylekmcleod) | [#277](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/277) | [#278](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278) |
+| Login, Signup, Landing Redesign | [@kylekmcleod](https://github.com/kylekmcleod) | N/A | [#279](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/279) |
 | Refactor Project Classifier | [@matin0014](https://github.com/matin0014) | [#280](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/280) | [#281](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281) |
-| Frontend Portfolio | [@cschwebi](https://github.com/cschwebi) | [283](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/283) | [#284](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/284) |
-
+| Delete Projects from 'Previous Projects' Tab | [@jordany78](https://github.com/jordany78) | N/A | [#282](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/282) |
+| Frontend Portfolio | [@cschwebi](https://github.com/cschwebi) | [#283](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/283) | [#284](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/284) |
 
 
 
