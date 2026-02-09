@@ -283,7 +283,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Recent Activity / Quick Links */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Link
                   href="/projects"
                   className="bg-[var(--card-bg)] rounded-lg p-6 hover:bg-white/5 transition-colors"
@@ -291,6 +291,15 @@ export default function DashboardPage() {
                   <h3 className="text-xl font-bold text-white mb-2">View All Projects</h3>
                   <p className="text-white/60 text-sm">Explore all your uploaded and analyzed projects</p>
                   <p className="text-blue-400 text-sm mt-4 font-medium">View Projects →</p>
+                </Link>
+
+                <Link
+                  href="/portfolios"
+                  className="bg-[var(--card-bg)] rounded-lg p-6 hover:bg-white/5 transition-colors"
+                >
+                  <h3 className="text-xl font-bold text-white mb-2">My Portfolios</h3>
+                  <p className="text-white/60 text-sm">Create and manage professional portfolios</p>
+                  <p className="text-blue-400 text-sm mt-4 font-medium">View Portfolios →</p>
                 </Link>
 
                 <Link
