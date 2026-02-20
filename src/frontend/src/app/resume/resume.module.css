@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background: #000;
+  background: #09090b;
   display: flex;
   flex-direction: column;
 }
@@ -11,7 +11,7 @@
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  color: #999;
+  color: #a1a1aa;
 }
 
 /* Main Resume Page Container */
@@ -30,10 +30,10 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: #1a1a1a;
+  background: #18181b;
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid #333;
+  border: 1px solid #27272a;
   overflow-y: auto;
   max-height: calc(100vh - 120px);
 }
@@ -46,7 +46,7 @@
 
 .sidebarDivider {
   height: 1px;
-  background: #333;
+  background: #27272a;
   margin: 8px 0;
 }
 
@@ -57,7 +57,7 @@
   align-items: center;
   gap: 12px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #27272a;
 }
 
 .sidePanelHeader h3 {
@@ -77,13 +77,13 @@
 }
 
 .templateName {
-  background: #2a2a2a;
-  color: #b0b0b0;
+  background: #27272a;
+  color: #a1a1aa;
   padding: 10px;
   border-radius: 4px;
   text-align: center;
   font-size: 11px;
-  border: 1px solid #3a3a3a;
+  border: 1px solid #3f3f46;
   min-height: 32px;
   display: flex;
   align-items: center;
@@ -91,9 +91,9 @@
 }
 
 .navButton {
-  background: #2a2a2a;
-  color: #b0b0b0;
-  border: 1px solid #3a3a3a;
+  background: #27272a;
+  color: #a1a1aa;
+  border: 1px solid #3f3f46;
   padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -103,9 +103,9 @@
 }
 
 .navButton:hover {
-  background: #3a3a3a;
-  color: #e0e0e0;
-  border-color: #4a4a4a;
+  background: #3f3f46;
+  color: white;
+  border-color: #52525b;
 }
 
 .navButton:disabled {
@@ -121,9 +121,9 @@
 }
 
 .controlBtn {
-  background: #2a5a8a;
+  background: #4f7cf7;
   color: #fff;
-  border: 1px solid #3a7aaa;
+  border: 1px solid #3b6ce4;
   padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -133,16 +133,16 @@
 }
 
 .controlBtn:hover:not(:disabled) {
-  background: #3a7aaa;
-  border-color: #4a9aca;
+  background: #3b6ce4;
+  border-color: #2d5fd1;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(79, 124, 247, 0.3);
 }
 
 .controlBtn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-  background: #1a3a5a;
+  background: #27272a;
 }
 
 /* Main Resume */
@@ -182,9 +182,9 @@
 }
 
 .btn {
-  background: #2a5a8a;
+  background: #4f7cf7;
   color: #fff;
-  border: 1px solid #3a7aaa;
+  border: 1px solid #3b6ce4;
   padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
@@ -194,10 +194,10 @@
 }
 
 .btn:hover {
-  background: #3a7aaa;
-  border-color: #4a9aca;
+  background: #3b6ce4;
+  border-color: #2d5fd1;
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(79, 124, 247, 0.3);
 }
 
 .btn:active {
