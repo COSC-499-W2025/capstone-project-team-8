@@ -206,19 +206,40 @@ class PortfolioEndpointsTests(TestCase):
         self.assertEqual(resp.json()["title"], "Private Portfolio")
     
     def test_cannot_retrieve_others_private_portfolio(self):
-        """User cannot retrieve another user's private portfolio."""
+        """Accessing another user's private portfolio returns 403 with is_private flag."""
         portfolio = Portfolio.objects.create(
             user=self.user1,
             title="Private Portfolio",
             slug="private-portfolio-2",
             is_public=False,
         )
-        
+
         self.client.force_authenticate(user=self.user2)
         url = reverse("portfolio-detail", args=[portfolio.id])
         resp = self.client.get(url)
-        
-        self.assertEqual(resp.status_code, 404)
+
+        self.assertEqual(resp.status_code, 403)
+        data = resp.json()
+        self.assertTrue(data.get("is_private"), "Response should include is_private=True")
+        self.assertEqual(data.get("portfolio_title"), "Private Portfolio")
+        self.assertEqual(data.get("owner"), "alice")
+
+    def test_unauthenticated_cannot_retrieve_private_portfolio(self):
+        """Unauthenticated access to a private portfolio returns 403 with is_private flag."""
+        portfolio = Portfolio.objects.create(
+            user=self.user1,
+            title="Secret Portfolio",
+            slug="secret-portfolio",
+            is_public=False,
+        )
+
+        url = reverse("portfolio-detail", args=[portfolio.id])
+        resp = self.client.get(url)
+
+        self.assertEqual(resp.status_code, 403)
+        data = resp.json()
+        self.assertTrue(data.get("is_private"))
+        self.assertEqual(data.get("portfolio_title"), "Secret Portfolio")
     
     def test_public_portfolio_accessible_without_auth(self):
         """Public portfolios can be viewed without authentication."""
