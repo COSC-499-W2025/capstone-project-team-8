@@ -14,6 +14,7 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -50,6 +51,35 @@ export default function ProjectDetailPage() {
       fetchProject();
     }
   }, [isAuthenticated, token, router, params.id]);
+
+  const handleDeleteProject = async () => {
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      return;
+    }
+
+    setDeleting(true);
+    setError('');
+
+    try {
+      const response = await fetch(`${config.API_URL}/api/projects/${params.id}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete project');
+      }
+
+      // Navigate back to projects list
+      router.push('/projects');
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      setError(err.message || 'Failed to delete project');
+      setDeleting(false);
+    }
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -346,18 +376,11 @@ export default function ProjectDetailPage() {
               Generate Resume
             </Link>
             <button
-              onClick={() => {
-                if (
-                  confirm('Are you sure you want to delete this project? This action cannot be undone.')
-                ) {
-                  // TODO: Implement delete functionality
-                  console.log('Delete project:', project.id);
-                  router.push('/projects');
-                }
-              }}
-              className="px-6 py-3 bg-red-500/10 text-red-400 font-semibold rounded-lg hover:bg-red-500/20 transition-colors border border-red-500/50"
+              onClick={handleDeleteProject}
+              disabled={deleting}
+              className="px-6 py-3 bg-red-500/10 text-red-400 font-semibold rounded-lg hover:bg-red-500/20 transition-colors border border-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Delete Project
+              {deleting ? 'Deleting...' : 'Delete Project'}
             </button>
           </div>
         </div>

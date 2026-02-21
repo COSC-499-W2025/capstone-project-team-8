@@ -1,0 +1,241 @@
+/* Minimalist Template Styles - Sparse, Elegant Design */
+
+.resumeTemplate {
+  padding: 40px;
+  background: #fff;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  color: #000;
+  line-height: 1.7;
+}
+
+/* Header */
+.header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.nameField {
+  font-size: 28px !important;
+  font-weight: 400 !important;
+  color: #000 !important;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 32px;
+}
+
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #000;
+}
+
+.sectionContent {
+  padding-left: 0;
+}
+
+/* Items */
+.item {
+  margin-bottom: 16px;
+}
+
+.item:last-child {
+  margin-bottom: 0;
+}
+
+.itemTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+
+.boldField {
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  color: #000 !important;
+  flex: 1;
+}
+
+.companyField {
+  font-size: 12px;
+  color: #000;
+  margin-top: 2px;
+  font-style: italic;
+}
+
+.dateField {
+  font-size: 11px;
+  color: #666;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.descriptionField {
+  font-size: 12px;
+  color: #333;
+  margin-top: 6px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.summaryField {
+  font-size: 13px !important;
+  color: #000 !important;
+  line-height: 1.7 !important;
+}
+
+/* Skills - Inline */
+.skillsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 0;
+}
+
+.skill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.skillField {
+  color: #000 !important;
+  margin: 0 !important;
+  display: inline;
+}
+
+/* Editing */
+.editingContainer {
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+  width: 100%;
+}
+
+.input,
+.textarea {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid #ccc !important;
+  border-radius: 0;
+  font-family: 'Georgia', serif;
+  font-size: 12px;
+  color: #000 !important;
+  background: #fafafa !important;
+  box-sizing: border-box;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 80px;
+  max-height: 160px;
+}
+
+.input:focus,
+.textarea:focus {
+  outline: none !important;
+  border-color: #000 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+/* Fields */
+.editableField {
+  cursor: pointer;
+  padding: 0;
+  border-radius: 0;
+  transition: background 0.2s;
+  border: 1px solid transparent;
+  display: block;
+  width: 100%;
+  white-space: pre-wrap;
+}
+
+.editableField:hover {
+  background: #f5f5f5;
+}
+
+.placeholder {
+  color: #999;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* Buttons */
+.addBtn {
+  background: transparent;
+  color: #666;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: lowercase;
+  transition: color 0.2s;
+  margin-top: 6px;
+}
+
+.addBtn:hover {
+  color: #000;
+}
+
+.deleteBtn {
+  background: transparent;
+  color: #999;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 12px;
+  transition: color 0.2s;
+  flex-shrink: 0;
+}
+
+.deleteBtn:hover {
+  color: #000;
+}
+
+.emptyState {
+  color: #ccc;
+  font-style: italic;
+  font-size: 12px;
+  margin: 8px 0 0 0;
+}
+
+.noTemplate {
+  padding: 40px;
+  text-align: center;
+  color: #999;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .resumeTemplate {
+    padding: 32px;
+  }
+
+  .nameField {
+    font-size: 24px !important;
+  }
+
+  .itemTop {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .dateField {
+    text-align: left;
+  }
+}

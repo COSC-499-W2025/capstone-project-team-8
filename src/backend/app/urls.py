@@ -10,6 +10,7 @@ from .views.project_views import (
     RankedProjectsView,
     TopProjectsSummaryView,
     ProjectThumbnailUploadView,
+    LLMPrivacyConsentView,
 )
 from .views.user_views import UserMeView, PublicUserView, PasswordChangeView, ProfileImageUploadView
 from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView
@@ -81,4 +82,7 @@ urlpatterns = [
     
     # Project thumbnail endpoints
     path("projects/<int:pk>/thumbnail/", ProjectThumbnailUploadView.as_view(), name="project-thumbnail-upload"),
+
+    # Privacy consent endpoints
+    path("privacy-consent/llm/", LLMPrivacyConsentView.as_view(), name="privacy-consent-llm"),
 ]

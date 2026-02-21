@@ -11,6 +11,7 @@ from app.serializers import (
     ProjectDetailSerializer,
     ProjectUpdateSerializer,
     ProjectStatsSerializer,
+    ProjectConsentSerializer,
     ErrorResponseSerializer,
 )
 from app.services.llm import ai_analyze
@@ -599,3 +600,39 @@ class ProjectThumbnailUploadView(APIView):
                 'thumbnail_url': thumbnail_url,
             }
         })
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class LLMPrivacyConsentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        request=ProjectConsentSerializer,
+        responses={
+            200: OpenApiResponse(description="Consent updated successfully"),
+            400: ErrorResponseSerializer,
+            404: ErrorResponseSerializer,
+        },
+        description="Update LLM consent for a project",
+        tags=["Projects"],
+    )
+    def post(self, request):
+        serializer = ProjectConsentSerializer(data=request.data)
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors, status=400)
+
+        project_id = serializer.validated_data['project_id']
+        consent = serializer.validated_data['consent']
+
+        try:
+            project = Project.objects.get(pk=project_id, user=request.user)
+            project.llm_consent = consent
+            project.save()
+
+            return JsonResponse({
+                'id': project.id,
+                'llm_consent': project.llm_consent,
+                'message': 'Consent updated successfully'
+            })
+        except Project.DoesNotExist:
+            return JsonResponse({"error": "Project not found"}, status=404)

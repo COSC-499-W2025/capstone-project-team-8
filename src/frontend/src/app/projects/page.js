@@ -16,6 +16,7 @@ export default function ProjectsPage() {
   const [uploadingThumbnail, setUploadingThumbnail] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const [deletingProject, setDeletingProject] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -65,6 +66,36 @@ export default function ProjectsPage() {
         setThumbnailPreview(reader.result);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDeleteProject = async (projectId, projectName) => {
+    if (!confirm(`Are you sure you want to delete "${projectName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingProject(projectId);
+    setError('');
+
+    try {
+      const response = await fetch(`${config.API_URL}/api/projects/${projectId}/`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete project');
+      }
+
+      // Remove project from state
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+    } catch (err) {
+      console.error('Error deleting project:', err);
+      setError(err.message || 'Failed to delete project');
+    } finally {
+      setDeletingProject(null);
     }
   };
 
@@ -262,15 +293,11 @@ export default function ProjectsPage() {
                       View Details
                     </Link>
                     <button
-                      onClick={() => {
-                        if (confirm('Are you sure you want to delete this project?')) {
-                          // TODO: Implement delete functionality
-                          console.log('Delete project:', project.id);
-                        }
-                      }}
-                      className="px-4 py-2 bg-red-500/10 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/20 transition-colors"
+                      onClick={() => handleDeleteProject(project.id, project.name)}
+                      disabled={deletingProject === project.id}
+                      className="px-4 py-2 bg-red-500/10 text-red-400 text-sm font-medium rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Delete
+                      {deletingProject === project.id ? 'Deleting...' : 'Delete'}
                     </button>
                   </div>
                 </div>
