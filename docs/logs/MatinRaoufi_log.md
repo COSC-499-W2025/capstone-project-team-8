@@ -1,5 +1,5 @@
 
-[Jump to latest week](#week-18-january-26---february-8)
+[Jump to latest week](#week-19-february-9---22)
 
 September 15-21
 
@@ -327,4 +327,30 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 
 - No use for LLM service at the moment so maintained on using free credits as of right now
 
+## Week 19 February 9 - 22
 
+- Implemented `GET /api/skills/` endpoint
+- test suite with 6 unit tests covering:
+  - Authentication requirements
+  - Empty state handling for new users
+  - Skill aggregation from multiple projects
+- Implemented `SkillsView` that aggregates programming languages and frameworks from user's projects via many-to-many relationships
+- Skills are automatically pulled from uploaded projects and sorted by usage frequency 
+
+- PR: [#293](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/293) - Skills Endpoint Implementation
+
+- Reviewed PRs from teammates:
+  - [#286](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/286) - Which is a bugfix
+  
+
+**Connection to previous week:**
+- Built on the modular architecture established in previous weeks
+- Leveraged the existing `ProgrammingLanguage` and `Framework` models created earlier in the project
+
+
+**Plan/goals for next week:**
+
+**What went well:**
+
+
+**Issues/blockers:**
