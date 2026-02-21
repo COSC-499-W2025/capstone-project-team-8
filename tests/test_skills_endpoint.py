@@ -70,8 +70,8 @@ class SkillsEndpointTests(TestCase):
         # Associate languages and frameworks with projects
         ProjectLanguage.objects.create(project=project1, language=python, file_count=10)
         ProjectLanguage.objects.create(project=project2, language=javascript, file_count=8)
-        ProjectFramework.objects.create(project=project1, framework=django_fw, file_count=5)
-        ProjectFramework.objects.create(project=project2, framework=react, file_count=6)
+        ProjectFramework.objects.create(project=project1, framework=django_fw)
+        ProjectFramework.objects.create(project=project2, framework=react)
         
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
@@ -118,7 +118,7 @@ class SkillsEndpointTests(TestCase):
         ProjectLanguage.objects.create(project=project3, language=javascript, file_count=4)
         
         # Django in project 1
-        ProjectFramework.objects.create(project=project1, framework=django_fw, file_count=2)
+        ProjectFramework.objects.create(project=project1, framework=django_fw)
         
         response = self.client.get(self.url)
         data = response.json()
