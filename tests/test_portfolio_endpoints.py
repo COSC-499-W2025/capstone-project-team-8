@@ -617,3 +617,418 @@ class PortfolioModelTests(TestCase):
         
         self.assertTrue(Portfolio.objects.filter(id=portfolio.id).exists())
         self.assertEqual(portfolio.portfolio_projects.count(), 0)
+
+
+class PortfolioStatisticsTests(TestCase):
+    """Test portfolio statistics calculation and caching."""
+    
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="statsuser", email="stats@example.com", password="pass123"
+        )
+        
+        # Import models needed for statistics
+        from app.models import (
+            ProjectFile, ProjectLanguage, ProjectFramework, 
+            ProgrammingLanguage, Framework, Contributor, ProjectContribution
+        )
+        
+        self.ProjectFile = ProjectFile
+        self.ProjectLanguage = ProjectLanguage
+        self.ProjectFramework = ProjectFramework
+        self.ProgrammingLanguage = ProgrammingLanguage
+        self.Framework = Framework
+        self.Contributor = Contributor
+        self.ProjectContribution = ProjectContribution
+        
+        # Create programming languages
+        self.python = self.ProgrammingLanguage.objects.create(name="Python", category="general")
+        self.javascript = self.ProgrammingLanguage.objects.create(name="JavaScript", category="web")
+        self.typescript = self.ProgrammingLanguage.objects.create(name="TypeScript", category="web")
+        
+        # Create frameworks
+        self.django = self.Framework.objects.create(name="Django", category="web_backend", language=self.python)
+        self.react = self.Framework.objects.create(name="React", category="web_frontend", language=self.javascript)
+        
+        now = timezone.now()
+        
+        # Create project 1 - Python/Django project
+        self.project1 = Project.objects.create(
+            user=self.user,
+            name="Python Backend",
+            project_tag=1,
+            classification_type="coding",
+            total_files=10,
+            code_files_count=8,
+            text_files_count=2,
+            image_files_count=0,
+            git_repository=True,
+            first_commit_date=now,
+            created_at=now,
+        )
+        
+        # Add files with line counts to project1
+        self.ProjectFile.objects.create(
+            project=self.project1,
+            file_path="app/models.py",
+            filename="models.py",
+            file_extension=".py",
+            file_type="code",
+            line_count=150,
+            detected_language=self.python,
+        )
+        self.ProjectFile.objects.create(
+            project=self.project1,
+            file_path="app/views.py",
+            filename="views.py",
+            file_extension=".py",
+            file_type="code",
+            line_count=200,
+            detected_language=self.python,
+        )
+        self.ProjectFile.objects.create(
+            project=self.project1,
+            file_path="tests/test_api.py",
+            filename="test_api.py",
+            file_extension=".py",
+            file_type="code",
+            line_count=100,
+            detected_language=self.python,
+        )
+        
+        # Add ProjectLanguage for project1
+        self.ProjectLanguage.objects.create(
+            project=self.project1,
+            language=self.python,
+            file_count=3,
+            is_primary=True,
+        )
+        
+        # Add framework for project1
+        self.ProjectFramework.objects.create(
+            project=self.project1,
+            framework=self.django,
+            detected_from="dependencies",
+        )
+        
+        # Add contributor for project1
+        self.contributor1 = self.Contributor.objects.create(
+            name="Stats User",
+            email="stats@example.com",
+            user=self.user,
+        )
+        self.ProjectContribution.objects.create(
+            project=self.project1,
+            contributor=self.contributor1,
+            commit_count=25,
+            lines_added=500,
+            lines_deleted=100,
+            percent_of_commits=100.0,
+        )
+        
+        # Create project 2 - JavaScript/React project
+        self.project2 = Project.objects.create(
+            user=self.user,
+            name="React Frontend",
+            project_tag=2,
+            classification_type="coding",
+            total_files=15,
+            code_files_count=12,
+            text_files_count=3,
+            image_files_count=0,
+            git_repository=True,
+            first_commit_date=now,
+            created_at=now,
+        )
+        
+        # Add files with line counts to project2
+        self.ProjectFile.objects.create(
+            project=self.project2,
+            file_path="src/App.js",
+            filename="App.js",
+            file_extension=".js",
+            file_type="code",
+            line_count=80,
+            detected_language=self.javascript,
+        )
+        self.ProjectFile.objects.create(
+            project=self.project2,
+            file_path="src/components/Header.tsx",
+            filename="Header.tsx",
+            file_extension=".tsx",
+            file_type="code",
+            line_count=120,
+            detected_language=self.typescript,
+        )
+        
+        # Add ProjectLanguage for project2
+        self.ProjectLanguage.objects.create(
+            project=self.project2,
+            language=self.javascript,
+            file_count=5,
+            is_primary=True,
+        )
+        self.ProjectLanguage.objects.create(
+            project=self.project2,
+            language=self.typescript,
+            file_count=7,
+            is_primary=False,
+        )
+        
+        # Add framework for project2
+        self.ProjectFramework.objects.create(
+            project=self.project2,
+            framework=self.react,
+            detected_from="dependencies",
+        )
+        
+        # Add contributor for project2
+        self.contributor2 = self.Contributor.objects.create(
+            name="Another Dev",
+            email="another@example.com",
+        )
+        self.ProjectContribution.objects.create(
+            project=self.project2,
+            contributor=self.contributor1,
+            commit_count=15,
+            lines_added=300,
+            lines_deleted=50,
+            percent_of_commits=60.0,
+        )
+        self.ProjectContribution.objects.create(
+            project=self.project2,
+            contributor=self.contributor2,
+            commit_count=10,
+            lines_added=200,
+            lines_deleted=30,
+            percent_of_commits=40.0,
+        )
+        
+        # Create portfolio
+        self.portfolio = Portfolio.objects.create(
+            user=self.user,
+            title="Stats Test Portfolio",
+            slug="stats-test-portfolio",
+        )
+        
+        self.client.force_authenticate(user=self.user)
+    
+    # ==================== Stats Endpoint Tests ====================
+    
+    def test_portfolio_stats_endpoint_exists(self):
+        """Portfolio stats endpoint returns 200."""
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+    
+    def test_portfolio_stats_empty_portfolio(self):
+        """Empty portfolio returns zero stats."""
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        
+        self.assertEqual(data["total_projects"], 0)
+        self.assertEqual(data["total_files"], 0)
+        self.assertEqual(data["total_lines_of_code"], 0)
+        self.assertEqual(data["languages"], [])
+        self.assertEqual(data["frameworks"], [])
+    
+    def test_portfolio_stats_with_projects(self):
+        """Portfolio stats aggregates data from all projects."""
+        # Add both projects to portfolio
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
+        
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        
+        # Basic counts
+        self.assertEqual(data["total_projects"], 2)
+        self.assertEqual(data["total_files"], 25)  # 10 + 15
+        self.assertEqual(data["code_files_count"], 20)  # 8 + 12
+        self.assertEqual(data["text_files_count"], 5)  # 2 + 3
+    
+    def test_portfolio_stats_lines_per_language(self):
+        """Stats include lines of code per programming language."""
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
+        
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        
+        data = resp.json()
+        languages = data["languages"]
+        
+        # Should have 3 languages: Python, JavaScript, TypeScript
+        self.assertEqual(len(languages), 3)
+        
+        # Convert to dict for easier assertions
+        lang_dict = {l["language"]: l for l in languages}
+        
+        # Python: 150 + 200 + 100 = 450 lines
+        self.assertIn("Python", lang_dict)
+        self.assertEqual(lang_dict["Python"]["lines_of_code"], 450)
+        self.assertEqual(lang_dict["Python"]["file_count"], 3)
+        
+        # JavaScript: 80 lines
+        self.assertIn("JavaScript", lang_dict)
+        self.assertEqual(lang_dict["JavaScript"]["lines_of_code"], 80)
+        self.assertEqual(lang_dict["JavaScript"]["file_count"], 1)
+        
+        # TypeScript: 120 lines
+        self.assertIn("TypeScript", lang_dict)
+        self.assertEqual(lang_dict["TypeScript"]["lines_of_code"], 120)
+        self.assertEqual(lang_dict["TypeScript"]["file_count"], 1)
+    
+    def test_portfolio_stats_total_lines(self):
+        """Total lines of code sums all code files."""
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
+        
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        
+        data = resp.json()
+        # 450 (Python) + 80 (JS) + 120 (TS) = 650
+        self.assertEqual(data["total_lines_of_code"], 650)
+    
+    def test_portfolio_stats_frameworks(self):
+        """Stats include frameworks with project counts."""
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
+        
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        
+        data = resp.json()
+        frameworks = data["frameworks"]
+        
+        self.assertEqual(len(frameworks), 2)
+        
+        fw_dict = {f["framework"]: f for f in frameworks}
+        
+        self.assertIn("Django", fw_dict)
+        self.assertEqual(fw_dict["Django"]["project_count"], 1)
+        
+        self.assertIn("React", fw_dict)
+        self.assertEqual(fw_dict["React"]["project_count"], 1)
+    
+    def test_portfolio_stats_contributors(self):
+        """Stats include total contributors and commits."""
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
+        
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        
+        data = resp.json()
+        
+        # 2 unique contributors (contributor1 appears in both, contributor2 in project2)
+        self.assertEqual(data["total_contributors"], 2)
+        
+        # Total commits: 25 + 15 + 10 = 50
+        self.assertEqual(data["total_commits"], 50)
+    
+    def test_portfolio_stats_date_range(self):
+        """Stats include date range from project dates."""
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
+        
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        
+        data = resp.json()
+        
+        self.assertIn("date_range_start", data)
+        self.assertIn("date_range_end", data)
+    
+    # ==================== Stats Caching Tests ====================
+    
+    def test_stats_cached_after_calculation(self):
+        """Stats are cached in portfolio after first calculation."""
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
+        
+        # First request calculates stats
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        self.client.get(url)
+        
+        # Refresh from DB and check cached values
+        self.portfolio.refresh_from_db()
+        self.assertIsNotNone(self.portfolio.stats_updated_at)
+        self.assertEqual(self.portfolio.total_projects, 1)
+    
+    def test_stats_updated_on_add_project(self):
+        """Stats are recalculated when project is added."""
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
+        
+        # Initial stats
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        initial_projects = resp.json()["total_projects"]
+        
+        # Add another project
+        add_url = reverse("portfolio-add-project", args=[self.portfolio.id])
+        self.client.post(add_url, data={"project_id": self.project2.id}, format="json")
+        
+        # Stats should be updated
+        resp = self.client.get(url)
+        self.assertEqual(resp.json()["total_projects"], initial_projects + 1)
+    
+    def test_stats_updated_on_remove_project(self):
+        """Stats are recalculated when project is removed."""
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
+        
+        # Initial stats
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.json()["total_projects"], 2)
+        
+        # Remove project
+        remove_url = reverse("portfolio-remove-project", args=[self.portfolio.id, self.project1.id])
+        self.client.delete(remove_url)
+        
+        # Stats should be updated
+        resp = self.client.get(url)
+        self.assertEqual(resp.json()["total_projects"], 1)
+    
+    # ==================== Permissions Tests ====================
+    
+    def test_stats_requires_auth(self):
+        """Stats endpoint requires authentication."""
+        self.client.logout()
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        self.assertIn(resp.status_code, (401, 403))
+    
+    def test_stats_only_owner_can_access(self):
+        """Only portfolio owner can access stats."""
+        other_user = User.objects.create_user(
+            username="other", email="other@example.com", password="pass123"
+        )
+        self.client.force_authenticate(user=other_user)
+        
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 404)
+    
+    def test_stats_languages_sorted_by_lines(self):
+        """Languages are sorted by lines of code descending."""
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
+        PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
+        
+        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        resp = self.client.get(url)
+        
+        languages = resp.json()["languages"]
+        
+        # Python (450) should be first, TypeScript (120) second, JavaScript (80) third
+        self.assertEqual(languages[0]["language"], "Python")
+        self.assertEqual(languages[1]["language"], "TypeScript")
+        self.assertEqual(languages[2]["language"], "JavaScript")
