@@ -18,6 +18,7 @@ from app.models import (
     ProjectLanguage, ProjectFramework, ProjectFile,
     Contributor, ProjectContribution
 )
+from app.services.evaluation import ProjectEvaluationService
 
 
 class ProjectDatabaseService:
@@ -126,6 +127,18 @@ class ProjectDatabaseService:
                 
                 # Save contributors
                 self._save_project_contributors(project, project_data)
+        
+        # Evaluate projects AFTER atomic block completes successfully
+        # This prevents transaction rollback errors if evaluation fails
+        import logging
+        logger = logging.getLogger(__name__)
+        for project in created_projects:
+            try:
+                evaluation_service = ProjectEvaluationService()
+                evaluation_service.evaluate_project_for_all_languages(project)
+            except Exception as e:
+                # Log evaluation error but don't fail the upload
+                logger.warning(f"Failed to evaluate project {project.id}: {str(e)}")
         
         return created_projects
     

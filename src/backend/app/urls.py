@@ -31,6 +31,15 @@ from .views.resume_views import (
     ResumeDetailView,
     ResumeEditView,
 )
+from .views.evaluation_views import (
+    LanguageEvaluationsView,
+    ProjectEvaluationDetailView,
+    TopProjectsByLanguageView,
+    LanguageEvaluationStatisticsView,
+    ProjectEvaluationSummaryView,
+    ProjectAllEvaluationsView,
+    AllEvaluationsView,
+)
 
 urlpatterns = [
     # API Documentation
@@ -47,6 +56,15 @@ urlpatterns = [
     path("projects/ranked/", RankedProjectsView.as_view(), name="projects-ranked"),
     path("projects/ranked/summary/", TopProjectsSummaryView.as_view(), name="projects-ranked-summary"),
     path("projects/<int:pk>/", ProjectDetailView.as_view(), name="projects-detail"),
+
+    # Evaluation endpoints
+    path("evaluations/", AllEvaluationsView.as_view(), name="all-evaluations"),
+    path("evaluations/<str:language>/", LanguageEvaluationsView.as_view(), name="evaluations-by-language"),
+    path("evaluations/<str:language>/top/", TopProjectsByLanguageView.as_view(), name="top-projects-by-language"),
+    path("evaluations/<str:language>/stats/", LanguageEvaluationStatisticsView.as_view(), name="language-evaluation-stats"),
+    path("evaluations/project/<int:project_id>/", ProjectAllEvaluationsView.as_view(), name="project-all-evaluations"),
+    path("evaluations/project/<int:project_id>/<str:language>/", ProjectEvaluationDetailView.as_view(), name="project-evaluation-detail"),
+    path("evaluations/project/<int:project_id>/<str:language>/summary/", ProjectEvaluationSummaryView.as_view(), name="project-evaluation-summary"),
 
     # Portfolio endpoints
     path("portfolio/", PortfolioListView.as_view(), name="portfolio-list"),
