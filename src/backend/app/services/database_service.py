@@ -18,6 +18,7 @@ from app.models import (
     ProjectLanguage, ProjectFramework, ProjectFile,
     Contributor, ProjectContribution
 )
+from app.services.role_inference import infer_user_role
 
 
 class ProjectDatabaseService:
@@ -270,10 +271,64 @@ class ProjectDatabaseService:
         bullet_points = project_data.get('bullet_points', [])
         if bullet_points:
             project.resume_bullet_points = bullet_points
-        
+
+        # Infer and persist the user's key role in this project
+        project.user_role = self._infer_role_for_user(user, project_data)
+
         project.save()
 
         return project
+
+    def _infer_role_for_user(
+        self,
+        user: User,
+        project_data: Dict[str, Any],
+    ) -> str:
+        """
+        Build the inference payload for infer_user_role() from raw project_data.
+
+        Looks up the uploading user's contribution percentage by matching
+        their email (primary + github) or normalised display name against
+        the contributors list returned by the analyser.
+        """
+        is_collaborative = bool(project_data.get('collaborative', False))
+
+        # Locate the user's own contribution entry
+        user_percent = 0.0
+        if is_collaborative:
+            contributors = project_data.get('contributors', [])
+            # Collect all identifiers for this user
+            user_emails = {
+                e.lower() for e in [
+                    getattr(user, 'email', '') or '',
+                    getattr(user, 'github_email', '') or '',
+                ] if e
+            }
+            user_name_norm = (
+                getattr(user, 'username', '') or ''
+            ).lower().replace(' ', '')
+            full_name_norm = (
+                f"{getattr(user, 'first_name', '')} {getattr(user, 'last_name', '')}"
+            ).strip().lower().replace(' ', '')
+
+            for contrib in contributors:
+                c_email = (contrib.get('email') or '').lower()
+                c_name_norm = (
+                    contrib.get('name') or ''
+                ).lower().replace(' ', '')
+                if c_email in user_emails or c_name_norm in (user_name_norm, full_name_norm):
+                    user_percent = float(contrib.get('percent_commits', 0.0))
+                    break
+
+        classification = project_data.get('classification', {})
+        languages = classification.get('languages', []) if isinstance(classification, dict) else []
+
+        return infer_user_role({
+            'classification': classification,
+            'is_collaborative': is_collaborative,
+            'user_contribution_percent': user_percent,
+            'languages': languages,
+        })
     
     def _save_project_languages(self, project: Project, project_data: Dict[str, Any]) -> None:
         """
