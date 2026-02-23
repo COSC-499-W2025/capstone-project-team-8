@@ -34,6 +34,23 @@ class Project(models.Model):
 		default='unknown'
 	)
 	classification_confidence = models.FloatField(default=0.0)
+	USER_ROLE_CHOICES = [
+		('solo_developer', 'Solo Developer'),
+		('lead_developer', 'Lead Developer'),
+		('contributor', 'Contributor'),
+		('frontend_developer', 'Frontend Developer'),
+		('backend_developer', 'Backend Developer'),
+		('full_stack_developer', 'Full Stack Developer'),
+		('designer', 'Designer'),
+		('writer', 'Writer'),
+		('architect', 'Architect'),
+		('other', 'Other'),
+	]
+	user_role = models.CharField(
+		max_length=50,
+		choices=USER_ROLE_CHOICES,
+		default='other',
+	)
 	project_root_path = models.CharField(max_length=500, blank=True)
 	project_tag = models.IntegerField(null=True, blank=True)
 	total_files = models.IntegerField(default=0)
