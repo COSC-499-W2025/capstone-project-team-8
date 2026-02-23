@@ -85,7 +85,8 @@ class ProjectsListView(APIView):
                 "framework_count": framework_count,
                 "languages": languages,
                 "frameworks": frameworks,
-                "resume_bullet_points": p.resume_bullet_points or []
+                "resume_bullet_points": p.resume_bullet_points or [],
+                "user_role": p.user_role or 'other',
             })
 
         return JsonResponse({"projects": out})
@@ -156,7 +157,8 @@ class ProjectDetailView(APIView):
             "git_repository": bool(p.git_repository),
             "first_commit_date": int(p.first_commit_date.timestamp()) if p.first_commit_date else None,
             "created_at": int(p.created.timestamp()) if getattr(p, "created", None) else None,
-            "resume_bullet_points": p.resume_bullet_points or []
+            "resume_bullet_points": p.resume_bullet_points or [],
+            "user_role": p.user_role or 'other',
         }
         return JsonResponse(resp)
 
