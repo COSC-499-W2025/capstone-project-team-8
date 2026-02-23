@@ -180,9 +180,22 @@ class ProjectDetailView(APIView):
         except Exception:
             data = {}
 
+        from app.serializers.project import VALID_USER_ROLES
+
         name = data.get("name")
         description = data.get("description")
+        user_role = data.get("user_role")
         changed = False
+
+        if user_role is not None:
+            if user_role not in VALID_USER_ROLES:
+                return JsonResponse(
+                    {"error": f"Invalid user_role '{user_role}'. Valid choices: {VALID_USER_ROLES}"},
+                    status=400,
+                )
+            p.user_role = user_role
+            changed = True
+
         if name:
             p.name = str(name)[:255]
             changed = True
