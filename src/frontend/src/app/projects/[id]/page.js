@@ -10,13 +10,14 @@ import config from '@/config';
 export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -50,7 +51,7 @@ export default function ProjectDetailPage() {
     if (params.id) {
       fetchProject();
     }
-  }, [isAuthenticated, token, router, params.id]);
+  }, [authLoading, isAuthenticated, token, router, params.id]);
 
   const handleDeleteProject = async () => {
     if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
