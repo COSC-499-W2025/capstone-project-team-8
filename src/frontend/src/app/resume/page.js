@@ -31,7 +31,7 @@ import styles from './resume.module.css';
 
 export default function ResumePage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -103,6 +103,7 @@ export default function ResumePage() {
 
   // Initialize page
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -208,7 +209,7 @@ export default function ResumePage() {
     };
 
     initializeResumePage();
-  }, [isAuthenticated, token, router]);
+  }, [authLoading, isAuthenticated, token, router]);
 
   // Undo/Redo functions
   const pushToHistory = (data) => {
