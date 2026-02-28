@@ -10,7 +10,7 @@ import config from '@/config';
 
 export default function NewPortfolioPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [projects, setProjects] = useState([]);
@@ -28,6 +28,7 @@ export default function NewPortfolioPage() {
   const [selectedProjects, setSelectedProjects] = useState(new Set());
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -56,7 +57,7 @@ export default function NewPortfolioPage() {
     };
 
     fetchProjects();
-  }, [isAuthenticated, token, router]);
+  }, [authLoading, isAuthenticated, token, router]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
