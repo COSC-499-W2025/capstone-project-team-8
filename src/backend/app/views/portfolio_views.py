@@ -327,6 +327,9 @@ class PortfolioAddProjectView(APIView):
             featured=data.get('featured', False),
         )
         
+        # Recalculate portfolio statistics
+        portfolio.update_cached_stats()
+        
         return JsonResponse({
             "ok": True,
             "portfolio_project_id": portfolio_project.id,
@@ -358,6 +361,10 @@ class PortfolioRemoveProjectView(APIView):
             return JsonResponse({"error": "Project not in portfolio"}, status=404)
         
         portfolio_project.delete()
+        
+        # Recalculate portfolio statistics
+        portfolio.update_cached_stats()
+        
         return JsonResponse({"ok": True, "removed_project_id": project_id})
 
 
@@ -406,3 +413,43 @@ class PortfolioReorderProjectsView(APIView):
                 ).update(order=order)
         
         return JsonResponse({"ok": True, "new_order": project_ids})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PortfolioStatsView(APIView):
+    """
+    Get portfolio statistics including lines of code per language.
+    GET /portfolio/{id}/stats/
+    
+    Statistics are cached and updated when projects are added/removed.
+    On first access (lazy loading), stats are calculated and cached.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            portfolio = Portfolio.objects.get(pk=pk, user=request.user)
+        except Portfolio.DoesNotExist:
+            return JsonResponse({"error": "Portfolio not found"}, status=404)
+        
+        # Lazy initialization: calculate stats if never computed
+        if portfolio.stats_updated_at is None:
+            portfolio.update_cached_stats()
+            portfolio.refresh_from_db()
+        
+        return JsonResponse({
+            "portfolio_id": portfolio.id,
+            "total_projects": portfolio.total_projects,
+            "total_files": portfolio.total_files,
+            "code_files_count": portfolio.code_files_count,
+            "text_files_count": portfolio.text_files_count,
+            "image_files_count": portfolio.image_files_count,
+            "total_lines_of_code": portfolio.total_lines_of_code,
+            "total_commits": portfolio.total_commits,
+            "total_contributors": portfolio.total_contributors,
+            "languages": portfolio.languages_stats,
+            "frameworks": portfolio.frameworks_stats,
+            "date_range_start": portfolio.date_range_start.isoformat() if portfolio.date_range_start else None,
+            "date_range_end": portfolio.date_range_end.isoformat() if portfolio.date_range_end else None,
+            "stats_updated_at": portfolio.stats_updated_at.isoformat() if portfolio.stats_updated_at else None,
+        })
