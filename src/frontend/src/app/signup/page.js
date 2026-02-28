@@ -10,7 +10,7 @@ import { initializeButtons } from '@/utils/buttonAnimation';
 
 export default function SignupPage() {
   const router = useRouter();
-  const { login: authLogin } = useAuth();
+  const { login: authLogin, isAuthenticated, loading: authLoading } = useAuth();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,8 +19,12 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/dashboard');
+      return;
+    }
     initializeButtons();
-  }, []);
+  }, [authLoading, isAuthenticated, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
