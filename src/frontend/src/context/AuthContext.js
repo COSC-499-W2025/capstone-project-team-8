@@ -4,17 +4,20 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
+function getInitialToken() {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('access_token') || null;
+  }
+  return null;
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+  const [token, setToken] = useState(getInitialToken);
   const [loading, setLoading] = useState(true);
 
-  // Load token from localStorage on mount
+  // Mark loading complete after mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('access_token');
-    if (storedToken) {
-      setToken(storedToken);
-    }
     setLoading(false);
   }, []);
 
