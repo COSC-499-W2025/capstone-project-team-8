@@ -13,6 +13,7 @@ export default function DashboardPage() {
   const { isAuthenticated, token, user, setCurrentUser } = useAuth();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
+  const [evaluations, setEvaluations] = useState([]);
   const [skills, setSkills] = useState({
     languages: {},
     frameworks: {},
@@ -68,6 +69,19 @@ export default function DashboardPage() {
             frameworks: frameworkCount,
           });
         }
+
+        // Fetch evaluations
+        try {
+          const evalResponse = await fetch(`${config.API_URL}/api/evaluations/`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (evalResponse.ok) {
+            const evalData = await evalResponse.json();
+            setEvaluations(evalData.evaluations || []);
+          }
+        } catch (err) {
+          console.log('Evaluations not available:', err);
+        }
       } catch (err) {
         console.log('Error fetching data:', err);
       } finally {
@@ -78,6 +92,37 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
+  const getGrade = (score) => {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  };
+
+  const getGradeColor = (score) => {
+    if (score >= 90) return 'text-green-400';
+    if (score >= 80) return 'text-blue-400';
+    if (score >= 70) return 'text-yellow-400';
+    if (score >= 60) return 'text-orange-400';
+    return 'text-red-400';
+  };
+
+  const getGradeBg = (score) => {
+    if (score >= 90) return 'bg-green-500/20 border-green-500/30';
+    if (score >= 80) return 'bg-blue-500/20 border-blue-500/30';
+    if (score >= 70) return 'bg-yellow-500/20 border-yellow-500/30';
+    if (score >= 60) return 'bg-orange-500/20 border-orange-500/30';
+    return 'bg-red-500/20 border-red-500/30';
+  };
+
+  const avgScore = evaluations.length > 0
+    ? evaluations.reduce((sum, e) => sum + e.overall_score, 0) / evaluations.length
+    : null;
+
+  const getEvalForProject = (projectId) => {
+    return evaluations.find(e => e.project_id === projectId);
+  };
   if (loading) {
     return (
       <>
@@ -186,7 +231,7 @@ export default function DashboardPage() {
             {/* Right Content - Main Area */}
             <div className="lg:col-span-3 space-y-6">
               {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
                   <p className="text-white/60 text-sm mb-1">Total Projects</p>
                   <p className="text-3xl font-bold text-white">{projects.length}</p>
@@ -198,6 +243,17 @@ export default function DashboardPage() {
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
                   <p className="text-white/60 text-sm mb-1">Frameworks Used</p>
                   <p className="text-3xl font-bold text-white">{Object.keys(skills.frameworks).length}</p>
+                </div>
+                <div className="bg-[var(--card-bg)] rounded-lg p-4">
+                  <p className="text-white/60 text-sm mb-1">Avg Quality Score</p>
+                  {avgScore !== null ? (
+                    <div className="flex items-baseline gap-2">
+                      <p className={`text-3xl font-bold ${getGradeColor(avgScore)}`}>{getGrade(avgScore)}</p>
+                      <p className="text-white/60 text-sm">{avgScore.toFixed(1)}%</p>
+                    </div>
+                  ) : (
+                    <p className="text-white/40 text-sm mt-1">No evaluations yet</p>
+                  )}
                 </div>
               </div>
 
@@ -213,7 +269,7 @@ export default function DashboardPage() {
                         className="flex-shrink-0 w-72 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg overflow-hidden snap-start hover:border-white/40 transition-colors"
                       >
                         {/* Thumbnail */}
-                        <div className="h-40 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden">
+                        <div className="relative h-40 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden">
                           {project.thumbnail_url ? (
                             <img
                               src={project.thumbnail_url}
@@ -222,6 +278,12 @@ export default function DashboardPage() {
                             />
                           ) : (
                             <span className="text-4xl">📁</span>
+                          )}
+                          {/* Grade Badge */}
+                          {getEvalForProject(project.id) && (
+                            <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold border ${getGradeBg(getEvalForProject(project.id).overall_score)} ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
+                              {getGrade(getEvalForProject(project.id).overall_score)} · {getEvalForProject(project.id).overall_score.toFixed(0)}%
+                            </div>
                           )}
                         </div>
                         
