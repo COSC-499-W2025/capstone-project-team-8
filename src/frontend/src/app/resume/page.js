@@ -44,54 +44,27 @@ export default function ResumePage() {
   const [templateIndex, setTemplateIndex] = useState(0);
   const [projects, setProjects] = useState([]);
   const [resumeData, setResumeData] = useState({
-    name: 'John Anderson',
+    name: '',
+    email: '',
+    phone: '',
+    github_url: '',
+    portfolio_url: '',
+    linkedin_url: '',
+    location: '',
     sections: {
-      summary: 'Results-driven professional with 5+ years of experience in software development and project management. Proven track record of delivering high-impact solutions and leading cross-functional teams to success.',
-      experience: [
-        {
-          id: 1,
-          title: 'Senior Software Engineer',
-          company: 'Tech Solutions Inc.',
-          duration: 'Jan 2022 - Present',
-          content: 'Led development of microservices architecture serving 2M+ users. Reduced API latency by 40% through optimization. Mentored team of 5 junior developers.'
-        },
-        {
-          id: 2,
-          title: 'Software Developer',
-          company: 'Digital Systems Ltd.',
-          duration: 'Jun 2019 - Dec 2021',
-          content: 'Built and maintained full-stack applications using React and Django. Implemented CI/CD pipeline reducing deployment time by 60%. Collaborated with product team on feature design.'
-        }
-      ],
+      summary: '',
+      experience: [],
       projects: [],
-      skills: [
-        { id: 1, title: 'Python' },
-        { id: 2, title: 'JavaScript/React' },
-        { id: 3, title: 'Django' },
-        { id: 4, title: 'REST APIs' },
-        { id: 5, title: 'PostgreSQL' },
-        { id: 6, title: 'Docker' }
-      ],
-      education: [
-        {
-          id: 1,
-          title: 'Bachelor of Science in Computer Science',
-          company: 'State University',
-          duration: '2015 - 2019',
-          content: 'GPA: 3.8/4.0. Dean\'s List all semesters.'
-        }
-      ],
-      certifications: [
-        {
-          id: 1,
-          title: 'AWS Solutions Architect Associate',
-          company: 'Amazon Web Services',
-          duration: '2021',
-          content: 'Certified in cloud architecture and AWS services.'
-        }
-      ]
+      skills: [],
+      education: [],
+      certifications: []
     }
   });
+
+  // Debug: Log the current resumeData state
+  useEffect(() => {
+    console.log('Current resumeData state:', resumeData);
+  }, [resumeData]);
 
   // UI state
   const [editingPath, setEditingPath] = useState(null);
@@ -121,6 +94,10 @@ export default function ResumePage() {
           getResumePreview(token),
         ]);
 
+        // Debug: Log the actual user data structure
+        console.log('Full userData from API:', userData);
+        console.log('userData.user object:', userData.user);
+
         // Build name from user data
         const userFullName = (() => {
           const firstName = userData.user?.first_name || '';
@@ -130,6 +107,31 @@ export default function ResumePage() {
           if (lastName) return lastName;
           return 'Your Name';
         })();
+
+        // Extract contact information from user data
+        const contactInfo = {
+          email: userData.user?.email || '',
+          phone: userData.user?.phone || '',
+          github_url: userData.user?.github_username ? `https://github.com/${userData.user.github_username}` : '',
+          portfolio_url: userData.user?.portfolio_url || '',
+          linkedin_url: userData.user?.linkedin_url || '',
+          location: (() => {
+            const city = userData.user?.education_city || userData.user?.city || '';
+            const state = userData.user?.education_state || userData.user?.state || '';
+            const country = userData.user?.country || '';
+            if (city && state) return `${city}, ${state}`;
+            if (city && country) return `${city}, ${country}`;
+            if (city) return city;
+            if (state && country) return `${state}, ${country}`;
+            if (state) return state;
+            if (country) return country;
+            return '';
+          })()
+        };
+
+        // Debug: Log the extracted contact info
+        console.log('Extracted contactInfo:', contactInfo);
+        console.log('Full userFullName:', userFullName);
 
         // Handle projects - ensure it's an array with all details
         const projectsList = Array.isArray(projectsData) 
@@ -166,6 +168,7 @@ export default function ResumePage() {
           setResumeData(prev => ({
             ...prev,
             name: context.summary?.user_name || userFullName,
+            ...contactInfo,
             sections: {
               summary: context.summary?.summary || prev.sections.summary,
               experience: context.experience || prev.sections.experience,
@@ -181,12 +184,17 @@ export default function ResumePage() {
           // Fallback: Load saved draft or use user data
           const savedDraft = getCurrentDraft();
           if (savedDraft && savedDraft.resumeData) {
-            setResumeData(savedDraft.resumeData);
+            setResumeData({
+              ...savedDraft.resumeData,
+              name: userFullName,
+              ...contactInfo  // Always use fresh contact info from database
+            });
           } else {
             // Use user data to populate resume
             setResumeData(prev => ({
               ...prev,
               name: userFullName,
+              ...contactInfo,
               sections: {
                 ...prev.sections,
                 education: userEducation.length > 0 ? userEducation : prev.sections.education
@@ -194,6 +202,12 @@ export default function ResumePage() {
             }));
           }
         }
+
+        // Debug: Log final resume data
+        console.log('Final resumeData with contact info:', {
+          name: userFullName,
+          ...contactInfo
+        });
 
         // Don't show success message on initial load
       } catch (err) {
@@ -739,40 +753,19 @@ export default function ResumePage() {
       <div className={styles.resumePageContainer}>
         {/* Left Sidebar - Projects Panel */}
         <div className={styles.leftSidebar}>
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidePanelHeader}>
-              <h3>Templates</h3>
+          <div className={styles.sidebarCompact}>
+            <div className={styles.compactRow}>
+              <div className={styles.templateNavInline}>
+                <button onClick={prevTemplate} className={styles.navBtnSmall}>←</button>
+                <span className={styles.templateNameInline}>{currentTemplate?.name || 'Select'}</span>
+                <button onClick={nextTemplate} className={styles.navBtnSmall}>→</button>
+              </div>
             </div>
-            <div className={styles.templateNav}>
-              <button onClick={prevTemplate} className={styles.navButton}>← Prev</button>
-              <div className={styles.templateName}>{currentTemplate?.name || 'Select'}</div>
-              <button onClick={nextTemplate} className={styles.navButton}>Next →</button>
-            </div>
-          </div>
-
-          <div className={styles.sidebarDivider} />
-
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidePanelHeader}>
-              <h3>Edit Controls</h3>
-            </div>
-            <div className={styles.controlsGroup}>
-              <button 
-                onClick={undo} 
-                disabled={historyIndex <= 0}
-                className={styles.controlBtn}
-                title="Undo (Ctrl+Z)"
-              >
-                ↶ Undo
-              </button>
-              <button 
-                onClick={redo} 
-                disabled={historyIndex >= history.length - 1}
-                className={styles.controlBtn}
-                title="Redo (Ctrl+Y)"
-              >
-                ↷ Redo
-              </button>
+            <div className={styles.compactRow}>
+              <div className={styles.editBtnsInline}>
+                <button onClick={undo} disabled={historyIndex <= 0} className={styles.controlBtnSmall} title="Undo">↶ Undo</button>
+                <button onClick={redo} disabled={historyIndex >= history.length - 1} className={styles.controlBtnSmall} title="Redo">↷ Redo</button>
+              </div>
             </div>
           </div>
 

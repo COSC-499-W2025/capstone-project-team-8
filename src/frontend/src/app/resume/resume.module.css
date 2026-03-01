@@ -29,12 +29,12 @@
 .leftSidebar {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  background: #1a1a1a;
+  gap: 12px;
+  background: #18181b;
   border-radius: 8px;
   padding: 16px;
-  border: 1px solid #333;
-  overflow-y: auto;
+  border: 1px solid #27272a;
+  overflow: hidden;
   max-height: calc(100vh - 120px);
 }
 
@@ -69,7 +69,92 @@
   letter-spacing: 0.5px;
 }
 
-/* Template Navigation */
+/* Compact sidebar section for templates + edit controls */
+.sidebarCompact {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.compactRow {
+  display: flex;
+  align-items: center;
+}
+
+.templateNavInline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.navBtnSmall {
+  background: #27272a;
+  color: #a1a1aa;
+  border: 1px solid #3f3f46;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.navBtnSmall:hover {
+  background: #3f3f46;
+  color: white;
+  border-color: #52525b;
+}
+
+.templateNameInline {
+  flex: 1;
+  text-align: center;
+  font-size: 11px;
+  color: #a1a1aa;
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: 4px;
+  padding: 4px 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editBtnsInline {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.controlBtnSmall {
+  flex: 1;
+  background: #27272a;
+  color: #a1a1aa;
+  border: 1px solid #3f3f46;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.controlBtnSmall:hover:not(:disabled) {
+  background: #4f7cf7;
+  color: #fff;
+  border-color: #3b6ce4;
+}
+
+.controlBtnSmall:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Template Navigation (legacy, kept for reference) */
 .templateNav {
   display: flex;
   flex-direction: column;
