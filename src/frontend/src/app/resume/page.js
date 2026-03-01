@@ -148,15 +148,29 @@ function EntryCard({ item, onUpdate, onRemove, fields }) {
     <div className={styles.entryCard}>
       <div className={styles.entryCardHeader}>
         <div className={styles.entryFields}>
-          {fields.map((f) => (
-            <input
-              key={f.key}
-              className={styles.entryInput}
-              value={item[f.key] || ''}
-              onChange={(e) => onUpdate({ ...item, [f.key]: e.target.value })}
-              placeholder={f.placeholder}
-            />
-          ))}
+          {fields.map((f) =>
+            f.type === 'select' ? (
+              <select
+                key={f.key}
+                className={styles.entryInput}
+                value={item[f.key] || ''}
+                onChange={(e) => onUpdate({ ...item, [f.key]: e.target.value })}
+              >
+                <option value="">{f.placeholder}</option>
+                {(f.options || []).map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                key={f.key}
+                className={styles.entryInput}
+                value={item[f.key] || ''}
+                onChange={(e) => onUpdate({ ...item, [f.key]: e.target.value })}
+                placeholder={f.placeholder}
+              />
+            )
+          )}
         </div>
         <button className={styles.removeEntryBtn} onClick={onRemove} type="button" title="Remove">
           ×
@@ -204,7 +218,13 @@ function ResumePreview({ resumeData }) {
                   <strong>{e.title}</strong>
                   <span className={styles.previewDate}>{e.duration}</span>
                 </div>
-                {e.company && <div className={styles.previewSub}>{e.company}</div>}
+                {(e.degree_type || e.company) && (
+                  <div className={styles.previewSub}>
+                    {e.degree_type && e.company
+                      ? `${e.degree_type} in ${e.company}`
+                      : e.degree_type || e.company}
+                  </div>
+                )}
                 {parseB(e.content).map((b, i) => (
                   <div key={i} className={styles.previewBullet}>• {b}</div>
                 ))}
@@ -293,7 +313,7 @@ function ResumePreview({ resumeData }) {
 
 export default function ResumeNewPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, refreshAccessToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -459,6 +479,7 @@ export default function ResumeNewPage() {
           education.push({
             id: Date.now(),
             title: u.university || 'University',
+            degree_type: '',
             company: u.degree_major || '',
             duration: (() => {
               const gradYear = u.graduation_year || u.expected_graduation;
@@ -535,6 +556,7 @@ export default function ResumeNewPage() {
       company: '',
       duration: '',
       content: '',
+      ...(sectionType === 'education' ? { degree_type: '' } : {}),
       ...extra,
     };
     const items = [...(resumeData.sections[sectionType] || []), newItem];
@@ -811,7 +833,18 @@ export default function ResumeNewPage() {
     setGenerating(true);
     setMessage({ type: '', text: '' });
     try {
-      await generateRenderCVPdf(token, resumeData, theme);
+      let activeToken = token;
+      try {
+        await generateRenderCVPdf(activeToken, resumeData, theme);
+      } catch (err) {
+        if (err.message?.includes('401')) {
+          activeToken = await refreshAccessToken();
+          if (!activeToken) throw new Error('Session expired. Please log in again.');
+          await generateRenderCVPdf(activeToken, resumeData, theme);
+        } else {
+          throw err;
+        }
+      }
       setMessage({ type: 'success', text: 'PDF downloaded!' });
     } catch (err) {
       console.error('PDF generation error:', err);
@@ -823,9 +856,20 @@ export default function ResumeNewPage() {
 
   const handleDownloadYAML = async () => {
     try {
-      await downloadRenderCVYaml(token, resumeData, theme);
+      let activeToken = token;
+      try {
+        await downloadRenderCVYaml(activeToken, resumeData, theme);
+      } catch (err) {
+        if (err.message?.includes('401')) {
+          activeToken = await refreshAccessToken();
+          if (!activeToken) throw new Error('Session expired. Please log in again.');
+          await downloadRenderCVYaml(activeToken, resumeData, theme);
+        } else {
+          throw err;
+        }
+      }
     } catch (err) {
-      setMessage({ type: 'error', text: 'Failed to download YAML.' });
+      setMessage({ type: 'error', text: err.message || 'Failed to download YAML.' });
     }
   };
 
@@ -1000,7 +1044,13 @@ export default function ResumeNewPage() {
                   onRemove={() => removeEntry('education', item.id)}
                   fields={[
                     { key: 'title', placeholder: 'School / University' },
-                    { key: 'company', placeholder: 'Degree & Major' },
+                    {
+                      key: 'degree_type',
+                      placeholder: 'Degree Type',
+                      type: 'select',
+                      options: ['B.Sc.', 'B.A.', 'B.Eng.', 'B.Com.', 'M.Sc.', 'M.A.', 'M.Eng.', 'MBA', 'Ph.D.', 'J.D.', 'M.D.'],
+                    },
+                    { key: 'company', placeholder: 'Major / Field of Study' },
                     { key: 'duration', placeholder: 'Date Range' },
                   ]}
                 />

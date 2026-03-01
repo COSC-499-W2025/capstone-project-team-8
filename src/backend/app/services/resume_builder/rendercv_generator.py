@@ -78,7 +78,7 @@ def resume_data_to_rendercv_yaml(resume_data: dict, theme: str = "classic") -> d
     {
       name, email, phone, github_url, linkedin_url, portfolio_url, location,
       sections: {
-        education:     [{id, title (school), company (degree), duration, content}],
+        education:     [{id, title (school), degree_type (B.Sc./M.Sc./etc.), company (major), duration, content}],
         experience:    [{id, title (job title), company, duration, content}],
         projects:      [{id, title, company (tech stack), duration, content}],
         skills:        [{id, title}],
@@ -127,10 +127,11 @@ def resume_data_to_rendercv_yaml(resume_data: dict, theme: str = "classic") -> d
         entry: dict[str, Any] = {
             "institution": item.get("title") or "University",
         }
-        # company field holds the degree string e.g. "BS Computer Science"
-        degree_str = item.get("company", "")
-        entry["area"] = degree_str
-        entry["degree"] = ""          # RenderCV requires the key; leave blank
+        # degree_type e.g. "B.Sc.", company holds the major e.g. "Computer Science"
+        degree_type = item.get("degree_type", "").strip()
+        major = item.get("company", "").strip()
+        entry["area"] = major or degree_type  # RenderCV area = field of study
+        entry["degree"] = degree_type          # RenderCV degree = degree type
         if item.get("duration"):
             entry["date"] = item["duration"]
         bullets = _parse_bullets(item.get("content", ""))

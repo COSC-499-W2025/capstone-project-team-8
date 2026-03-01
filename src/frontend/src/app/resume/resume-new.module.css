@@ -306,6 +306,11 @@
   color: #52525b;
 }
 
+.entryInput option {
+  background: #09090b;
+  color: #e4e4e7;
+}
+
 .removeEntryBtn {
   flex-shrink: 0;
   width: 24px;
