@@ -169,4 +169,45 @@ class ProjectContribution(models.Model):
 		super().save(*args, **kwargs)
 	def __str__(self):
 		return f"{self.contributor.name} -> {self.project.name} ({self.commit_count} commits)"
+
+class ProjectEvaluation(models.Model):
+	"""
+	Evaluation scores for projects based on language-specific rubrics.
+	Stores structured evidence of success based on project characteristics.
+	"""
+	project = models.OneToOneField(Project, on_delete=models.CASCADE, related_name='evaluation')
+	language = models.CharField(max_length=50)  # python, javascript, java, c, etc.
+	
+	# Overall score (0-100)
+	overall_score = models.FloatField(default=0.0)
+	
+	# Category scores as JSON for flexibility
+	category_scores = models.JSONField(default=dict)
+	
+	# Detailed rubric evaluation
+	rubric_evaluation = models.JSONField(default=dict)
+	
+	# Project quality indicators
+	code_quality_score = models.FloatField(default=0.0)
+	documentation_score = models.FloatField(default=0.0)
+	structure_score = models.FloatField(default=0.0)
+	testing_score = models.FloatField(default=0.0)
+	
+	# Evidence data (what led to these scores)
+	evidence = models.JSONField(default=dict)
+	
+	# Metadata
+	evaluated_at = models.DateTimeField(auto_now=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	
+	class Meta:
+		db_table = 'project_evaluations'
+		indexes = [
+			models.Index(fields=['language', '-overall_score']),
+			models.Index(fields=['project', 'language']),
+		]
+	
+	def __str__(self):
+		return f"{self.project.name} - {self.language} ({self.overall_score}%)"
+
 """Project and File models."""
