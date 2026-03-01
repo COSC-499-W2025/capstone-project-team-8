@@ -12,6 +12,7 @@ from .views.project_views import (
     ProjectThumbnailUploadView,
     LLMPrivacyConsentView,
 )
+from .views.skill_views import SkillsView
 from .views.user_views import UserMeView, PublicUserView, PasswordChangeView, ProfileImageUploadView
 from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView
 from .views.portfolio_views import (
@@ -65,6 +66,9 @@ urlpatterns = [
     path("evaluations/project/<int:project_id>/", ProjectAllEvaluationsView.as_view(), name="project-all-evaluations"),
     path("evaluations/project/<int:project_id>/<str:language>/", ProjectEvaluationDetailView.as_view(), name="project-evaluation-detail"),
     path("evaluations/project/<int:project_id>/<str:language>/summary/", ProjectEvaluationSummaryView.as_view(), name="project-evaluation-summary"),
+  
+    # Skills endpoints
+    path("skills/", SkillsView.as_view(), name="skills"),
 
     # Portfolio endpoints
     path("portfolio/", PortfolioListView.as_view(), name="portfolio-list"),
