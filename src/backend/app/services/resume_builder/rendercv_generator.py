@@ -45,6 +45,27 @@ def _extract_linkedin_username(linkedin_url: str) -> str:
     return m.group(1) if m else linkedin_url.rstrip("/").split("/")[-1]
 
 
+def _normalize_phone(phone: str) -> str | None:
+    """
+    Coerce a raw phone string into E.164 format that RenderCV accepts.
+    """
+    if not phone:
+        return None
+    digits = re.sub(r"\D", "", str(phone))
+    if not digits:
+        return None
+    if digits.startswith("+"):
+        return phone  # already E.164
+    if len(digits) == 10:
+        return f"+1{digits}"
+    if len(digits) == 11 and digits[0] == "1":
+        return f"+{digits}"
+    # For other lengths just prepend + and hope for the best;
+    # if still invalid, omit rather than crash.
+    candidate = f"+{digits}"
+    return candidate
+
+
 # ---------------------------------------------------------------------------
 # Core converter
 # ---------------------------------------------------------------------------
@@ -73,7 +94,9 @@ def resume_data_to_rendercv_yaml(resume_data: dict, theme: str = "classic") -> d
     if resume_data.get("email"):
         cv["email"] = resume_data["email"]
     if resume_data.get("phone"):
-        cv["phone"] = str(resume_data["phone"])
+        normalized = _normalize_phone(resume_data["phone"])
+        if normalized:
+            cv["phone"] = normalized
     if resume_data.get("location"):
         cv["location"] = resume_data["location"]
     if resume_data.get("portfolio_url"):
@@ -214,14 +237,26 @@ def generate_pdf(resume_data: dict, theme: str = "classic") -> bytes:
                 sort_keys=False,
             )
 
-        # Run rendercv
-        result = subprocess.run(
-            ["rendercv", "render", "resume.yaml"],
-            cwd=tmpdir,
-            capture_output=True,
-            text=True,
-            timeout=120,
-        )
+        def _run(yaml_dict: dict) -> subprocess.CompletedProcess:
+            with open(yaml_path, "w", encoding="utf-8") as f:
+                yaml.dump(yaml_dict, f, allow_unicode=True,
+                          default_flow_style=False, sort_keys=False)
+            return subprocess.run(
+                ["rendercv", "render", "resume.yaml"],
+                cwd=tmpdir,
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
+
+        result = _run(rendercv_dict)
+
+        # If RenderCV rejected the phone number, strip it and retry once
+        if result.returncode != 0:
+            err_text = (result.stderr or result.stdout or "")
+            if "cv.phone" in err_text and "not a valid phone number" in err_text:
+                rendercv_dict.get("cv", rendercv_dict).pop("phone", None)
+                result = _run(rendercv_dict)
 
         if result.returncode != 0:
             err = (result.stderr or result.stdout or "Unknown error").strip()

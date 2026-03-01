@@ -561,6 +561,24 @@ export default function ResumeNewPage() {
 
   const flushPersonal = () => pushToHistory(resumeData);
 
+  /** Coerce a raw phone string to E.164 format (+1XXXXXXXXXX for NA numbers). */
+  const normalizePhone = (raw) => {
+    if (!raw) return '';
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length === 11 && digits[0] === '1') return `+${digits}`;
+    // already has country code (more than 11 digits treated as-is with +)
+    return `+${digits}`;
+  };
+
+  const handlePhoneBlur = () => {
+    const normalized = normalizePhone(resumeData.phone);
+    const updated = { ...resumeData, phone: normalized };
+    setResumeData(updated);
+    pushToHistory(updated);
+  };
+
   // ── drag and drop ────────────────────────────────────────────────────────
 
   const handleDragOver = (e) => {
@@ -934,7 +952,7 @@ export default function ResumeNewPage() {
                 {[
                   { key: 'name', placeholder: 'Full Name' },
                   { key: 'email', placeholder: 'Email' },
-                  { key: 'phone', placeholder: 'Phone' },
+                  { key: 'phone', placeholder: 'Phone (e.g. 1234567890)' },
                   { key: 'location', placeholder: 'City, State' },
                   { key: 'github_url', placeholder: 'GitHub URL' },
                   { key: 'linkedin_url', placeholder: 'LinkedIn URL' },
@@ -942,10 +960,19 @@ export default function ResumeNewPage() {
                 ].map(({ key, placeholder }) => (
                   <input
                     key={key}
+                    type={key === 'phone' ? 'tel' : 'text'}
                     className={styles.personalInput}
                     value={resumeData[key] || ''}
-                    onChange={(e) => updatePersonal(key, e.target.value)}
-                    onBlur={flushPersonal}
+                    onChange={(e) => {
+                      if (key === 'phone') {
+                        // only allow digits, +, spaces, dashes, parens
+                        const val = e.target.value.replace(/[^\d+\s()\-]/g, '');
+                        updatePersonal('phone', val);
+                      } else {
+                        updatePersonal(key, e.target.value);
+                      }
+                    }}
+                    onBlur={key === 'phone' ? handlePhoneBlur : flushPersonal}
                     placeholder={placeholder}
                   />
                 ))}

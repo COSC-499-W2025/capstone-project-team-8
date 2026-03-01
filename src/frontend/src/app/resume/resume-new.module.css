@@ -434,6 +434,10 @@
   color: #e4e4e7;
   font-size: 12px;
   outline: none;
+  box-shadow: none;
+  -webkit-appearance: none;
+  appearance: none;
+  padding-left: 4px;
   min-width: 60px;
   max-width: 160px;
 }
