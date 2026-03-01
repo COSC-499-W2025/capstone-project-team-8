@@ -1,0 +1,911 @@
+'use client';
+
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import Header from '@/components/Header';
+import Toast from '@/components/Toast';
+import { getCurrentUser } from '@/utils/api';
+import { getProjects } from '@/utils/resumeApi';
+import { generateRenderCVPdf, downloadRenderCVYaml } from '@/utils/resumeApi';
+import { saveDraft, getDraft, getCurrentDraft, clearCurrentDraft } from '@/utils/draftStorage';
+import { getProjectDateRange } from '@/utils/resumeCleanup';
+import ProjectsPanel from '@/components/resume/ProjectsPanel';
+import styles from './resume-new.module.css';
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const THEMES = [
+  { value: 'classic', label: 'Classic' },
+  { value: 'sb2nov', label: 'SB2Nov' },
+  { value: 'moderncv', label: 'ModernCV' },
+  { value: 'engineeringclassic', label: 'Engineering Classic' },
+];
+
+const EMPTY_RESUME = {
+  name: '',
+  email: '',
+  phone: '',
+  github_url: '',
+  portfolio_url: '',
+  linkedin_url: '',
+  location: '',
+  sections: {
+    summary: '',
+    education: [],
+    experience: [],
+    projects: [],
+    skills: [],
+    certifications: [],
+  },
+};
+
+function parseContent(content) {
+  if (!content) return [];
+  return content
+    .split('\n')
+    .map((l) => l.replace(/^[•\-]\s*/, '').trim())
+    .filter(Boolean);
+}
+
+function buildContent(bullets) {
+  return bullets.map((b) => `• ${b}`).join('\n');
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function SectionHeader({ title, onAdd, addLabel = '+ Add', collapsed, onToggle }) {
+  return (
+    <div className={styles.sectionHeader}>
+      <button className={styles.collapseBtn} onClick={onToggle} type="button">
+        {collapsed ? '▶' : '▼'} <span>{title}</span>
+      </button>
+      {onAdd && (
+        <button className={styles.addBtn} onClick={onAdd} type="button">
+          {addLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function BulletList({ content, onChange }) {
+  const bullets = parseContent(content);
+
+  const updateBullet = (i, val) => {
+    const next = [...bullets];
+    next[i] = val;
+    onChange(buildContent(next));
+  };
+
+  const removeBullet = (i) => {
+    const next = bullets.filter((_, idx) => idx !== i);
+    onChange(buildContent(next));
+  };
+
+  const addBullet = () => {
+    onChange(buildContent([...bullets, '']));
+  };
+
+  return (
+    <div className={styles.bulletList}>
+      {bullets.map((b, i) => (
+        <div key={i} className={styles.bulletRow}>
+          <span className={styles.bulletDot}>•</span>
+          <input
+            className={styles.bulletInput}
+            value={b}
+            onChange={(e) => updateBullet(i, e.target.value)}
+            placeholder="Bullet point..."
+          />
+          <button
+            className={styles.removeBulletBtn}
+            onClick={() => removeBullet(i)}
+            type="button"
+            title="Remove bullet"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      <button className={styles.addBulletBtn} onClick={addBullet} type="button">
+        + bullet
+      </button>
+    </div>
+  );
+}
+
+function EntryCard({ item, onUpdate, onRemove, fields }) {
+  return (
+    <div className={styles.entryCard}>
+      <div className={styles.entryCardHeader}>
+        <div className={styles.entryFields}>
+          {fields.map((f) => (
+            <input
+              key={f.key}
+              className={styles.entryInput}
+              value={item[f.key] || ''}
+              onChange={(e) => onUpdate({ ...item, [f.key]: e.target.value })}
+              placeholder={f.placeholder}
+            />
+          ))}
+        </div>
+        <button className={styles.removeEntryBtn} onClick={onRemove} type="button" title="Remove">
+          ×
+        </button>
+      </div>
+      {item.content !== undefined && (
+        <BulletList
+          content={item.content}
+          onChange={(c) => onUpdate({ ...item, content: c })}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
+export default function ResumeNewPage() {
+  const router = useRouter();
+  const { isAuthenticated, token } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+  const [theme, setTheme] = useState('classic');
+
+  // Collapsed state for each form section
+  const [collapsed, setCollapsed] = useState({
+    personal: false,
+    education: false,
+    experience: false,
+    projects: false,
+    skills: false,
+    certifications: true,
+  });
+
+  const toggleSection = (key) =>
+    setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  // Undo / Redo
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const historyRef = useRef(null);
+
+  // Main state
+  const [projects, setProjects] = useState([]);
+  const [selectedProjects, setSelectedProjects] = useState(new Set());
+  const [resumeData, setResumeData] = useState(EMPTY_RESUME);
+
+  // ── history helpers ──────────────────────────────────────────────────────
+
+  const pushToHistory = useCallback(
+    (data) => {
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(JSON.parse(JSON.stringify(data)));
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+      historyRef.current = data;
+    },
+    [history, historyIndex]
+  );
+
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setResumeData(JSON.parse(JSON.stringify(history[newIndex])));
+    }
+  }, [history, historyIndex]);
+
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setResumeData(JSON.parse(JSON.stringify(history[newIndex])));
+    }
+  }, [history, historyIndex]);
+
+  // Keyboard undo/redo
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        (e.key === 'y' || (e.shiftKey && e.key === 'z'))
+      ) {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo]);
+
+  // ── init ─────────────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (!isAuthenticated) { router.push('/login'); return; }
+    if (!token) return;
+
+    const init = async () => {
+      try {
+        const [userData, projectsData] = await Promise.all([
+          getCurrentUser(token),
+          getProjects(token),
+        ]);
+
+        const u = userData.user || {};
+        const firstName = u.first_name || '';
+        const lastName = u.last_name || '';
+        const fullName =
+          firstName && lastName
+            ? `${firstName} ${lastName}`
+            : firstName || lastName || 'Your Name';
+
+        const city = u.education_city || u.city || '';
+        const state = u.education_state || u.state || '';
+        const country = u.country || '';
+        const location =
+          city && state
+            ? `${city}, ${state}`
+            : city || state || country || '';
+
+        const contactInfo = {
+          name: fullName,
+          email: u.email || '',
+          phone: u.phone || '',
+          github_url: u.github_username ? `https://github.com/${u.github_username}` : '',
+          portfolio_url: u.portfolio_url || '',
+          linkedin_url: u.linkedin_url || '',
+          location,
+        };
+
+        const projectsList = Array.isArray(projectsData)
+          ? projectsData
+          : projectsData.projects || projectsData.results || [];
+        setProjects(projectsList);
+
+        // Build pre-populated education entry
+        const education = [];
+        if (u.university || u.degree_major) {
+          education.push({
+            id: Date.now(),
+            title: u.university || 'University',
+            company: u.degree_major || '',
+            duration: (() => {
+              const gradYear = u.graduation_year || u.expected_graduation;
+              return gradYear ? `Graduating ${gradYear}` : '';
+            })(),
+            content: '',
+          });
+        }
+
+        const initial = {
+          ...contactInfo,
+          sections: {
+            summary: '',
+            education,
+            experience: [],
+            projects: [],
+            skills: [],
+            certifications: [],
+          },
+        };
+
+        // Restore draft if available
+        const draft = getCurrentDraft();
+        if (draft && draft.sections) {
+          setResumeData(draft);
+          const initialHistory = [draft];
+          setHistory(initialHistory);
+          setHistoryIndex(0);
+        } else {
+          setResumeData(initial);
+          const initialHistory = [initial];
+          setHistory(initialHistory);
+          setHistoryIndex(0);
+        }
+      } catch (err) {
+        console.error('Init error:', err);
+        setMessage({ type: 'error', text: 'Failed to load resume data.' });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
+  }, [isAuthenticated, token, router]);
+
+  // Auto-save draft
+  useEffect(() => {
+    if (!loading && resumeData.name) {
+      saveDraft('current', resumeData);
+    }
+  }, [resumeData, loading]);
+
+  // ── section helpers ──────────────────────────────────────────────────────
+
+  const updateSection = (sectionType, newItems) => {
+    const updated = {
+      ...resumeData,
+      sections: { ...resumeData.sections, [sectionType]: newItems },
+    };
+    setResumeData(updated);
+    pushToHistory(updated);
+  };
+
+  const addEntry = (sectionType, extra = {}) => {
+    const newItem = {
+      id: Date.now(),
+      title: '',
+      company: '',
+      duration: '',
+      content: '',
+      ...extra,
+    };
+    const items = [...(resumeData.sections[sectionType] || []), newItem];
+    updateSection(sectionType, items);
+  };
+
+  const updateEntry = (sectionType, updatedItem) => {
+    const items = (resumeData.sections[sectionType] || []).map((i) =>
+      i.id === updatedItem.id ? updatedItem : i
+    );
+    updateSection(sectionType, items);
+  };
+
+  const removeEntry = (sectionType, id) => {
+    const items = (resumeData.sections[sectionType] || []).filter((i) => i.id !== id);
+    updateSection(sectionType, items);
+  };
+
+  const updatePersonal = (field, value) => {
+    const updated = { ...resumeData, [field]: value };
+    setResumeData(updated);
+  };
+
+  const flushPersonal = () => pushToHistory(resumeData);
+
+  // ── drag and drop ────────────────────────────────────────────────────────
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDropSkill = (e) => {
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('application/json'));
+      if (data.type !== 'skill') return;
+
+      const timestamp = Date.now();
+      if (data.projectName) {
+        const existingIndex = (resumeData.sections.projects || []).findIndex(
+          (p) => p.company === data.projectName
+        );
+        const dateRange = getProjectDateRange(
+          data.projectFirstCommitDate,
+          data.projectCreatedAt
+        );
+        let updatedProjects;
+        if (existingIndex >= 0) {
+          updatedProjects = [...(resumeData.sections.projects || [])];
+          const entry = updatedProjects[existingIndex];
+          updatedProjects[existingIndex] = {
+            ...entry,
+            content: `${entry.content}\n• ${data.item.title}`,
+          };
+        } else {
+          updatedProjects = [
+            ...(resumeData.sections.projects || []),
+            {
+              id: timestamp,
+              title: data.item.title,
+              company: data.projectName,
+              duration: dateRange,
+              content: `• ${data.item.title}`,
+            },
+          ];
+        }
+        const updated = {
+          ...resumeData,
+          sections: { ...resumeData.sections, projects: updatedProjects },
+        };
+        setResumeData(updated);
+        pushToHistory(updated);
+      } else {
+        const newSkill = { id: timestamp, title: data.item.title };
+        const updated = {
+          ...resumeData,
+          sections: {
+            ...resumeData.sections,
+            skills: [...(resumeData.sections.skills || []), newSkill],
+          },
+        };
+        setResumeData(updated);
+        pushToHistory(updated);
+      }
+    } catch (err) {
+      console.error('Drop skill error:', err);
+    }
+  };
+
+  const handleDropExperience = (e) => {
+    e.preventDefault();
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('application/json'));
+      if (data.type !== 'bullet') return;
+
+      const projectName = data.projectName || 'Project Work';
+      const dateRange = getProjectDateRange(
+        data.projectFirstCommitDate,
+        data.projectCreatedAt
+      );
+      const existingIndex = (resumeData.sections.projects || []).findIndex(
+        (p) => p.title === projectName
+      );
+      let updatedProjects;
+      if (existingIndex >= 0) {
+        updatedProjects = [...(resumeData.sections.projects || [])];
+        const entry = updatedProjects[existingIndex];
+        updatedProjects[existingIndex] = {
+          ...entry,
+          content: `${entry.content}\n• ${data.item.content}`,
+        };
+      } else {
+        updatedProjects = [
+          ...(resumeData.sections.projects || []),
+          {
+            id: Date.now(),
+            title: projectName,
+            company: '',
+            duration: dateRange,
+            content: `• ${data.item.content}`,
+          },
+        ];
+      }
+      const updated = {
+        ...resumeData,
+        sections: { ...resumeData.sections, projects: updatedProjects },
+      };
+      setResumeData(updated);
+      pushToHistory(updated);
+    } catch (err) {
+      console.error('Drop bullet error:', err);
+    }
+  };
+
+  const handleQuickAdd = (item, type) => {
+    const timestamp = Date.now();
+    if (type === 'skill') {
+      if (item.projectName) {
+        const project = projects.find((p) => p.id === item.projectId);
+        const dateRange = project
+          ? getProjectDateRange(project.first_commit_date, project.created_at)
+          : 'Present';
+        const existingIndex = (resumeData.sections.projects || []).findIndex(
+          (p) => p.company === item.projectName
+        );
+        let updatedProjects;
+        if (existingIndex >= 0) {
+          updatedProjects = [...(resumeData.sections.projects || [])];
+          const entry = updatedProjects[existingIndex];
+          updatedProjects[existingIndex] = {
+            ...entry,
+            content: `${entry.content}\n• ${item.title}`,
+          };
+        } else {
+          updatedProjects = [
+            ...(resumeData.sections.projects || []),
+            {
+              id: timestamp,
+              title: item.title,
+              company: item.projectName,
+              duration: dateRange,
+              content: `• ${item.title}`,
+            },
+          ];
+        }
+        const updated = {
+          ...resumeData,
+          sections: { ...resumeData.sections, projects: updatedProjects },
+        };
+        setResumeData(updated);
+        pushToHistory(updated);
+      } else {
+        const newSkill = { id: timestamp, title: item.title };
+        const updated = {
+          ...resumeData,
+          sections: {
+            ...resumeData.sections,
+            skills: [...(resumeData.sections.skills || []), newSkill],
+          },
+        };
+        setResumeData(updated);
+        pushToHistory(updated);
+      }
+    } else if (type === 'bullet') {
+      const project = projects.find((p) => p.id === item.projectId);
+      const projectName = item.projectName || 'Project Work';
+      const dateRange = project
+        ? getProjectDateRange(project.first_commit_date, project.created_at)
+        : 'Present';
+      const existingIndex = (resumeData.sections.projects || []).findIndex(
+        (p) => p.title === projectName
+      );
+      let updatedProjects;
+      if (existingIndex >= 0) {
+        updatedProjects = [...(resumeData.sections.projects || [])];
+        const entry = updatedProjects[existingIndex];
+        updatedProjects[existingIndex] = {
+          ...entry,
+          content: `${entry.content}\n• ${item.content}`,
+        };
+      } else {
+        updatedProjects = [
+          ...(resumeData.sections.projects || []),
+          {
+            id: Date.now(),
+            title: projectName,
+            company: '',
+            duration: dateRange,
+            content: `• ${item.content}`,
+          },
+        ];
+      }
+      const updated = {
+        ...resumeData,
+        sections: { ...resumeData.sections, projects: updatedProjects },
+      };
+      setResumeData(updated);
+      pushToHistory(updated);
+    }
+  };
+
+  const addProjectBullet = (projectId) => {
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return;
+    const projectItem = {
+      id: Date.now(),
+      title: project.name,
+      company: project.classification_type || 'Project',
+      duration: '',
+      content: (project.resume_bullet_points || []).join('\n'),
+    };
+    const updated = {
+      ...resumeData,
+      sections: {
+        ...resumeData.sections,
+        projects: [...(resumeData.sections.projects || []), projectItem],
+      },
+    };
+    setResumeData(updated);
+    pushToHistory(updated);
+    setSelectedProjects((prev) => new Set(prev).add(projectId));
+  };
+
+  // ── PDF generation ───────────────────────────────────────────────────────
+
+  const handleGeneratePDF = async () => {
+    setGenerating(true);
+    setMessage({ type: '', text: '' });
+    try {
+      await generateRenderCVPdf(token, resumeData, theme);
+      setMessage({ type: 'success', text: 'PDF downloaded!' });
+    } catch (err) {
+      console.error('PDF generation error:', err);
+      setMessage({ type: 'error', text: err.message || 'Failed to generate PDF.' });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleDownloadYAML = async () => {
+    try {
+      await downloadRenderCVYaml(token, resumeData, theme);
+    } catch (err) {
+      setMessage({ type: 'error', text: 'Failed to download YAML.' });
+    }
+  };
+
+  // ── render ───────────────────────────────────────────────────────────────
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <Header />
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner} />
+          <p>Loading resume builder…</p>
+        </div>
+      </div>
+    );
+  }
+
+  const sec = resumeData.sections;
+
+  return (
+    <div className={styles.page}>
+      <Header />
+      {message.text && (
+        <Toast
+          message={message.text}
+          type={message.type}
+          onClose={() => setMessage({ type: '', text: '' })}
+        />
+      )}
+
+      <div className={styles.layout}>
+        {/* ── Left: Projects Panel ── */}
+        <aside className={styles.sidebar}>
+          <ProjectsPanel
+            projects={projects}
+            onAddProject={addProjectBullet}
+            onQuickAdd={handleQuickAdd}
+            selectedProjects={selectedProjects}
+          />
+        </aside>
+
+        {/* ── Center: Form Editor ── */}
+        <main
+          className={styles.editor}
+          onDragOver={handleDragOver}
+          onDrop={(e) => {
+            try {
+              const data = JSON.parse(e.dataTransfer.getData('application/json'));
+              if (data.type === 'skill') handleDropSkill(e);
+              else handleDropExperience(e);
+            } catch { handleDropExperience(e); }
+          }}
+        >
+          {/* Toolbar */}
+          <div className={styles.toolbar}>
+            <div className={styles.toolbarLeft}>
+              <button
+                className={styles.toolbarBtn}
+                onClick={undo}
+                disabled={historyIndex <= 0}
+                title="Undo (Ctrl+Z)"
+              >
+                ↩ Undo
+              </button>
+              <button
+                className={styles.toolbarBtn}
+                onClick={redo}
+                disabled={historyIndex >= history.length - 1}
+                title="Redo (Ctrl+Y)"
+              >
+                ↪ Redo
+              </button>
+            </div>
+            <div className={styles.toolbarRight}>
+              <label className={styles.themeLabel}>Theme:</label>
+              <select
+                className={styles.themeSelect}
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
+              >
+                {THEMES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                className={styles.yamlBtn}
+                onClick={handleDownloadYAML}
+                title="Download RenderCV YAML"
+              >
+                ↓ YAML
+              </button>
+              <button
+                className={`${styles.generateBtn} ${generating ? styles.generating : ''}`}
+                onClick={handleGeneratePDF}
+                disabled={generating}
+              >
+                {generating ? (
+                  <>
+                    <span className={styles.btnSpinner} /> Generating…
+                  </>
+                ) : (
+                  '⬇ Generate PDF'
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Personal Info */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Personal Info"
+              collapsed={collapsed.personal}
+              onToggle={() => toggleSection('personal')}
+            />
+            {!collapsed.personal && (
+              <div className={styles.personalGrid}>
+                {[
+                  { key: 'name', placeholder: 'Full Name' },
+                  { key: 'email', placeholder: 'Email' },
+                  { key: 'phone', placeholder: 'Phone' },
+                  { key: 'location', placeholder: 'City, State' },
+                  { key: 'github_url', placeholder: 'GitHub URL' },
+                  { key: 'linkedin_url', placeholder: 'LinkedIn URL' },
+                  { key: 'portfolio_url', placeholder: 'Portfolio URL' },
+                ].map(({ key, placeholder }) => (
+                  <input
+                    key={key}
+                    className={styles.personalInput}
+                    value={resumeData[key] || ''}
+                    onChange={(e) => updatePersonal(key, e.target.value)}
+                    onBlur={flushPersonal}
+                    placeholder={placeholder}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Education */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Education"
+              collapsed={collapsed.education}
+              onToggle={() => toggleSection('education')}
+              onAdd={() => addEntry('education')}
+            />
+            {!collapsed.education &&
+              sec.education.map((item) => (
+                <EntryCard
+                  key={item.id}
+                  item={item}
+                  onUpdate={(u) => updateEntry('education', u)}
+                  onRemove={() => removeEntry('education', item.id)}
+                  fields={[
+                    { key: 'title', placeholder: 'School / University' },
+                    { key: 'company', placeholder: 'Degree & Major' },
+                    { key: 'duration', placeholder: 'Date Range' },
+                  ]}
+                />
+              ))}
+          </section>
+
+          {/* Experience */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Experience"
+              collapsed={collapsed.experience}
+              onToggle={() => toggleSection('experience')}
+              onAdd={() => addEntry('experience')}
+            />
+            {!collapsed.experience &&
+              sec.experience.map((item) => (
+                <EntryCard
+                  key={item.id}
+                  item={item}
+                  onUpdate={(u) => updateEntry('experience', u)}
+                  onRemove={() => removeEntry('experience', item.id)}
+                  fields={[
+                    { key: 'title', placeholder: 'Job Title' },
+                    { key: 'company', placeholder: 'Company' },
+                    { key: 'duration', placeholder: 'Date Range' },
+                  ]}
+                />
+              ))}
+          </section>
+
+          {/* Projects (drop zone) */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Projects"
+              collapsed={collapsed.projects}
+              onToggle={() => toggleSection('projects')}
+              onAdd={() => addEntry('projects')}
+            />
+            {!collapsed.projects && (
+              <>
+                {sec.projects.length === 0 && (
+                  <p className={styles.dropHint}>
+                    Drag skills or bullets from the left panel, or click + Add
+                  </p>
+                )}
+                {sec.projects.map((item) => (
+                  <EntryCard
+                    key={item.id}
+                    item={item}
+                    onUpdate={(u) => updateEntry('projects', u)}
+                    onRemove={() => removeEntry('projects', item.id)}
+                    fields={[
+                      { key: 'title', placeholder: 'Project Name' },
+                      { key: 'company', placeholder: 'Technologies Used' },
+                      { key: 'duration', placeholder: 'Date Range' },
+                    ]}
+                  />
+                ))}
+              </>
+            )}
+          </section>
+
+          {/* Skills */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Skills"
+              collapsed={collapsed.skills}
+              onToggle={() => toggleSection('skills')}
+              onAdd={() => {
+                const newSkill = { id: Date.now(), title: '' };
+                const updated = {
+                  ...resumeData,
+                  sections: {
+                    ...sec,
+                    skills: [...sec.skills, newSkill],
+                  },
+                };
+                setResumeData(updated);
+                pushToHistory(updated);
+              }}
+            />
+            {!collapsed.skills && (
+              <div className={styles.skillsGrid}>
+                {sec.skills.map((skill) => (
+                  <div key={skill.id} className={styles.skillChip}>
+                    <input
+                      className={styles.skillInput}
+                      value={skill.title || ''}
+                      onChange={(e) => {
+                        const items = sec.skills.map((s) =>
+                          s.id === skill.id ? { ...s, title: e.target.value } : s
+                        );
+                        setResumeData((prev) => ({
+                          ...prev,
+                          sections: { ...prev.sections, skills: items },
+                        }));
+                      }}
+                      onBlur={flushPersonal}
+                      placeholder="Skill"
+                    />
+                    <button
+                      className={styles.removeSkillBtn}
+                      onClick={() => removeEntry('skills', skill.id)}
+                      type="button"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Certifications */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Certifications"
+              collapsed={collapsed.certifications}
+              onToggle={() => toggleSection('certifications')}
+              onAdd={() => addEntry('certifications')}
+            />
+            {!collapsed.certifications &&
+              sec.certifications.map((item) => (
+                <EntryCard
+                  key={item.id}
+                  item={item}
+                  onUpdate={(u) => updateEntry('certifications', u)}
+                  onRemove={() => removeEntry('certifications', item.id)}
+                  fields={[
+                    { key: 'title', placeholder: 'Certification Name' },
+                    { key: 'company', placeholder: 'Issuing Organization' },
+                    { key: 'duration', placeholder: 'Date' },
+                  ]}
+                />
+              ))}
+          </section>
+        </main>
+      </div>
+    </div>
+  );
+}

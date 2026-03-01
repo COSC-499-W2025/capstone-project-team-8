@@ -31,6 +31,8 @@ from .views.resume_views import (
     ResumeGenerateView,
     ResumeDetailView,
     ResumeEditView,
+    RenderCVPDFView,
+    RenderCVYAMLView,
 )
 from .views.evaluation_views import (
     LanguageEvaluationsView,
@@ -84,6 +86,8 @@ urlpatterns = [
     path("resume/preview/", ResumePreviewView.as_view(), name="resume-preview"),
     path("resume/generate/latex/", GenerateLatexResumeView.as_view(), name="resume-generate-latex"),
     path("resume/generate/", ResumeGenerateView.as_view(), name="resume-generate"),
+    path("resume/render-pdf/", RenderCVPDFView.as_view(), name="resume-render-pdf"),
+    path("resume/render-yaml/", RenderCVYAMLView.as_view(), name="resume-render-yaml"),
     path("resume/<int:pk>/", ResumeDetailView.as_view(), name="resume-detail"),
     path("resume/<int:pk>/edit/", ResumeEditView.as_view(), name="resume-edit"),
     
