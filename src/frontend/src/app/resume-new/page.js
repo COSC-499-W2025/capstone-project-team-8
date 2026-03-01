@@ -70,21 +70,48 @@ function SectionHeader({ title, onAdd, addLabel = '+ Add', collapsed, onToggle }
 }
 
 function BulletList({ content, onChange }) {
-  const bullets = parseContent(content);
+  // Local state keeps empty bullets alive while the user types.
+  // parseContent (which filters empties) is only used for initialisation
+  // and for syncing when content changes from outside.
+  const parseRaw = (str) => {
+    if (!str) return [];
+    return str.split('\n').map((l) => l.replace(/^[•\-]\s*/, '').trim());
+  };
+
+  const [bullets, setBullets] = useState(() => parseRaw(content));
+  const lastEmitted = useRef(content);
+
+  // Sync inward only when the prop changed externally (not from our own emit)
+  useEffect(() => {
+    if (content !== lastEmitted.current) {
+      lastEmitted.current = content;
+      setBullets(parseRaw(content));
+    }
+  }, [content]);
+
+  const emit = (next) => {
+    const str = next.map((b) => `• ${b}`).join('\n');
+    lastEmitted.current = str;
+    onChange(str);
+  };
 
   const updateBullet = (i, val) => {
     const next = [...bullets];
     next[i] = val;
-    onChange(buildContent(next));
+    setBullets(next);
+    emit(next);
   };
 
   const removeBullet = (i) => {
     const next = bullets.filter((_, idx) => idx !== i);
-    onChange(buildContent(next));
+    setBullets(next);
+    emit(next);
   };
 
   const addBullet = () => {
-    onChange(buildContent([...bullets, '']));
+    const next = [...bullets, ''];
+    setBullets(next);
+    emit(next);
   };
 
   return (
@@ -97,6 +124,7 @@ function BulletList({ content, onChange }) {
             value={b}
             onChange={(e) => updateBullet(i, e.target.value)}
             placeholder="Bullet point..."
+            autoFocus={b === '' && i === bullets.length - 1}
           />
           <button
             className={styles.removeBulletBtn}
@@ -144,6 +172,123 @@ function EntryCard({ item, onUpdate, onRemove, fields }) {
   );
 }
 
+// ─── Live Preview ────────────────────────────────────────────────────────────
+
+function ResumePreview({ resumeData }) {
+  const sec = resumeData.sections || {};
+
+  const parseB = (content) => {
+    if (!content) return [];
+    return content
+      .split('\n')
+      .map((l) => l.replace(/^[•\-]\s*/, '').trim())
+      .filter(Boolean);
+  };
+
+  return (
+    <div className={styles.previewScroll}>
+      <div className={styles.previewPaper}>
+        <div className={styles.previewName}>{resumeData.name || 'Your Name'}</div>
+        <div className={styles.previewContact}>
+          {[resumeData.email, resumeData.phone, resumeData.location]
+            .filter(Boolean)
+            .join(' | ')}
+        </div>
+
+        {sec.education?.length > 0 && (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>EDUCATION</div>
+            {sec.education.map((e) => (
+              <div key={e.id} className={styles.previewEntry}>
+                <div className={styles.previewRow}>
+                  <strong>{e.title}</strong>
+                  <span className={styles.previewDate}>{e.duration}</span>
+                </div>
+                {e.company && <div className={styles.previewSub}>{e.company}</div>}
+                {parseB(e.content).map((b, i) => (
+                  <div key={i} className={styles.previewBullet}>• {b}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {sec.experience?.length > 0 && (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>EXPERIENCE</div>
+            {sec.experience.map((e) => (
+              <div key={e.id} className={styles.previewEntry}>
+                <div className={styles.previewRow}>
+                  <strong>{e.title}</strong>
+                  <span className={styles.previewDate}>{e.duration}</span>
+                </div>
+                {e.company && <div className={styles.previewSub}>{e.company}</div>}
+                {parseB(e.content).map((b, i) => (
+                  <div key={i} className={styles.previewBullet}>• {b}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {sec.projects?.length > 0 && (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>PROJECTS</div>
+            {sec.projects.map((e) => (
+              <div key={e.id} className={styles.previewEntry}>
+                <div className={styles.previewRow}>
+                  <strong>{e.title}</strong>
+                  <span className={styles.previewDate}>{e.duration}</span>
+                </div>
+                {e.company && <div className={styles.previewSub}>{e.company}</div>}
+                {parseB(e.content).map((b, i) => (
+                  <div key={i} className={styles.previewBullet}>• {b}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {sec.skills?.filter((s) => s.title).length > 0 && (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>SKILLS</div>
+            <div className={styles.previewSkills}>
+              {sec.skills.map((s) => s.title).filter(Boolean).join(' • ')}
+            </div>
+          </div>
+        )}
+
+        {sec.certifications?.length > 0 && (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>CERTIFICATIONS</div>
+            {sec.certifications.map((e) => (
+              <div key={e.id} className={styles.previewEntry}>
+                <div className={styles.previewRow}>
+                  <strong>{e.title}</strong>
+                  <span className={styles.previewDate}>{e.duration}</span>
+                </div>
+                {e.company && <div className={styles.previewSub}>{e.company}</div>}
+                {parseB(e.content).map((b, i) => (
+                  <div key={i} className={styles.previewBullet}>• {b}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!sec.education?.length &&
+          !sec.experience?.length &&
+          !sec.projects?.length &&
+          !sec.skills?.filter((s) => s.title).length && (
+            <p className={styles.previewEmpty}>
+              Fill in your info to see a preview here.
+            </p>
+          )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function ResumeNewPage() {
@@ -166,6 +311,9 @@ export default function ResumeNewPage() {
 
   const toggleSection = (key) =>
     setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const openSection = (key) =>
+    setCollapsed((prev) => ({ ...prev, [key]: false }));
 
   // Undo / Redo
   const [history, setHistory] = useState([]);
@@ -349,6 +497,7 @@ export default function ResumeNewPage() {
     };
     const items = [...(resumeData.sections[sectionType] || []), newItem];
     updateSection(sectionType, items);
+    openSection(sectionType);
   };
 
   const updateEntry = (sectionType, updatedItem) => {
@@ -418,6 +567,7 @@ export default function ResumeNewPage() {
         };
         setResumeData(updated);
         pushToHistory(updated);
+        openSection('projects');
       } else {
         const newSkill = { id: timestamp, title: data.item.title };
         const updated = {
@@ -429,6 +579,7 @@ export default function ResumeNewPage() {
         };
         setResumeData(updated);
         pushToHistory(updated);
+        openSection('skills');
       }
     } catch (err) {
       console.error('Drop skill error:', err);
@@ -475,6 +626,7 @@ export default function ResumeNewPage() {
       };
       setResumeData(updated);
       pushToHistory(updated);
+      openSection('projects');
     } catch (err) {
       console.error('Drop bullet error:', err);
     }
@@ -517,6 +669,7 @@ export default function ResumeNewPage() {
         };
         setResumeData(updated);
         pushToHistory(updated);
+        openSection('projects');
       } else {
         const newSkill = { id: timestamp, title: item.title };
         const updated = {
@@ -528,6 +681,7 @@ export default function ResumeNewPage() {
         };
         setResumeData(updated);
         pushToHistory(updated);
+        openSection('skills');
       }
     } else if (type === 'bullet') {
       const project = projects.find((p) => p.id === item.projectId);
@@ -564,6 +718,7 @@ export default function ResumeNewPage() {
       };
       setResumeData(updated);
       pushToHistory(updated);
+      openSection('projects');
     }
   };
 
@@ -587,6 +742,7 @@ export default function ResumeNewPage() {
     setResumeData(updated);
     pushToHistory(updated);
     setSelectedProjects((prev) => new Set(prev).add(projectId));
+    openSection('projects');
   };
 
   // ── PDF generation ───────────────────────────────────────────────────────
@@ -642,7 +798,7 @@ export default function ResumeNewPage() {
 
       <div className={styles.layout}>
         {/* ── Left: Projects Panel ── */}
-        <aside className={styles.sidebar}>
+        <aside className={styles.sidebar} key="sidebar">
           <ProjectsPanel
             projects={projects}
             onAddItem={handleQuickAdd}
@@ -756,6 +912,9 @@ export default function ResumeNewPage() {
               onToggle={() => toggleSection('education')}
               onAdd={() => addEntry('education')}
             />
+            {!collapsed.education && sec.education.length === 0 && (
+              <p className={styles.emptyHint}>No education entries yet — click + Add</p>
+            )}
             {!collapsed.education &&
               sec.education.map((item) => (
                 <EntryCard
@@ -780,6 +939,9 @@ export default function ResumeNewPage() {
               onToggle={() => toggleSection('experience')}
               onAdd={() => addEntry('experience')}
             />
+            {!collapsed.experience && sec.experience.length === 0 && (
+              <p className={styles.emptyHint}>No experience entries yet — click + Add</p>
+            )}
             {!collapsed.experience &&
               sec.experience.map((item) => (
                 <EntryCard
@@ -807,8 +969,8 @@ export default function ResumeNewPage() {
             {!collapsed.projects && (
               <>
                 {sec.projects.length === 0 && (
-                  <p className={styles.dropHint}>
-                    Drag skills or bullets from the left panel, or click + Add
+                  <p className={styles.emptyHint}>
+                    No projects yet — drag items from the left panel or click + Add
                   </p>
                 )}
                 {sec.projects.map((item) => (
@@ -847,6 +1009,9 @@ export default function ResumeNewPage() {
                 pushToHistory(updated);
               }}
             />
+            {!collapsed.skills && sec.skills.length === 0 && (
+              <p className={styles.emptyHint}>No skills yet — drag from the panel or click + Add</p>
+            )}
             {!collapsed.skills && (
               <div className={styles.skillsGrid}>
                 {sec.skills.map((skill) => (
@@ -887,6 +1052,9 @@ export default function ResumeNewPage() {
               onToggle={() => toggleSection('certifications')}
               onAdd={() => addEntry('certifications')}
             />
+            {!collapsed.certifications && sec.certifications.length === 0 && (
+              <p className={styles.emptyHint}>No certifications yet — click + Add</p>
+            )}
             {!collapsed.certifications &&
               sec.certifications.map((item) => (
                 <EntryCard
@@ -903,6 +1071,12 @@ export default function ResumeNewPage() {
               ))}
           </section>
         </main>
+
+        {/* ── Right: Live Preview ── */}
+        <aside className={styles.previewPanel}>
+          <div className={styles.previewHeader}>Preview</div>
+          <ResumePreview resumeData={resumeData} />
+        </aside>
       </div>
     </div>
   );
