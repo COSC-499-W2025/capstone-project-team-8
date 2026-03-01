@@ -307,11 +307,19 @@ This week:
 - reviewed harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/295
   
 What went well:
-  
+- lots of small manageable PR's
+- our backend is commmunicating with our nextjs server now
+- many features accessible through the user interface
+
 What went wrong:
+- some merge conflicts, resolved after migrations merge
+- still numerous bugs throughout our system we plan to fix and polish up
 
 Next week:
-  
-Reflection:
+- keep working on UI and fixing bugs
+- adding more error handing for UI
+- refine each module and keep testing on new folders/data
 
+Reflection:
+The majority of our system can now be used through our user interface and we are close to having a working product. We will continue to fix bugs and refine the accuracy of our system and implement additional features for the last couple months.
 
