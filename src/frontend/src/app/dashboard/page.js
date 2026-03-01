@@ -125,10 +125,13 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Profile Links */}
-                <div className="space-y-2 mb-6 border-t border-white/10 pt-6">
+                <div className="space-y-2 mb-6 pt-6" style={{ borderTop: '1px solid #27272a' }}>
                   <Link
                     href="/profile"
-                    className="block w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-center transition-colors text-sm"
+                    className="block w-full px-4 py-2 rounded-lg text-white font-medium text-center transition-colors text-sm"
+                    style={{ background: '#4f7cf7' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#3b6ce4'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#4f7cf7'}
                   >
                     Edit Profile
                   </Link>
@@ -143,7 +146,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Skills Breakdown */}
-                <div className="border-t border-white/10 pt-6">
+                <div className="pt-6" style={{ borderTop: '1px solid #27272a' }}>
                   <h3 className="text-lg font-semibold text-white mb-4">Skills Insights</h3>
 
                   {/* Languages */}
@@ -210,7 +213,10 @@ export default function DashboardPage() {
                       <Link
                         key={project.id}
                         href={`/projects/${project.id}`}
-                        className="flex-shrink-0 w-72 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg overflow-hidden snap-start hover:border-white/40 transition-colors"
+                        className="flex-shrink-0 w-72 rounded-lg overflow-hidden snap-start transition-colors"
+                        style={{ background: 'rgba(79, 124, 247, 0.08)', border: '1px solid #27272a' }}
+                        onMouseEnter={(e) => e.currentTarget.style.borderColor = '#4f7cf7'}
+                        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#27272a'}
                       >
                         {/* Thumbnail */}
                         <div className="h-40 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden">
@@ -262,7 +268,8 @@ export default function DashboardPage() {
                     <p className="text-white/60 mb-4">No projects uploaded yet</p>
                     <Link
                       href="/upload"
-                      className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition-colors"
+                      className="inline-block px-4 py-2 text-white font-medium rounded transition-colors"
+                      style={{ background: '#4f7cf7' }}
                     >
                       Upload Your First Project
                     </Link>
@@ -271,12 +278,13 @@ export default function DashboardPage() {
               </div>
 
               {/* Upload New Project Section */}
-              <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg p-6">
+              <div className="rounded-lg p-6" style={{ background: 'rgba(79, 124, 247, 0.08)', border: '1px solid rgba(79, 124, 247, 0.15)' }}>
                 <h2 className="text-2xl font-bold text-white mb-2">Analyze a New Project</h2>
                 <p className="text-white/70 mb-4">Upload your portfolio to extract skills, frameworks, and get AI-powered insights</p>
                 <Link
                   href="/upload"
-                  className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                  className="inline-block px-6 py-3 text-white font-semibold rounded-lg transition-colors"
+                  style={{ background: '#4f7cf7' }}
                 >
                   Upload Portfolio
                 </Link>

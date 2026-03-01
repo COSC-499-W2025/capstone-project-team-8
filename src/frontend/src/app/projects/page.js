@@ -185,7 +185,8 @@ export default function ProjectsPage() {
               <p className="text-white/70 mb-6">Start by uploading your first project</p>
               <Link
                 href="/upload"
-                className="inline-block px-6 py-3 bg-white text-[var(--card-bg)] font-semibold rounded-lg hover:opacity-80 transition-opacity"
+                className="inline-block px-6 py-3 font-semibold rounded-lg hover:opacity-90 transition-opacity text-white"
+                style={{ background: '#4f7cf7' }}
               >
                 Upload Project
               </Link>
@@ -215,7 +216,8 @@ export default function ProjectsPage() {
                         setSelectedProject(project.id);
                         setThumbnailPreview(project.thumbnail_url || null);
                       }}
-                      className="absolute top-2 right-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                      className="absolute top-2 right-2 px-3 py-1 text-white text-xs font-medium rounded transition-colors"
+                      style={{ background: '#4f7cf7' }}
                     >
                       {project.thumbnail_url ? 'Change' : 'Add'} Thumbnail
                     </button>
@@ -354,7 +356,8 @@ export default function ProjectsPage() {
                 <button
                   onClick={() => handleThumbnailUpload(selectedProject)}
                   disabled={uploadingThumbnail === selectedProject || !thumbnailPreview || !document.querySelector(`input[type="file"][data-project-id="${selectedProject}"]`)?.files?.length}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:opacity-50 text-white font-medium rounded transition-colors"
+                  className="flex-1 px-4 py-2 disabled:opacity-50 text-white font-medium rounded transition-colors"
+                  style={{ background: '#4f7cf7' }}
                 >
                   {uploadingThumbnail === selectedProject ? 'Uploading...' : 'Upload'}
                 </button>

@@ -1,6 +1,6 @@
 .container {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #09090b;
   padding-bottom: 2rem;
 }
 
@@ -26,8 +26,8 @@
 .btnNew,
 .btnCreate {
   padding: 12px 24px;
-  background: white;
-  color: #667eea;
+  background: #4f7cf7;
+  color: white;
   border: none;
   border-radius: 6px;
   font-weight: 600;
@@ -38,21 +38,22 @@
 
 .btnNew:hover,
 .btnCreate:hover {
+  background: #3b6ce4;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 20px rgba(79, 124, 247, 0.3);
 }
 
 .emptyState {
-  background: white;
+  background: #18181b;
+  border: 1px solid #27272a;
   border-radius: 12px;
   padding: 60px 40px;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
 }
 
 .emptyState p {
   margin-bottom: 1rem;
-  color: #666;
+  color: #a1a1aa;
   font-size: 1.1rem;
 }
 
@@ -67,27 +68,28 @@
 }
 
 .resumeCard {
-  background: white;
+  background: #18181b;
+  border: 1px solid #27272a;
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   transition: all 0.3s;
 }
 
 .resumeCard:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: #4f7cf7;
+  box-shadow: 0 8px 25px rgba(79, 124, 247, 0.15);
 }
 
 .resumeCard h3 {
   margin: 0 0 0.5rem 0;
-  color: #333;
+  color: white;
   font-size: 1.2rem;
 }
 
 .date {
   margin: 0 0 1rem 0;
-  color: #999;
+  color: #71717a;
   font-size: 0.9rem;
 }
 
@@ -99,7 +101,7 @@
 .actions button {
   flex: 1;
   padding: 10px;
-  background: #667eea;
+  background: #4f7cf7;
   color: white;
   border: none;
   border-radius: 6px;
@@ -110,7 +112,7 @@
 }
 
 .actions button:hover {
-  background: #764ba2;
+  background: #3b6ce4;
 }
 
 .loading {

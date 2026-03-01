@@ -191,7 +191,7 @@ export default function ProjectDetailPage() {
             </div>
 
             {project.classification_confidence && (
-              <div className="mt-4 pt-4 border-t border-white/10">
+              <div className="mt-4 pt-4" style={{ borderTop: '1px solid #27272a' }}>
                 <p className="text-white/60 text-sm mb-2">Classification Confidence</p>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-white/10 rounded-full h-2">
@@ -371,7 +371,8 @@ export default function ProjectDetailPage() {
           <div className="mt-6 flex gap-4">
             <Link
               href="/results"
-              className="px-6 py-3 bg-white text-[var(--card-bg)] font-semibold rounded-lg hover:opacity-80 transition-opacity"
+              className="px-6 py-3 font-semibold rounded-lg hover:opacity-90 transition-opacity text-white"
+              style={{ background: '#4f7cf7' }}
             >
               Generate Resume
             </Link>
