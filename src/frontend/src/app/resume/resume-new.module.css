@@ -123,6 +123,11 @@
   cursor: pointer;
 }
 
+.themeSelect option {
+  background: #27272a;
+  color: #e4e4e7;
+}
+
 .themeSelect:focus {
   outline: none;
   border-color: #6366f1;
