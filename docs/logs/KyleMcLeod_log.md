@@ -301,6 +301,7 @@ This week:
 - ui PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/288 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/287
 - resume bugfix PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/290 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/289
 - auth redirect bugfix PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/301 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/300
+- show evaluated percentages on dashboard PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/302
 - reviewed matins PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/293
 - reviewed harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/294
 - reviewed harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/295
