@@ -2,8 +2,32 @@
 
 import { useState } from 'react';
 
-export default function ProjectCard({ project, index }) {
+export default function ProjectCard({ project, index, evaluation }) {
   const [expanded, setExpanded] = useState(false);
+
+  const getGrade = (score) => {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  };
+
+  const getGradeStyle = (grade) => {
+    if (grade === 'A') return 'text-green-700 bg-green-100';
+    if (grade === 'B') return 'text-blue-700 bg-blue-100';
+    if (grade === 'C') return 'text-yellow-700 bg-yellow-100';
+    if (grade === 'D') return 'text-orange-700 bg-orange-100';
+    return 'text-red-700 bg-red-100';
+  };
+
+  const getBarColor = (score) => {
+    if (score >= 90) return 'bg-green-500';
+    if (score >= 80) return 'bg-blue-500';
+    if (score >= 70) return 'bg-yellow-500';
+    if (score >= 60) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
 
   const getTypeColor = (type) => {
     const colors = {
@@ -41,7 +65,7 @@ export default function ProjectCard({ project, index }) {
       >
         <div className="flex items-center gap-4 flex-1">
           <span className="text-2xl font-bold text-gray-400">#{index + 1}</span>
-          <div className="text-left">
+          <div className="text-left flex-1">
             <h3 className="font-semibold text-gray-800">
               {project.root || 'Project'}
             </h3>
@@ -49,6 +73,11 @@ export default function ProjectCard({ project, index }) {
               {contributors.length} contributor{contributors.length !== 1 ? 's' : ''} • {files.code?.length || 0} code files
             </p>
           </div>
+          {evaluation && (
+            <span className={`px-2 py-1 rounded text-sm font-bold ${getGradeStyle(getGrade(evaluation.overall_score))}`}>
+              {getGrade(evaluation.overall_score)} · {evaluation.overall_score.toFixed(0)}%
+            </span>
+          )}
         </div>
         <span className={`transform transition-transform ${expanded ? 'rotate-180' : ''}`}>
           ▼
@@ -171,6 +200,74 @@ export default function ProjectCard({ project, index }) {
               </div>
             </div>
           </div>
+
+          {/* Quality Evaluation */}
+          {evaluation && (
+            <div>
+              <h4 className="font-semibold text-gray-700 mb-3">Quality Evaluation</h4>
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <span className={`inline-block px-3 py-1 rounded-full text-lg font-bold ${getGradeStyle(getGrade(evaluation.overall_score))}`}>
+                      Grade: {getGrade(evaluation.overall_score)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-2xl font-bold text-gray-800">{evaluation.overall_score.toFixed(1)}%</p>
+                    <p className="text-xs text-gray-500">{evaluation.language}</p>
+                  </div>
+                </div>
+
+                {/* Category Breakdown */}
+                {evaluation.category_scores && (
+                  <div className="space-y-2">
+                    {Object.entries(evaluation.category_scores).map(([category, score]) => (
+                      <div key={category}>
+                        <div className="flex justify-between items-center mb-0.5">
+                          <span className="text-xs text-gray-600 capitalize">{category.replace(/_/g, ' ')}</span>
+                          <span className="text-xs font-semibold text-gray-700">{score.toFixed(0)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-100 rounded-full h-2">
+                          <div
+                            className={`h-2 rounded-full transition-all ${getBarColor(score)}`}
+                            style={{ width: `${Math.min(score, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Strengths & Improvements */}
+                {evaluation.category_scores && (
+                  <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-100">
+                    <div>
+                      <p className="text-xs font-semibold text-green-700 mb-1">Strengths</p>
+                      {Object.entries(evaluation.category_scores)
+                        .sort(([,a], [,b]) => b - a)
+                        .slice(0, 2)
+                        .map(([cat]) => (
+                          <p key={cat} className="text-xs text-gray-600 capitalize">✓ {cat.replace(/_/g, ' ')}</p>
+                        ))}
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-orange-700 mb-1">Improve</p>
+                      {Object.entries(evaluation.category_scores)
+                        .filter(([, s]) => s < 70)
+                        .sort(([,a], [,b]) => a - b)
+                        .slice(0, 2)
+                        .map(([cat]) => (
+                          <p key={cat} className="text-xs text-gray-600 capitalize">↑ {cat.replace(/_/g, ' ')}</p>
+                        ))}
+                      {Object.entries(evaluation.category_scores).filter(([, s]) => s < 70).length === 0 && (
+                        <p className="text-xs text-gray-400">All good!</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
