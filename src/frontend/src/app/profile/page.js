@@ -11,7 +11,7 @@ import config from '@/config';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { isAuthenticated, token, user, setCurrentUser } = useAuth();
+  const { isAuthenticated, token, user, setCurrentUser, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -44,6 +44,7 @@ export default function ProfilePage() {
   const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -79,7 +80,7 @@ export default function ProfilePage() {
     };
 
     fetchUser();
-  }, []);
+  }, [authLoading, isAuthenticated, token, router]);
 
   // Initialize button animations after component render with multiple delays to catch all buttons
   useEffect(() => {

@@ -9,7 +9,7 @@ import Toast from '@/components/Toast';
 
 export default function UploadPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [selectedFile, setSelectedFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -18,11 +18,12 @@ export default function UploadPage() {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
-  }, []);
+  }, [authLoading, isAuthenticated, router]);
 
   const handleDragOver = (e) => {
     e.preventDefault();

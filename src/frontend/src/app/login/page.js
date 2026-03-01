@@ -10,15 +10,19 @@ import { initializeButtons } from '@/utils/buttonAnimation';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login: authLogin } = useAuth();
+  const { login: authLogin, isAuthenticated, loading: authLoading } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.push('/dashboard');
+      return;
+    }
     initializeButtons();
-  }, []);
+  }, [authLoading, isAuthenticated, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
