@@ -385,6 +385,21 @@ export default function ProjectDetailPage() {
               </div>
             </div>
 
+            {/* User Role Section */}
+            {project.user_role && (
+              <div className="px-5 py-4 border-t border-white/10">
+                <p className="text-xs uppercase tracking-widest text-white/70 mb-3 font-black">Your Role in Project</p>
+                <div className="flex items-center gap-3">
+                  <p className="text-lg font-black text-white capitalize">
+                    {project.user_role.replace(/_/g, ' ')}
+                  </p>
+                  <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded text-[10px] font-bold tracking-widest uppercase border border-blue-500/30">
+                    {project.user_role.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Contributor distribution bar */}
             {project.contributors && project.contributors.length > 0 && (() => {
               const total = project.contributors.reduce((s, c) => s + (c.commits || 0), 0);
