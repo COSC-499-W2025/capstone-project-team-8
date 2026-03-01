@@ -9,13 +9,14 @@ import { getPortfolios, deletePortfolio } from '@/utils/portfolioApi';
 
 export default function PortfoliosPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [portfolios, setPortfolios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -34,7 +35,7 @@ export default function PortfoliosPage() {
     };
 
     fetchPortfolios();
-  }, [isAuthenticated, token, router]);
+  }, [authLoading, isAuthenticated, token, router]);
 
   const handleDelete = async (portfolioId, portfolioTitle) => {
     if (!confirm(`Are you sure you want to delete "${portfolioTitle}"? This action cannot be undone.`)) {
