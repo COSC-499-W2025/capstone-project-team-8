@@ -645,9 +645,7 @@ export default function ResumeNewPage() {
         <aside className={styles.sidebar}>
           <ProjectsPanel
             projects={projects}
-            onAddProject={addProjectBullet}
-            onQuickAdd={handleQuickAdd}
-            selectedProjects={selectedProjects}
+            onAddItem={handleQuickAdd}
           />
         </aside>
 
