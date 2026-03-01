@@ -186,20 +186,29 @@ class PortfolioDetailView(APIView):
     serializer_class = PortfolioSerializer
 
     def get_portfolio(self, pk, user=None):
-        """Get portfolio, respecting visibility rules."""
+        """Get portfolio, respecting visibility rules.
+        Returns (portfolio, status) where status is 'ok', 'private', or 'not_found'.
+        """
         try:
             portfolio = Portfolio.objects.prefetch_related('portfolio_projects__project').get(pk=pk)
             # Allow access if public or if user is owner
             if portfolio.is_public or (user and user.is_authenticated and portfolio.user == user):
-                return portfolio
-            return None
+                return portfolio, 'ok'
+            return portfolio, 'private'
         except Portfolio.DoesNotExist:
-            return None
+            return None, 'not_found'
 
     def get(self, request, pk):
-        portfolio = self.get_portfolio(pk, request.user)
-        if not portfolio:
+        portfolio, status = self.get_portfolio(pk, request.user)
+        if status == 'not_found':
             return JsonResponse({"error": "Portfolio not found"}, status=404)
+        if status == 'private':
+            return JsonResponse({
+                "error": "This portfolio is private",
+                "is_private": True,
+                "portfolio_title": portfolio.title,
+                "owner": portfolio.user.username if portfolio.user else None,
+            }, status=403)
         
         serializer = PortfolioSerializer(portfolio, context={'request': request})
         return JsonResponse(serializer.data)
