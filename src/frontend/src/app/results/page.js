@@ -6,13 +6,17 @@ import ProjectCard from '@/components/ProjectCard';
 import ThumbnailUpload from '@/components/ThumbnailUpload';
 import { initializeButtons } from '@/utils/buttonAnimation';
 import Header from '@/components/Header';
+import { useAuth } from '@/context/AuthContext';
+import config from '@/config';
 
 export default function ResultsPage() {
   const [results, setResults] = useState(null);
   const [thumbnail, setThumbnail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showDebug, setShowDebug] = useState(false);
+  const [evaluations, setEvaluations] = useState([]);
   const router = useRouter();
+  const { token } = useAuth();
 
   useEffect(() => {
     const storedResults = sessionStorage.getItem('uploadResults');
@@ -26,6 +30,49 @@ export default function ResultsPage() {
     setLoading(false);
     initializeButtons();
   }, []);
+
+  // Fetch evaluations after results are loaded
+  useEffect(() => {
+    if (!results || !token) return;
+    const fetchEvaluations = async () => {
+      try {
+        const response = await fetch(`${config.API_URL}/api/evaluations/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setEvaluations(data.evaluations || []);
+        }
+      } catch (err) {
+        console.log('Evaluations not available:', err);
+      }
+    };
+    fetchEvaluations();
+  }, [results, token]);
+
+  const getGrade = (score) => {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  };
+
+  const getGradeColor = (grade) => {
+    if (grade === 'A') return 'text-green-600 bg-green-50';
+    if (grade === 'B') return 'text-blue-600 bg-blue-50';
+    if (grade === 'C') return 'text-yellow-600 bg-yellow-50';
+    if (grade === 'D') return 'text-orange-600 bg-orange-50';
+    return 'text-red-600 bg-red-50';
+  };
+
+  const getBarColor = (score) => {
+    if (score >= 90) return 'bg-green-500';
+    if (score >= 80) return 'bg-blue-500';
+    if (score >= 70) return 'bg-yellow-500';
+    if (score >= 60) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
 
   if (loading) {
     return (
@@ -214,12 +261,55 @@ export default function ResultsPage() {
           </div>
 
           {/* Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-6">
             <ThumbnailUpload
               onUpload={(file, preview) => {
                 setThumbnail({ file, preview });
               }}
             />
+
+            {/* Quality Evaluations */}
+            {evaluations.length > 0 && (
+              <div className="bg-white rounded-lg shadow p-6">
+                <h3 className="font-bold text-gray-800 mb-4">Quality Scores</h3>
+                <div className="space-y-4">
+                  {evaluations.map((ev) => {
+                    const grade = getGrade(ev.overall_score);
+                    return (
+                      <div key={ev.id} className="border border-gray-100 rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-gray-800 truncate">{ev.project_name}</p>
+                            <p className="text-xs text-gray-500">{ev.language}</p>
+                          </div>
+                          <div className={`flex items-center gap-1 px-2 py-1 rounded text-sm font-bold ${getGradeColor(grade)}`}>
+                            <span>{grade}</span>
+                            <span className="text-xs font-normal">{ev.overall_score.toFixed(0)}%</span>
+                          </div>
+                        </div>
+                        {/* Mini category bars */}
+                        {ev.category_scores && (
+                          <div className="space-y-1">
+                            {Object.entries(ev.category_scores).slice(0, 4).map(([cat, score]) => (
+                              <div key={cat} className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500 w-20 truncate capitalize">{cat.replace(/_/g, ' ')}</span>
+                                <div className="flex-1 bg-gray-100 rounded-full h-1.5">
+                                  <div
+                                    className={`h-1.5 rounded-full ${getBarColor(score)}`}
+                                    style={{ width: `${Math.min(score, 100)}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs text-gray-500 w-8 text-right">{score.toFixed(0)}%</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

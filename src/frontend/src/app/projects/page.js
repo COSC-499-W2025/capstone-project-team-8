@@ -17,6 +17,7 @@ export default function ProjectsPage() {
   const [selectedProject, setSelectedProject] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
+  const [evaluations, setEvaluations] = useState([]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -48,6 +49,53 @@ export default function ProjectsPage() {
 
     fetchProjects();
   }, [isAuthenticated, token, router]);
+
+  // Fetch evaluations
+  useEffect(() => {
+    if (!isAuthenticated || !token) return;
+    const fetchEvaluations = async () => {
+      try {
+        const response = await fetch(`${config.API_URL}/api/evaluations/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setEvaluations(data.evaluations || []);
+        }
+      } catch (err) {
+        console.log('Evaluations not available');
+      }
+    };
+    fetchEvaluations();
+  }, [isAuthenticated, token]);
+
+  const getGrade = (score) => {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  };
+
+  const getGradeColor = (score) => {
+    if (score >= 90) return 'text-green-400 bg-green-500/20 border-green-500/30';
+    if (score >= 80) return 'text-blue-400 bg-blue-500/20 border-blue-500/30';
+    if (score >= 70) return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
+    if (score >= 60) return 'text-orange-400 bg-orange-500/20 border-orange-500/30';
+    return 'text-red-400 bg-red-500/20 border-red-500/30';
+  };
+
+  const getBarColor = (score) => {
+    if (score >= 90) return 'bg-green-500';
+    if (score >= 80) return 'bg-blue-500';
+    if (score >= 70) return 'bg-yellow-500';
+    if (score >= 60) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
+
+  const getEvalForProject = (projectId) => {
+    return evaluations.find(e => e.project_id === projectId);
+  };
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
@@ -210,6 +258,12 @@ export default function ProjectsPage() {
                         <span className="text-4xl">📁</span>
                       </div>
                     )}
+                    {/* Grade Badge */}
+                    {getEvalForProject(project.id) && (
+                      <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold border ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
+                        {getGrade(getEvalForProject(project.id).overall_score)} · {getEvalForProject(project.id).overall_score.toFixed(0)}%
+                      </div>
+                    )}
                     <button
                       onClick={() => {
                         setSelectedProject(project.id);
@@ -235,6 +289,25 @@ export default function ProjectsPage() {
                       )}
                     </div>
                   </div>
+
+                  {/* Quality Score Bar */}
+                  {getEvalForProject(project.id) && (() => {
+                    const ev = getEvalForProject(project.id);
+                    return (
+                      <div className="mb-3">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-white/50 text-xs">Quality Score</span>
+                          <span className="text-white/80 text-xs font-semibold">{ev.overall_score.toFixed(0)}%</span>
+                        </div>
+                        <div className="w-full bg-white/10 rounded-full h-1.5">
+                          <div
+                            className={`h-1.5 rounded-full transition-all ${getBarColor(ev.overall_score)}`}
+                            style={{ width: `${Math.min(ev.overall_score, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {project.description && (
                     <p className="text-white/70 text-sm mb-4 line-clamp-3">
