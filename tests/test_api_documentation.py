@@ -53,6 +53,7 @@ class APIDocumentationTests(TestCase):
             '/api/upload-folder/',
             '/api/projects/',
             '/api/projects/ranked/',
+            '/api/skills/',
             '/api/resume/templates/',
             '/api/resume/preview/',
             '/api/signup/',
