@@ -321,6 +321,8 @@ export default function ProjectDetailPage() {
             <div className="flex flex-wrap items-center gap-0 border-t border-b border-white/10 text-[11px] uppercase tracking-widest">
               {[
                 { label: 'First Commit', value: project.first_commit_date ? new Date(project.first_commit_date * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
+                { label: 'Created', value: project.created_at ? new Date(project.created_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
+                { label: 'Last Updated', value: project.updated_at ? new Date(project.updated_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
                 { label: 'Total Files', value: project.total_files ?? 0 },
                 { label: 'Contributors', value: project.contributors?.length ?? 0 },
                 { label: 'Commits', value: project.contributors?.reduce((s, c) => s + (c.commits || 0), 0) || 0 },

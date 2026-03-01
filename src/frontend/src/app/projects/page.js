@@ -97,9 +97,20 @@ export default function ProjectsPage() {
     return evaluations.find(e => e.project_id === projectId);
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateInput) => {
+    if (!dateInput) return 'N/A';
+    
+    // Handle Unix timestamp (integer in seconds)
+    if (typeof dateInput === 'number') {
+      return new Date(dateInput * 1000).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    }
+    
+    // Handle ISO string or other date formats
+    return new Date(dateInput).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -364,6 +375,13 @@ export default function ProjectsPage() {
                       className="flex-1 px-4 py-2 bg-white/10 text-white text-center text-sm font-medium rounded-lg hover:bg-white/20 transition-colors"
                     >
                       View Details
+                    </Link>
+                    <Link
+                      href={`/upload?project_id=${project.id}`}
+                      className="flex-1 px-4 py-2 bg-blue-500/20 text-blue-300 text-center text-sm font-medium rounded-lg hover:bg-blue-500/30 transition-colors"
+                      title="Upload new files to add to this project"
+                    >
+                      Update
                     </Link>
                     <button
                       onClick={() => handleDeleteProject(project.id, project.name)}
