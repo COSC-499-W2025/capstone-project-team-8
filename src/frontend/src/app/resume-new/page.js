@@ -6,7 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import { getCurrentUser } from '@/utils/api';
-import { getProjects } from '@/utils/resumeApi';
+import { getProjects, getSkills } from '@/utils/resumeApi';
 import { generateRenderCVPdf, downloadRenderCVYaml } from '@/utils/resumeApi';
 import { saveDraft, getDraft, getCurrentDraft, clearCurrentDraft } from '@/utils/draftStorage';
 import { getProjectDateRange } from '@/utils/resumeCleanup';
@@ -325,6 +325,35 @@ export default function ResumeNewPage() {
   const [selectedProjects, setSelectedProjects] = useState(new Set());
   const [resumeData, setResumeData] = useState(EMPTY_RESUME);
 
+  // Panel widths (px)
+  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [previewWidth, setPreviewWidth] = useState(400);
+  const draggingRef = useRef(null);
+
+  const startDrag = useCallback((which) => (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startSidebar = sidebarWidth;
+    const startPreview = previewWidth;
+    draggingRef.current = which;
+
+    const onMove = (ev) => {
+      const dx = ev.clientX - startX;
+      if (which === 'left') {
+        setSidebarWidth(Math.max(160, Math.min(520, startSidebar + dx)));
+      } else {
+        setPreviewWidth(Math.max(200, Math.min(660, startPreview - dx)));
+      }
+    };
+    const onUp = () => {
+      draggingRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [sidebarWidth, previewWidth]);
+
   // ── history helpers ──────────────────────────────────────────────────────
 
   const pushToHistory = useCallback(
@@ -381,9 +410,10 @@ export default function ResumeNewPage() {
 
     const init = async () => {
       try {
-        const [userData, projectsData] = await Promise.all([
+        const [userData, projectsData, skillsData] = await Promise.all([
           getCurrentUser(token),
           getProjects(token),
+          getSkills(token).catch(() => ({ languages: [], frameworks: [] })),
         ]);
 
         const u = userData.user || {};
@@ -417,6 +447,12 @@ export default function ResumeNewPage() {
           : projectsData.projects || projectsData.results || [];
         setProjects(projectsList);
 
+        // Build pre-populated skills from the skills endpoint
+        const allSkills = [
+          ...(skillsData.languages || []).map((l) => ({ id: `lang-${l.name}`, title: l.name })),
+          ...(skillsData.frameworks || []).map((f) => ({ id: `fw-${f.name}`, title: f.name })),
+        ];
+
         // Build pre-populated education entry
         const education = [];
         if (u.university || u.degree_major) {
@@ -439,7 +475,7 @@ export default function ResumeNewPage() {
             education,
             experience: [],
             projects: [],
-            skills: [],
+            skills: allSkills,
             certifications: [],
           },
         };
@@ -447,8 +483,14 @@ export default function ResumeNewPage() {
         // Restore draft if available
         const draft = getCurrentDraft();
         if (draft && draft.sections) {
-          setResumeData(draft);
-          const initialHistory = [draft];
+          // Merge any new skills the user doesn't already have saved in their draft
+          const draftSkillTitles = new Set((draft.sections.skills || []).map((s) => s.title));
+          const newSkills = allSkills.filter((s) => !draftSkillTitles.has(s.title));
+          const mergedDraft = newSkills.length
+            ? { ...draft, sections: { ...draft.sections, skills: [...draft.sections.skills, ...newSkills] } }
+            : draft;
+          setResumeData(mergedDraft);
+          const initialHistory = [mergedDraft];
           setHistory(initialHistory);
           setHistoryIndex(0);
         } else {
@@ -798,12 +840,19 @@ export default function ResumeNewPage() {
 
       <div className={styles.layout}>
         {/* ── Left: Projects Panel ── */}
-        <aside className={styles.sidebar} key="sidebar">
+        <aside className={styles.sidebar} key="sidebar" style={{ width: sidebarWidth }}>
           <ProjectsPanel
             projects={projects}
             onAddItem={handleQuickAdd}
           />
         </aside>
+
+        {/* drag handle: sidebar ↔ editor */}
+        <div
+          className={styles.dragHandle}
+          onMouseDown={startDrag('left')}
+          title="Drag to resize"
+        />
 
         {/* ── Center: Form Editor ── */}
         <main
@@ -1072,8 +1121,15 @@ export default function ResumeNewPage() {
           </section>
         </main>
 
+        {/* drag handle: editor ↔ preview */}
+        <div
+          className={`${styles.dragHandle} ${styles.previewHandle}`}
+          onMouseDown={startDrag('right')}
+          title="Drag to resize"
+        />
+
         {/* ── Right: Live Preview ── */}
-        <aside className={styles.previewPanel}>
+        <aside className={styles.previewPanel} style={{ width: previewWidth }}>
           <div className={styles.previewHeader}>Preview</div>
           <ResumePreview resumeData={resumeData} />
         </aside>

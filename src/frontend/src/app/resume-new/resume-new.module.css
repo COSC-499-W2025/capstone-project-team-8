@@ -36,21 +36,22 @@
 /* ── Two-column layout ────────────────────────────────────────────────────── */
 
 .layout {
-  display: grid;
-  grid-template-columns: 300px 1fr 400px;
-  gap: 0;
+  display: flex;
+  flex-direction: row;
   flex: 1;
   height: calc(100vh - 60px);
   overflow: hidden;
+  user-select: none;
 }
 
 /* ── Left sidebar ─────────────────────────────────────────────────────────── */
 
 .sidebar {
   background: #18181b;
-  border-right: 1px solid #27272a;
+  border-right: none;
   overflow-y: auto;
   padding: 16px;
+  flex-shrink: 0;
 }
 
 /* ── Center editor ────────────────────────────────────────────────────────── */
@@ -60,6 +61,8 @@
   flex-direction: column;
   overflow-y: auto;
   background: #09090b;
+  flex: 1;
+  min-width: 0;
 }
 
 /* ── Toolbar ──────────────────────────────────────────────────────────────── */
@@ -414,7 +417,7 @@
   display: flex;
   align-items: center;
   background: #18181b;
-  border: 1px solid #3f3f46;
+  border: none;
   border-radius: 20px;
   padding: 3px 4px 3px 10px;
   gap: 4px;
@@ -478,14 +481,31 @@
   margin: 0;
 }
 
+/* ── Drag handle ──────────────────────────────────────────────────────────── */
+
+.dragHandle {
+  width: 5px;
+  flex-shrink: 0;
+  background: #27272a;
+  cursor: col-resize;
+  transition: background 0.15s;
+  position: relative;
+  z-index: 5;
+}
+
+.dragHandle:hover {
+  background: #6366f1;
+}
+
 /* ── Preview panel ───────────────────────────────────────────────── */
 
 .previewPanel {
   background: #111113;
-  border-left: 1px solid #27272a;
+  border-left: none;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .previewHeader {
@@ -594,20 +614,22 @@
 /* ── Responsive: medium desktop (≤1280px) ─────────────────────────────────── */
 
 @media (max-width: 1280px) {
-  .layout {
-    grid-template-columns: 260px 1fr 340px;
-  }
+  /* widths controlled by JS resize, nothing to override */
 }
 
 /* ── Responsive: tablet (≤1024px) — hide preview, sidebar narrows ─────────── */
 
 @media (max-width: 1024px) {
   .layout {
-    grid-template-columns: 240px 1fr;
+    flex-direction: row;
     height: calc(100vh - 60px);
   }
 
   .previewPanel {
+    display: none;
+  }
+
+  .dragHandle.previewHandle {
     display: none;
   }
 }
@@ -616,8 +638,7 @@
 
 @media (max-width: 768px) {
   .layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
+    flex-direction: column;
     height: auto;
     overflow: visible;
   }
@@ -627,11 +648,17 @@
     border-bottom: 1px solid #27272a;
     max-height: 40vh;
     overflow-y: auto;
+    width: 100% !important;
   }
 
   .editor {
     height: auto;
     overflow-y: visible;
+    width: 100% !important;
+  }
+
+  .dragHandle {
+    display: none;
   }
 
   .toolbar {
@@ -658,6 +685,7 @@
     display: flex;
     border-left: none;
     border-top: 1px solid #27272a;
+    width: 100% !important;
   }
 
   .previewScroll {

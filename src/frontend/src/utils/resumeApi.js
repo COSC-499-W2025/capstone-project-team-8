@@ -199,6 +199,26 @@ export const generateRenderCVPdf = async (token, resumeData, theme = 'classic') 
 };
 
 /**
+ * Fetch all aggregated skills (languages + frameworks) for the authenticated user.
+ * Returns { languages:[{name, project_count}], frameworks:[{name, project_count}], total_projects }
+ */
+export const getSkills = async (token) => {
+  const response = await fetch(`${config.API_URL}/api/skills/`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch skills: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+/**
  * Download the raw RenderCV YAML for the current resume (for debugging).
  */
 export const downloadRenderCVYaml = async (token, resumeData, theme = 'classic') => {
