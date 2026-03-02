@@ -359,3 +359,41 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 
 <img width="1886" height="1088" alt="image" src="https://github.com/user-attachments/assets/1e38e50e-4902-4e6f-92fe-47d7fedbaf08" />
 
+#### PR's Worked on
+
+- **[#297](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/297) Portfolio stats**
+
+#### PR's Reviewed
+
+- **[#294](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/294) Milestone 2 test folders**
+- **[#295](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/295) Implemented Success Metrics**
+- **[#302](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/302) [ui] quality eval on dashboard**
+- **[#306](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/306) [refactor] new resume module uses rendercv**
+
+#### Coding
+- Created PR which updates the protfolio model to mtrack statistics in the database
+- reuses previously made stat collection/detection endpoints
+- Started PR locally to add statistics to protfolio page but have not published
+
+#### Testing or Debugging
+- Created automated tests for my PR to ensure stats were functional and calculated correctly
+- Ran automated testing for PR # 295 and # 302
+- Manually tested PR # 295, # 302, and # 306
+- Fixed merge conflicts which were occurring with the database migrations
+- Used alternative testing suite (django instead of pytest) to avoid errors caused by using pytest 
+
+#### Reviewing or Collaboration
+- reviewed and commented on 4 PRs
+- Collaborated with all 6 team members to prepare and present our work for milestone 2
+
+#### Last week to this week
+- This was an extended sprint, so my goal was to get the portfolio stats fully and completely implemented (backend and frontend)
+- Unfortunately I did not get a PR up to implement on the front end, but multiple PRs have been made with stylistic chnages to the front end
+
+#### Upcoming goals
+- My goal is to get the portfolio statistics up and have the portfolio interface match the rest of the front end by the end of next week
+- If there is time, I also want to add an automatic resume generation feature (generate a resume with all portfolio projects in one click)
+- Review Milestone 3 and prepare for next steps
+
+#### Issues
+- Aside from minor merge conflicts and troubleshooting to use a more sufficient automated testing command (django instead of pytest), I havent personally ran into any big issues.
