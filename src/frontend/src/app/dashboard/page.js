@@ -117,7 +117,7 @@ export default function DashboardPage() {
     return 'bg-red-500/20 border-red-500/30';
   };
 
-  const avgScore = evaluations.length > 0
+  const avgScore = evaluations.length > 0 && projects.length > 0
     ? evaluations.reduce((sum, e) => sum + e.overall_score, 0) / evaluations.length
     : null;
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -17,9 +17,10 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const justSignedUp = useRef(false);
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
+    if (!authLoading && isAuthenticated && !justSignedUp.current) {
       router.push('/dashboard');
       return;
     }
@@ -45,7 +46,8 @@ export default function SignupPage() {
       }
 
       const data = await signup(username, password, email, confirmPassword);
-      authLogin(data.access, data.refresh);
+      justSignedUp.current = true;
+      await authLogin(data.access, data.refresh);
       router.push('/onboarding');
     } catch (err) {
       setError(err.message || 'Signup failed');
