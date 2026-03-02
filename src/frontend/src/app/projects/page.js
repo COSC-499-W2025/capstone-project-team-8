@@ -98,25 +98,6 @@ export default function ProjectsPage() {
     return evaluations.find(e => e.project_id === projectId);
   };
 
-  // Fetch evaluations
-  useEffect(() => {
-    if (!isAuthenticated || !token) return;
-    const fetchEvaluations = async () => {
-      try {
-        const response = await fetch(`${config.API_URL}/api/evaluations/`, {
-          headers: { 'Authorization': `Bearer ${token}` },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setEvaluations(data.evaluations || []);
-        }
-      } catch (err) {
-        console.log('Evaluations not available');
-      }
-    };
-    fetchEvaluations();
-  }, [isAuthenticated, token]);
-
   const formatDate = (timestamp) => {
     if (!timestamp) return 'N/A';
     // Handle both Unix timestamps (numbers) and date strings
@@ -388,6 +369,13 @@ export default function ProjectsPage() {
                       className="flex-1 px-4 py-2 bg-white/10 text-white text-center text-sm font-medium rounded-lg hover:bg-white/20 transition-colors"
                     >
                       View Details
+                    </Link>
+                    <Link
+                      href={`/upload?project_id=${project.id}`}
+                      className="flex-1 px-4 py-2 bg-blue-500/20 text-blue-300 text-center text-sm font-medium rounded-lg hover:bg-blue-500/30 transition-colors"
+                      title="Upload new files to add to this project"
+                    >
+                      Update
                     </Link>
                     <button
                       onClick={() => handleDeleteProject(project.id, project.name)}
