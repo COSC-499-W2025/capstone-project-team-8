@@ -21,7 +21,15 @@ async function authenticatedFetch(endpoint, options = {}, token) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.detail || errorData.message || `API error: ${response.statusText}`);
+    let errorMessage = `API error: ${response.statusText}`;
+    if (errorData.error) {
+      errorMessage = typeof errorData.error === 'string' ? errorData.error : JSON.stringify(errorData.error);
+    } else if (errorData.detail) {
+      errorMessage = errorData.detail;
+    } else if (errorData.message) {
+      errorMessage = errorData.message;
+    }
+    throw new Error(errorMessage);
   }
 
   // Handle 204 No Content
