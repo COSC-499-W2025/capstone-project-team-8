@@ -118,7 +118,7 @@ class PortfolioGenerateSerializer(serializers.Serializer):
         default=list
     )
     is_public = serializers.BooleanField(default=False, required=False)
-    target_audience = serializers.CharField(max_length=100)
+    target_audience = serializers.CharField(max_length=100, required=False, default='general audience')
     tone = serializers.ChoiceField(
         choices=['professional', 'casual', 'technical', 'creative'],
         default='professional',
