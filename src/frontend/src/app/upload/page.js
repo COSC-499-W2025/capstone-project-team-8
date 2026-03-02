@@ -1,20 +1,27 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { uploadFolder } from '@/utils/api';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
+import config from '@/config';
 
 export default function UploadPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [selectedFile, setSelectedFile] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [showConsent, setShowConsent] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showProjectSelect, setShowProjectSelect] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -23,7 +30,38 @@ export default function UploadPage() {
       router.push('/login');
       return;
     }
-  }, [authLoading, isAuthenticated, router]);
+
+    // Check if project_id is in URL
+    const projectIdParam = searchParams.get('project_id');
+    if (projectIdParam) {
+      setSelectedProject(parseInt(projectIdParam, 10));
+    }
+
+    // Fetch user's projects
+    const fetchProjects = async () => {
+      try {
+        setLoadingProjects(true);
+        const response = await fetch(`${config.API_URL}/api/projects/`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+
+        const data = await response.json();
+        setProjects(data.projects || []);
+      } catch (err) {
+        console.error('Error fetching projects:', err);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+
+    fetchProjects();
+  }, [isAuthenticated, token, router, searchParams]);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -72,8 +110,15 @@ export default function UploadPage() {
     setMessage({ type: '', text: '' });
 
     try {
-      await uploadFolder(selectedFile, scanConsent, llmConsent, token);
-      setMessage({ type: 'success', text: 'Portfolio uploaded and analysis started!' });
+      await uploadFolder(selectedFile, scanConsent, llmConsent, token, selectedProject);
+      
+      let successMessage = 'Portfolio uploaded and analysis started!';
+      if (selectedProject) {
+        const projectName = projects.find(p => p.id === selectedProject)?.name || 'your project';
+        successMessage = `✓ Files added to "${projectName}" and analysis started!`;
+      }
+      
+      setMessage({ type: 'success', text: successMessage });
       setSelectedFile(null);
       
       // Redirect to results page after a short delay
@@ -164,9 +209,63 @@ export default function UploadPage() {
                 {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
               </p>
             </div>
+
+            {/* Project Selection */}
+            {projects.length > 0 && (
+              <div className="w-full bg-white/5 border border-white/10 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-white/60 text-xs uppercase tracking-wide">Update Existing Project (Optional)</p>
+                  <button
+                    type="button"
+                    onClick={() => setShowProjectSelect(!showProjectSelect)}
+                    className="text-blue-400 hover:text-blue-300 text-xs font-medium"
+                  >
+                    {showProjectSelect ? 'Hide' : 'Show'}
+                  </button>
+                </div>
+
+                {showProjectSelect && (
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProject(null)}
+                      className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                        selectedProject === null
+                          ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                          : 'bg-white/5 text-white/70 hover:bg-white/10'
+                      }`}
+                    >
+                      ➕ Create New Project
+                    </button>
+                    {projects.map((project) => (
+                      <button
+                        key={project.id}
+                        type="button"
+                        onClick={() => setSelectedProject(project.id)}
+                        className={`w-full text-left px-3 py-2 rounded text-sm transition-colors truncate ${
+                          selectedProject === project.id
+                            ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                            : 'bg-white/5 text-white/70 hover:bg-white/10'
+                        }`}
+                      >
+                        🔄 {project.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {selectedProject !== null && (
+                  <p className="text-blue-300 text-xs mt-3">
+                    ✓ Files will be added to: <strong>{projects.find(p => p.id === selectedProject)?.name || 'Selected Project'}</strong>
+                  </p>
+                )}
+              </div>
+            )}
             
             <p className="text-white/60 text-center mb-6 text-sm">
-              Click "Start Scan" to analyze your portfolio and extract your skills
+              {selectedProject 
+                ? 'Click "Start Scan" to add these files to your existing project (duplicate files will be automatically detected)'
+                : 'Click "Start Scan" to analyze your portfolio and extract your skills'}
             </p>
             
             <div className="flex gap-3 w-full">

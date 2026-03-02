@@ -92,11 +92,14 @@ export async function updateUserProfile(profileData, token) {
 /**
  * Upload folder with token
  */
-export async function uploadFolder(file, scanConsent, llmConsent, token) {
+export async function uploadFolder(file, scanConsent, llmConsent, token, projectId = null) {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('consent_scan', scanConsent ? 'true' : 'false');
   formData.append('consent_send_llm', llmConsent ? 'true' : 'false');
+  if (projectId) {
+    formData.append('project_id', projectId);
+  }
 
   const headers = {};
   if (token) {
