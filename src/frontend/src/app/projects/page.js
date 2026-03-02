@@ -117,9 +117,11 @@ export default function ProjectsPage() {
     fetchEvaluations();
   }, [isAuthenticated, token]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    // Handle both Unix timestamps (numbers) and date strings
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
