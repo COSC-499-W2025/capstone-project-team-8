@@ -15,6 +15,7 @@
 - [January 12-18](#january-12-18)
 - [January 19-25](#january-19-25)
 - [January 26-February 7](#january-26-february-7)
+- [February 8-March 1](#february-8-march-1)
 
 ## September 15-21
 
@@ -345,3 +346,29 @@ Next would be to continue expanding upon features for the user. Consistent flow 
 
 ### Reflection:
 Overall I am very happy with the progress made and the project itself. Things continue to come together and we are making good progress. Looks of exciting features are being implemented and things are increasingly becoming more developed.
+
+
+## February 8-March 1
+
+
+- Implemented additional features for resume builder
+- Users can now chose from multiple templates for their resume
+- Users name and education now automatically populate on the resume based off their account information
+- Reviewed team members code and provided feedback
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+|  | |
+
+### What went well
+
+
+### What didn't go well
+
+
+
+### What's next
+
+### Reflection:
