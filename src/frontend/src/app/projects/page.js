@@ -9,7 +9,7 @@ import config from '@/config';
 
 export default function ProjectsPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,6 +20,7 @@ export default function ProjectsPage() {
   const [evaluations, setEvaluations] = useState([]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -48,7 +49,54 @@ export default function ProjectsPage() {
     };
 
     fetchProjects();
-  }, [isAuthenticated, token, router]);
+  }, [authLoading, isAuthenticated, token, router]);
+
+  // Fetch evaluations
+  useEffect(() => {
+    if (!isAuthenticated || !token) return;
+    const fetchEvaluations = async () => {
+      try {
+        const response = await fetch(`${config.API_URL}/api/evaluations/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setEvaluations(data.evaluations || []);
+        }
+      } catch (err) {
+        console.log('Evaluations not available');
+      }
+    };
+    fetchEvaluations();
+  }, [isAuthenticated, token]);
+
+  const getGrade = (score) => {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  };
+
+  const getGradeColor = (score) => {
+    if (score >= 90) return 'text-green-400 bg-green-500/20 border-green-500/30';
+    if (score >= 80) return 'text-blue-400 bg-blue-500/20 border-blue-500/30';
+    if (score >= 70) return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
+    if (score >= 60) return 'text-orange-400 bg-orange-500/20 border-orange-500/30';
+    return 'text-red-400 bg-red-500/20 border-red-500/30';
+  };
+
+  const getBarColor = (score) => {
+    if (score >= 90) return 'bg-green-500';
+    if (score >= 80) return 'bg-blue-500';
+    if (score >= 70) return 'bg-yellow-500';
+    if (score >= 60) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
+
+  const getEvalForProject = (projectId) => {
+    return evaluations.find(e => e.project_id === projectId);
+  };
 
   // Fetch evaluations
   useEffect(() => {
@@ -233,7 +281,8 @@ export default function ProjectsPage() {
               <p className="text-white/70 mb-6">Start by uploading your first project</p>
               <Link
                 href="/upload"
-                className="inline-block px-6 py-3 bg-white text-[var(--card-bg)] font-semibold rounded-lg hover:opacity-80 transition-opacity"
+                className="inline-block px-6 py-3 font-semibold rounded-lg hover:opacity-90 transition-opacity text-white"
+                style={{ background: '#4f7cf7' }}
               >
                 Upload Project
               </Link>
@@ -269,7 +318,8 @@ export default function ProjectsPage() {
                         setSelectedProject(project.id);
                         setThumbnailPreview(project.thumbnail_url || null);
                       }}
-                      className="absolute top-2 right-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                      className="absolute top-2 right-2 px-3 py-1 text-white text-xs font-medium rounded transition-colors"
+                      style={{ background: '#4f7cf7' }}
                     >
                       {project.thumbnail_url ? 'Change' : 'Add'} Thumbnail
                     </button>
@@ -427,7 +477,8 @@ export default function ProjectsPage() {
                 <button
                   onClick={() => handleThumbnailUpload(selectedProject)}
                   disabled={uploadingThumbnail === selectedProject || !thumbnailPreview || !document.querySelector(`input[type="file"][data-project-id="${selectedProject}"]`)?.files?.length}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:opacity-50 text-white font-medium rounded transition-colors"
+                  className="flex-1 px-4 py-2 disabled:opacity-50 text-white font-medium rounded transition-colors"
+                  style={{ background: '#4f7cf7' }}
                 >
                   {uploadingThumbnail === selectedProject ? 'Uploading...' : 'Upload'}
                 </button>

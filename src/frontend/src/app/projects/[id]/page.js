@@ -10,7 +10,7 @@ import config from '@/config';
 export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,6 +19,7 @@ export default function ProjectDetailPage() {
   const [evalLoading, setEvalLoading] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -53,7 +54,135 @@ export default function ProjectDetailPage() {
       fetchProject();
       fetchEvaluation();
     }
-  }, [isAuthenticated, token, router, params.id]);
+  }, [authLoading, isAuthenticated, token, router, params.id]);
+
+  const fetchEvaluation = async () => {
+    setEvalLoading(true);
+    try {
+      const response = await fetch(
+        `${config.API_URL}/api/evaluations/project/${params.id}/`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        // Use first evaluation if available
+        if (data.evaluations && data.evaluations.length > 0) {
+          setEvaluation(data.evaluations[0]);
+        }
+      }
+    } catch (err) {
+      console.log('No evaluation data available');
+    } finally {
+      setEvalLoading(false);
+    }
+  };
+
+  const getGrade = (score) => {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  };
+
+  const getGradeColor = (score) => {
+    if (score >= 90) return 'text-green-400 bg-green-500/20 border-green-500/30';
+    if (score >= 80) return 'text-blue-400 bg-blue-500/20 border-blue-500/30';
+    if (score >= 70) return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
+    if (score >= 60) return 'text-orange-400 bg-orange-500/20 border-orange-500/30';
+    return 'text-red-400 bg-red-500/20 border-red-500/30';
+  };
+
+  const getBarColor = (score) => {
+    if (score >= 90) return 'bg-green-500';
+    if (score >= 80) return 'bg-blue-500';
+    if (score >= 70) return 'bg-yellow-500';
+    if (score >= 60) return 'bg-orange-500';
+    return 'bg-red-500';
+  };
+
+  const renderEvalCard = () => {
+    if (!evaluation) return null;
+    const ev = evaluation;
+    const cats = ev.category_scores || {};
+    const strengths = Object.entries(cats).filter(([, v]) => v >= 50).sort((a, b) => b[1] - a[1]);
+    const improvements = Object.entries(cats).filter(([, v]) => v < 50).sort((a, b) => a[1] - b[1]);
+    const evidence = ev.evidence || {};
+    const grade = getGrade(ev.overall_score);
+    const catLabel = (key) => key.replace(/_/g, ' ');
+    const barColor = (val) => {
+      if (val >= 70) return '#4ade80';
+      if (val >= 45) return '#facc15';
+      return '#f87171';
+    };
+
+    return (
+      <div className="bg-[var(--card-bg)] rounded-lg border border-white/5 overflow-hidden">
+        <div className="px-4 pt-4 pb-3 border-b border-white/5">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] uppercase tracking-wider text-white/40">Quality Eval</span>
+            <span className="text-[11px] text-white/30">{ev.language}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-white/80 truncate pr-2">{project?.name || 'Project'}</p>
+            <div className="flex items-center gap-2 shrink-0">
+              <span style={{ color: barColor(ev.overall_score) }} className="text-2xl font-bold leading-none">{grade}</span>
+              <span className="text-white/50 text-xs">{ev.overall_score.toFixed(1)}%</span>
+            </div>
+          </div>
+        </div>
+        <div className="px-4 py-3 space-y-2">
+          {Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([cat, val]) => (
+            <div key={cat}>
+              <div className="flex items-center justify-between mb-0.5">
+                <span className="text-[11px] text-white/50 capitalize">{catLabel(cat)}</span>
+                <span className="text-[11px] text-white/40">{Math.round(val)}%</span>
+              </div>
+              <div className="w-full bg-white/5 rounded-sm h-1.5">
+                <div className="h-1.5 rounded-sm transition-all" style={{ width: `${Math.min(val, 100)}%`, backgroundColor: barColor(val) }} />
+              </div>
+            </div>
+          ))}
+        </div>
+        {(strengths.length > 0 || improvements.length > 0) && (
+          <div className="px-4 py-3 border-t border-white/5">
+            <div className="grid grid-cols-2 gap-3">
+              {strengths.length > 0 && (
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-white/30 block mb-1">Strengths</span>
+                  {strengths.slice(0, 3).map(([cat]) => (
+                    <p key={cat} className="text-[11px] text-white/60 capitalize leading-relaxed">{catLabel(cat)}</p>
+                  ))}
+                </div>
+              )}
+              {improvements.length > 0 && (
+                <div>
+                  <span className="text-[10px] uppercase tracking-wider text-white/30 block mb-1">Improve</span>
+                  {improvements.slice(0, 3).map(([cat]) => (
+                    <p key={cat} className="text-[11px] text-white/60 capitalize leading-relaxed">{catLabel(cat)}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {Object.keys(evidence).length > 0 && (
+          <div className="px-4 py-3 border-t border-white/5">
+            <span className="text-[10px] uppercase tracking-wider text-white/30 block mb-2">Evidence</span>
+            <div className="flex flex-wrap gap-1">
+              {Object.entries(evidence).filter(([, v]) => v === true || (typeof v === 'number' && v > 0)).slice(0, 10).map(([key, val]) => (
+                <span key={key} className="px-1.5 py-0.5 text-[10px] bg-white/5 text-white/50 rounded">
+                  {typeof val === 'number' ? `${val} ${key.replace(/_/g, ' ').replace('count', '').trim()}` : key.replace(/^has_|^uses_|^is_/g, '').replace(/_/g, ' ')}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   const fetchEvaluation = async () => {
     setEvalLoading(true);
