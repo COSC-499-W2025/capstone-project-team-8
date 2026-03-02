@@ -17,6 +17,7 @@ from app.serializers import (
 from app.models import Resume
 from app.services.resume_service import list_templates, get_template, build_resume_context
 from app.services.resume_builder.latex_generator import JakesResumeGenerator
+from app.services.resume_builder.rendercv_generator import generate_pdf as rendercv_generate_pdf, generate_yaml_string
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -206,3 +207,69 @@ class ResumeEditView(APIView):
             "created_at": resume.created_at,
             "updated_at": resume.updated_at,
         })
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RenderCVPDFView(APIView):
+    """
+    POST /api/resume/render-pdf/
+
+    Body:
+        {
+          "resumeData": { ...frontend resumeData object... },
+          "theme": "classic" | "moderncv" | "engineeringclassic" | "sb2nov"
+        }
+
+    Returns:
+        application/pdf  — the rendered PDF
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        resume_data = request.data.get("resumeData", {})
+        theme = request.data.get("theme", "classic")
+
+        if not resume_data:
+            return Response(
+                {"error": "resumeData is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            pdf_bytes = rendercv_generate_pdf(resume_data, theme)
+        except RuntimeError as exc:
+            return Response(
+                {"error": str(exc)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="resume.pdf"'
+        return response
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class RenderCVYAMLView(APIView):
+    """
+    POST /api/resume/render-yaml/
+
+    Returns the RenderCV YAML string (useful for debugging / download).
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        resume_data = request.data.get("resumeData", {})
+        theme = request.data.get("theme", "classic")
+
+        if not resume_data:
+            return Response(
+                {"error": "resumeData is required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        yaml_str = generate_yaml_string(resume_data, theme)
+        response = HttpResponse(yaml_str, content_type="text/plain; charset=utf-8")
+        response["Content-Disposition"] = 'attachment; filename="resume.yaml"'
+        return response
