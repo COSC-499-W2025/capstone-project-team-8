@@ -157,8 +157,7 @@ class ProjectDetailView(APIView):
             "contributors": contributors,
             "git_repository": bool(p.git_repository),
             "first_commit_date": int(p.first_commit_date.timestamp()) if p.first_commit_date else None,
-            "created_at": int(p.created.timestamp()) if getattr(p, "created", None) else None,
-            "updated_at": int(p.updated_at.timestamp()) if p.updated_at else None,
+            "created_at": int(p.created_at.timestamp()) if p.created_at else None,
             "resume_bullet_points": p.resume_bullet_points or [],
             "user_role": p.user_role or 'other',
         }

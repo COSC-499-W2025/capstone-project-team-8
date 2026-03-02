@@ -98,20 +98,11 @@ export default function ProjectsPage() {
     return evaluations.find(e => e.project_id === projectId);
   };
 
-  const formatDate = (dateInput) => {
-    if (!dateInput) return 'N/A';
-    
-    // Handle Unix timestamp (integer in seconds)
-    if (typeof dateInput === 'number') {
-      return new Date(dateInput * 1000).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    }
-    
-    // Handle ISO string or other date formats
-    return new Date(dateInput).toLocaleDateString('en-US', {
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    // Handle both Unix timestamps (numbers) and date strings
+    const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
