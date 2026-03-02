@@ -57,6 +57,7 @@ class UploadFolderView(APIView):
             return JsonResponse({"error": "No file provided. Use 'file' form field."}, status=400)
         
         github_username = request.data.get("github_username") or request.data.get("github_user")
+        project_id = request.data.get("project_id")  # For incremental uploads
         
         # Parse user consents
         def _parse_bool(v, default=False):
@@ -178,7 +179,8 @@ class UploadFolderView(APIView):
                     projects = db_service.save_project_analysis(
                         user=request.user,
                         analysis_data=response_payload,
-                        upload_filename=upload.name or "upload.zip"
+                        upload_filename=upload.name or "upload.zip",
+                        existing_project_id=project_id  # Pass project_id for incremental uploads
                     )
                     
                     # Add database IDs to response
