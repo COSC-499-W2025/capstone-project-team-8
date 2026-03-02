@@ -29,6 +29,8 @@ export default function EditPortfolioPage() {
   });
   const [portfolioProjects, setPortfolioProjects] = useState([]);
   const [availableProjects, setAvailableProjects] = useState([]);
+  const [originalFormData, setOriginalFormData] = useState(null);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const portfolioId = params.id;
 
@@ -60,13 +62,15 @@ export default function EditPortfolioPage() {
         setAllProjects(allUserProjects);
 
         // Set form data from portfolio
-        setFormData({
+        const initialFormData = {
           title: portfolioData.title || '',
           description: portfolioData.description || '',
           is_public: portfolioData.is_public || false,
           target_audience: portfolioData.target_audience || '',
           tone: portfolioData.tone || 'professional',
-        });
+        };
+        setFormData(initialFormData);
+        setOriginalFormData(initialFormData);
 
         // Extract portfolio project IDs
         const portfolioProjectIds = new Set(
@@ -91,10 +95,12 @@ export default function EditPortfolioPage() {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    const newFormData = {
+      ...formData,
       [name]: type === 'checkbox' ? checked : value,
-    }));
+    };
+    setFormData(newFormData);
+    setHasChanges(JSON.stringify(newFormData) !== JSON.stringify(originalFormData));
   };
 
   const handleSave = async (regenerateSummary = false) => {
@@ -110,6 +116,8 @@ export default function EditPortfolioPage() {
 
       const data = await updatePortfolio(portfolioId, updateData, token);
       setPortfolio(data.portfolio);
+      setOriginalFormData(formData);
+      setHasChanges(false);
       setSuccess(regenerateSummary ? 'Portfolio updated and summary regenerated!' : 'Portfolio updated successfully!');
       
       // Clear success message after 3 seconds
@@ -121,6 +129,19 @@ export default function EditPortfolioPage() {
       setSaving(false);
     }
   };
+
+  // Warn user if they try to leave with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasChanges]);
 
   const handleAddProject = async (projectId) => {
     setError('');
@@ -227,7 +248,15 @@ export default function EditPortfolioPage() {
         <div className="max-w-5xl mx-auto">
           {/* Breadcrumb */}
           <div className="mb-6">
-            <Link href={`/portfolios/${portfolioId}`} className="text-white/60 hover:text-white transition-colors text-sm">
+            <Link 
+              href={`/portfolios/${portfolioId}`} 
+              onClick={(e) => {
+                if (hasChanges && !confirm('You have unsaved changes. Are you sure you want to leave without saving?')) {
+                  e.preventDefault();
+                }
+              }}
+              className="text-white/60 hover:text-white transition-colors text-sm"
+            >
               ← Back to Portfolio
             </Link>
           </div>
@@ -388,33 +417,35 @@ export default function EditPortfolioPage() {
                 {portfolioProjects.length === 0 ? (
                   <p className="text-white/50 text-sm">No projects in this portfolio. Add some from the list below.</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {portfolioProjects.map((pp, index) => (
                       <div
                         key={pp.project.id}
-                        className="flex items-center gap-3 p-3 bg-white/5 rounded-lg group"
+                        className="flex items-center gap-4 p-4 bg-white/5 rounded-lg group hover:bg-white/10 transition-colors"
                       >
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-2">
                           <button
                             onClick={() => moveProject(index, -1)}
                             disabled={index === 0}
-                            className="p-1 hover:bg-white/10 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Move up"
+                            className="p-2 hover:bg-blue-500/30 rounded disabled:opacity-30 disabled:cursor-not-allowed bg-blue-500/10 transition-colors"
                           >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M18 15l-6-6-6 6"/>
                             </svg>
                           </button>
                           <button
                             onClick={() => moveProject(index, 1)}
                             disabled={index === portfolioProjects.length - 1}
-                            className="p-1 hover:bg-white/10 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Move down"
+                            className="p-2 hover:bg-blue-500/30 rounded disabled:opacity-30 disabled:cursor-not-allowed bg-blue-500/10 transition-colors"
                           >
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M6 9l6 6 6-6"/>
                             </svg>
                           </button>
                         </div>
-                        <span className="text-white/40 text-sm font-mono w-6">#{index + 1}</span>
+                        <span className="text-white/50 font-bold text-lg font-mono w-8 text-center">{index + 1}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-white font-medium truncate">{pp.project.name}</p>
                           {pp.project.classification_type && (
@@ -423,7 +454,7 @@ export default function EditPortfolioPage() {
                         </div>
                         <button
                           onClick={() => handleRemoveProject(pp.project.id)}
-                          className="px-2 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs rounded transition-colors opacity-0 group-hover:opacity-100"
+                          className="px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-300 text-xs font-medium rounded transition-colors opacity-0 group-hover:opacity-100"
                         >
                           Remove
                         </button>

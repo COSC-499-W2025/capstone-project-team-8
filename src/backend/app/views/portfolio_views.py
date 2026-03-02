@@ -120,7 +120,15 @@ class PortfolioGenerateView(APIView):
     def post(self, request):
         serializer = PortfolioGenerateSerializer(data=request.data, context={'request': request})
         if not serializer.is_valid():
-            return JsonResponse({"error": serializer.errors}, status=400)
+            # Format errors as readable message
+            error_messages = []
+            for field, errors in serializer.errors.items():
+                if isinstance(errors, list):
+                    error_messages.extend([str(err) for err in errors])
+                else:
+                    error_messages.append(str(errors))
+            error_msg = '; '.join(error_messages) or 'Invalid portfolio data'
+            return JsonResponse({"error": error_msg}, status=400)
         
         data = serializer.validated_data
         

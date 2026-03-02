@@ -67,6 +67,29 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('refresh_token');
   };
 
+  const refreshAccessToken = async () => {
+    const storedRefresh = localStorage.getItem('refresh_token');
+    if (!storedRefresh) return null;
+    try {
+      const res = await fetch(`${config.API_URL}/api/token/refresh/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refresh: storedRefresh }),
+      });
+      if (!res.ok) {
+        logout();
+        return null;
+      }
+      const data = await res.json();
+      const newToken = data.access;
+      setToken(newToken);
+      localStorage.setItem('access_token', newToken);
+      return newToken;
+    } catch {
+      return null;
+    }
+  };
+
   const setCurrentUser = (userData) => {
     setUser(userData);
   };
@@ -83,6 +106,7 @@ export function AuthProvider({ children }) {
         login,
         logout,
         setCurrentUser,
+        refreshAccessToken,
       }}
     >
       {children}
