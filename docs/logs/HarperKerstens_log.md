@@ -15,6 +15,7 @@
 - [January 12-18](#january-12-18)
 - [January 19-25](#january-19-25)
 - [January 26-February 7](#january-26-february-7)
+- [February 8-March 1](#february-8-march-1)
 
 ## September 15-21
 
@@ -345,3 +346,35 @@ Next would be to continue expanding upon features for the user. Consistent flow 
 
 ### Reflection:
 Overall I am very happy with the progress made and the project itself. Things continue to come together and we are making good progress. Looks of exciting features are being implemented and things are increasingly becoming more developed.
+
+
+## February 8-March 1
+
+<img width="1087" height="638" alt="February8-March1" src="https://github.com/user-attachments/assets/808c681e-8b89-4f66-91d6-081833e81eb8" />
+
+- Fixed Incremental upload
+- Implemented Success Evauluation
+- UI implemented for role in project
+- Created Test folders
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| [#294](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/294) | N/A |
+| [#295](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/295) | [#226](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/226) |
+| [#303](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/303) | N/A |
+| [#304](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/304) | N/A |
+| [#305](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/305) | N/A |
+### What went well
+ This week was smooth all around for me, I never felt rushed or stressed about my work and I was able to complete all I set out to do. Being able to go back and fix some of the bugs that were present in the system was also nice.
+
+### What didn't go well
+There was a little concern regarding the presenation as our group was unable to meet early in the reading week to prepare. However, we were able to pull things together and get ready for the presenation without any major issues. We also had some minor bugs in the system that we wanted to fix before the presentation which took some time but was worth it to have a more polished product to show off.         
+
+
+### What's next
+Going forward the goal is to continue to build off the resume builder Me and Kyle had worked on. All the analytics are being scanned and stored in the database so now we need to figure out how to best utilize that information to create a useful resume for the user. We also want to continue to polish the overall product and fix any bugs that arise as we continue development.
+
+### Reflection:
+This week was productive and stress-free, which is always a positive outcome. Despite a tight presentation timeline due to limited meeting availability early in the reading week, our team was able to rally together and deliver a polished product. The focus on fixing bugs before the presentation, while time-consuming, paid off by showcasing a more stable and professional system. Looking ahead, I'm excited about leveraging all the analytics infrastructure we've built to create more meaningful resume functionality. The foundation is solid—now it's about transforming that data into a genuinely useful tool for users. I'm confident that continued polish and bug fixes will result in a compelling final product.
