@@ -54,21 +54,22 @@
 
 ### Our Goals this week:
 
-
+  This week our goal was to finalize the features we needed for Milestone 2. Lots of work had been implemented in the previous weeks but was in a broken or buggy state, fixing these things before moving forward with what was left was a key priority.
 
 
 ### Reflection
+Overall we are very satisfied with our progress this week, lots of work was done on top of the presentation. We were able to complete all our goals we set out for this week. Looking forward to Milestone 3 we feel confident in our ability to build off what was done to reach the final requirements.
 
 
 
 
 ### What went well:
-
+Our collaboration over these weeks was definitely a highlight, we were able to work together to get a lot done. This teamwork streamlined debugging previous features immensly. The presentation was also a highlight, we were able to showcase our project well and feel confident in our work.
 
 
 
 ### What didn't go well:
-
+There were some hiccups in some PR's regarding bug fixes, determining the bugs was challenging at points but we were able to eventually find them all to fix them.
 
 
 ### Test Report
@@ -76,7 +77,7 @@
 <img width="1025" height="167" alt="image" src="https://github.com/user-attachments/assets/8b07d9b0-61ff-48ce-a1e8-f309a8abd442" />
 
 ### Plan for next week:
-
+Going forward we plan to meet early and look forward to Milestone 3. We want to build primarily off the resume builder and portfolio features we have built so far. 
 
 
 
