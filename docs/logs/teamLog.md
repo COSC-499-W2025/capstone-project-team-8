@@ -2,6 +2,7 @@
 
 ## Weekly Logs
 
+- [Milestone 2 Week 6-8](#milestone-2-week-6-8)
 - [Milestone 2 Week 4-5](#milestone-2-week-4-5)
 - [Milestone 2 Week 3](#milestone-2-week-3)
 - [Milestone 2 Week 2](#milestone-2-week-2)
@@ -28,18 +29,27 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
-## Milestone 2 Week 4-5
+## Milestone 2 Week 6-8
 
 ### Completed Tasks
 | Task | Assigned To | Issue # | Pull Request |
 |------|-------------|---------|--------------|
-|  |  |  |  |
-|  |  |  |  |
-|  |  ||  |
-| |  | |  |
-|  |  | |  |
-|  |  |  |
-
+| Portfolio Private Error | [@kylekmcleod](https://github.com/kylekmcleod)  | [#285](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/285)  | [#286](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/286)  |
+| Styling Consistancy  | [@kylekmcleod](https://github.com/kylekmcleod)  | [#287](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/287) | [#288](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/288) |
+| Resume Builder Auto Link | [@kylekmcleod](https://github.com/kylekmcleod) | [#289](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/289) | [#290](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/290) |
+|Feature/skills endpoint | [@matin0014](https://github.com/matin0014)  | [#292](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/292) | [#293](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/293) |
+| Test Folders  | [@harperkerstens](https://github.com/harperkerstens)  | N/A | [#294](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/294) |
+| Success Metrics  | [@harperkerstens](https://github.com/harperkerstens) | [#226](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/226)  | [#295](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/295) |
+| Portfolio stats  | [@cschwebi](https://github.com/cschwebi)   | [#296](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/296)  | [#297](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/297) |
+|  Key role in project |  [@matin0014](https://github.com/matin0014)  | [#298](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/298)  | [#299](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/299) |
+| auth refresh fix  | [@kylekmcleod](https://github.com/kylekmcleod)  | [#300](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/300)  | [#301](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/301)  |
+| Quaility Eval Dashboard  | [@kylekmcleod](https://github.com/kylekmcleod)  | N/A | [#302](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/302)  |
+| Key role in project UI  | [@harperkerstens](https://github.com/harperkerstens)  | N/A  | [#303](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/303)  |
+| Portfolio page fix  | [@harperkerstens](https://github.com/harperkerstens)  | N/A  | [#304](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/304)  |
+| Resume module refactor  | [@kylekmcleod](https://github.com/kylekmcleod)  | N/A  | [#306](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/306)  |
+| Incremental Upload Fix  |  [@harperkerstens](https://github.com/harperkerstens)  | N/A | [#305](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/305)   |
+| Createdate Bugfix  | [@jordany78](https://github.com/jordany78)  | N/A  | [#307](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/307)  |
+| Feature/Skills endpoint  | [@matin0014](https://github.com/matin0014)  | [#308](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/308)  | [#309](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/309)  |
 
 
 ### Our Goals this week:
