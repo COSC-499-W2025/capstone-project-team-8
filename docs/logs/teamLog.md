@@ -82,7 +82,7 @@ Going forward we plan to meet early and look forward to Milestone 3. We want to 
 
 
 ### Burn up chart
-
+![alt text](image-8.png)
 
 ## Milestone 2 Week 4-5
 
@@ -128,6 +128,8 @@ Next week we plan to continue building on the features implemented this week. We
 
 
 ### Burn up chart
+
+![alt text](image-6.png)
 
 <img width="1787" height="874" alt="image" src="https://github.com/user-attachments/assets/573407c4-42c6-4140-885e-a0f5aca91edb" />
 
