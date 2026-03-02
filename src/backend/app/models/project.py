@@ -43,6 +43,7 @@ class Project(models.Model):
 	git_repository = models.BooleanField(default=False)
 	first_commit_date = models.DateTimeField(null=True, blank=True)
 	resume_bullet_points = models.JSONField(default=list, blank=True)
+	resume_skills = models.JSONField(default=list, blank=True)
 	upload_source = models.CharField(max_length=50, default='zip_file')
 	original_zip_name = models.CharField(max_length=255, blank=True)
 	created_at = models.DateTimeField(null=True, blank=True, default=timezone.now)

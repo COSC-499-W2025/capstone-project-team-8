@@ -270,7 +270,13 @@ class ProjectDatabaseService:
         bullet_points = project_data.get('bullet_points', [])
         if bullet_points:
             project.resume_bullet_points = bullet_points
-        
+
+        # Save resume_skills from classification (all project types)
+        classification = project_data.get('classification', {})
+        resume_skills = classification.get('resume_skills', [])
+        if resume_skills:
+            project.resume_skills = resume_skills
+
         project.save()
 
         return project
