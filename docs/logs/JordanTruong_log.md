@@ -2,7 +2,7 @@
 ### Milestone 1
 | [Week 3](#week-3) | [Week 4](#week-4) | [Week 5](#week-5) | [Week 6](#week-6) | [Week 7](#week-7) | [Week 8](#week-8) | [Week 9](#week-9) | [Week 10](#week-10) | [Week 12](#week-12) | [Week 13](#week-13) | [Week 14](#week-14) |
 ### Milestone 2
-| [Week 1](#week-1-t2) | [Week 2](#week-2-t2) | [Week 3](#week-3-t2) | [Week 5](#week-5-t2) | 
+| [Week 1](#week-1-t2) | [Week 2](#week-2-t2) | [Week 3](#week-3-t2) | [Week 5](#week-5-t2) | [Week 8](#week-8-t2) | 
 
 ## Week 3
 ### September 15th - September 19th:
@@ -280,3 +280,31 @@ Found a few bugs in my the incremental upload PR, it wouldn't show char count or
 
 ### What's next
 Next week I want to implement our portfolio system to the frontend and change the incremental upload feature to use it. I've started working on it a bit, but hope to finish it at the end of the break.
+
+## Week 8 T2
+### February 23rd - February 27th:
+<img width="1072" height="625" alt="image" src="https://github.com/user-attachments/assets/267647d2-cdb0-482b-8f9c-589515a4fc04" /></br>
+
+### PRs Completed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/307 |
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/304 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/303 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/293 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/292 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/290 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/289 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/288 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/287 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/286 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/285 |
+
+### What went well
+This week, we were all able to meet and prepare for the presentation. Our presentation went very smooth, our time management was perfect and overall we did a lot better than last time. I managed to find any extra time reviewing other's PR's whenever I could.
+
+### What didn't go well
+I was running into issues with my database fields and Django's fields causing a schema mismatch which gave me issues with uploading folders not going into the database and not being able to create portfolios. These would give me either show no error message or vague error messages, so I spent a lot of time trying to figure out what the cause was instead of using that time to work on the project.
+
+### What's next
+Next week, we start working on Milestone 3 and fully create a frontend for our users. We already have some frontend done, so it shouldn't be too long to have the whole thing done, which'll give us more time if any bugs arise.
