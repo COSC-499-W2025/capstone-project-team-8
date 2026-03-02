@@ -6,335 +6,603 @@ import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import { getCurrentUser } from '@/utils/api';
-import { 
-  getProjects, 
-  generateLatexResume,
-  generateResume,
-  getResumePreview
-} from '@/utils/resumeApi';
-import { 
-  saveDraft, 
-  getDraft, 
-  getCurrentDraft,
-  clearCurrentDraft 
-} from '@/utils/draftStorage';
-import { cleanResumeForExport, getProjectDateRange, formatTimestampToDate } from '@/utils/resumeCleanup';
-import { 
-  getTemplateComponent, 
-  getTemplateMetadata,
-  getNextTemplateIndex,
-  getPreviousTemplateIndex,
-  getTemplateCount
-} from '@/utils/TemplateRegistry';
+import { getProjects, getSkills } from '@/utils/resumeApi';
+import { generateRenderCVPdf, downloadRenderCVYaml } from '@/utils/resumeApi';
+import { saveDraft, getDraft, getCurrentDraft, clearCurrentDraft } from '@/utils/draftStorage';
+import { getProjectDateRange } from '@/utils/resumeCleanup';
 import ProjectsPanel from '@/components/resume/ProjectsPanel';
-import styles from './resume.module.css';
+import styles from './resume-new.module.css';
 
-export default function ResumePage() {
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const THEMES = [
+  { value: 'classic', label: 'Classic' },
+  { value: 'sb2nov', label: 'SB2Nov' },
+  { value: 'moderncv', label: 'ModernCV' },
+  { value: 'engineeringclassic', label: 'Engineering Classic' },
+];
+
+const EMPTY_RESUME = {
+  name: '',
+  email: '',
+  phone: '',
+  github_url: '',
+  portfolio_url: '',
+  linkedin_url: '',
+  location: '',
+  sections: {
+    summary: '',
+    education: [],
+    experience: [],
+    projects: [],
+    skills: [],
+    certifications: [],
+  },
+};
+
+function parseContent(content) {
+  if (!content) return [];
+  return content
+    .split('\n')
+    .map((l) => l.replace(/^[•\-]\s*/, '').trim())
+    .filter(Boolean);
+}
+
+function buildContent(bullets) {
+  return bullets.map((b) => `• ${b}`).join('\n');
+}
+
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function SectionHeader({ title, onAdd, addLabel = '+ Add', collapsed, onToggle }) {
+  return (
+    <div className={styles.sectionHeader}>
+      <button className={styles.collapseBtn} onClick={onToggle} type="button">
+        {collapsed ? '▶' : '▼'} <span>{title}</span>
+      </button>
+      {onAdd && (
+        <button className={styles.addBtn} onClick={onAdd} type="button">
+          {addLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function BulletList({ content, onChange }) {
+  // Local state keeps empty bullets alive while the user types.
+  // parseContent (which filters empties) is only used for initialisation
+  // and for syncing when content changes from outside.
+  const parseRaw = (str) => {
+    if (!str) return [];
+    return str.split('\n').map((l) => l.replace(/^[•\-]\s*/, '').trim());
+  };
+
+  const [bullets, setBullets] = useState(() => parseRaw(content));
+  const lastEmitted = useRef(content);
+
+  // Sync inward only when the prop changed externally (not from our own emit)
+  useEffect(() => {
+    if (content !== lastEmitted.current) {
+      lastEmitted.current = content;
+      setBullets(parseRaw(content));
+    }
+  }, [content]);
+
+  const emit = (next) => {
+    const str = next.map((b) => `• ${b}`).join('\n');
+    lastEmitted.current = str;
+    onChange(str);
+  };
+
+  const updateBullet = (i, val) => {
+    const next = [...bullets];
+    next[i] = val;
+    setBullets(next);
+    emit(next);
+  };
+
+  const removeBullet = (i) => {
+    const next = bullets.filter((_, idx) => idx !== i);
+    setBullets(next);
+    emit(next);
+  };
+
+  const addBullet = () => {
+    const next = [...bullets, ''];
+    setBullets(next);
+    emit(next);
+  };
+
+  return (
+    <div className={styles.bulletList}>
+      {bullets.map((b, i) => (
+        <div key={i} className={styles.bulletRow}>
+          <span className={styles.bulletDot}>•</span>
+          <input
+            className={styles.bulletInput}
+            value={b}
+            onChange={(e) => updateBullet(i, e.target.value)}
+            placeholder="Bullet point..."
+            autoFocus={b === '' && i === bullets.length - 1}
+          />
+          <button
+            className={styles.removeBulletBtn}
+            onClick={() => removeBullet(i)}
+            type="button"
+            title="Remove bullet"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      <button className={styles.addBulletBtn} onClick={addBullet} type="button">
+        + bullet
+      </button>
+    </div>
+  );
+}
+
+function EntryCard({ item, onUpdate, onRemove, fields }) {
+  return (
+    <div className={styles.entryCard}>
+      <div className={styles.entryCardHeader}>
+        <div className={styles.entryFields}>
+          {fields.map((f) =>
+            f.type === 'select' ? (
+              <select
+                key={f.key}
+                className={styles.entryInput}
+                value={item[f.key] || ''}
+                onChange={(e) => onUpdate({ ...item, [f.key]: e.target.value })}
+              >
+                <option value="">{f.placeholder}</option>
+                {(f.options || []).map((opt) => (
+                  <option key={opt} value={opt}>{opt}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                key={f.key}
+                className={styles.entryInput}
+                value={item[f.key] || ''}
+                onChange={(e) => onUpdate({ ...item, [f.key]: e.target.value })}
+                placeholder={f.placeholder}
+              />
+            )
+          )}
+        </div>
+        <button className={styles.removeEntryBtn} onClick={onRemove} type="button" title="Remove">
+          ×
+        </button>
+      </div>
+      {item.content !== undefined && (
+        <BulletList
+          content={item.content}
+          onChange={(c) => onUpdate({ ...item, content: c })}
+        />
+      )}
+    </div>
+  );
+}
+
+// ─── Live Preview ────────────────────────────────────────────────────────────
+
+function ResumePreview({ resumeData }) {
+  const sec = resumeData.sections || {};
+
+  const parseB = (content) => {
+    if (!content) return [];
+    return content
+      .split('\n')
+      .map((l) => l.replace(/^[•\-]\s*/, '').trim())
+      .filter(Boolean);
+  };
+
+  return (
+    <div className={styles.previewScroll}>
+      <div className={styles.previewPaper}>
+        <div className={styles.previewName}>{resumeData.name || 'Your Name'}</div>
+        <div className={styles.previewContact}>
+          {[resumeData.email, resumeData.phone, resumeData.location]
+            .filter(Boolean)
+            .join(' | ')}
+        </div>
+
+        {sec.education?.length > 0 && (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>EDUCATION</div>
+            {sec.education.map((e) => (
+              <div key={e.id} className={styles.previewEntry}>
+                <div className={styles.previewRow}>
+                  <strong>{e.title}</strong>
+                  <span className={styles.previewDate}>{e.duration}</span>
+                </div>
+                {(e.degree_type || e.company) && (
+                  <div className={styles.previewSub}>
+                    {e.degree_type && e.company
+                      ? `${e.degree_type} in ${e.company}`
+                      : e.degree_type || e.company}
+                  </div>
+                )}
+                {parseB(e.content).map((b, i) => (
+                  <div key={i} className={styles.previewBullet}>• {b}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {sec.experience?.length > 0 && (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>EXPERIENCE</div>
+            {sec.experience.map((e) => (
+              <div key={e.id} className={styles.previewEntry}>
+                <div className={styles.previewRow}>
+                  <strong>{e.title}</strong>
+                  <span className={styles.previewDate}>{e.duration}</span>
+                </div>
+                {e.company && <div className={styles.previewSub}>{e.company}</div>}
+                {parseB(e.content).map((b, i) => (
+                  <div key={i} className={styles.previewBullet}>• {b}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {sec.projects?.length > 0 && (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>PROJECTS</div>
+            {sec.projects.map((e) => (
+              <div key={e.id} className={styles.previewEntry}>
+                <div className={styles.previewRow}>
+                  <strong>{e.title}</strong>
+                  <span className={styles.previewDate}>{e.duration}</span>
+                </div>
+                {e.company && <div className={styles.previewSub}>{e.company}</div>}
+                {parseB(e.content).map((b, i) => (
+                  <div key={i} className={styles.previewBullet}>• {b}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {sec.skills?.filter((s) => s.title).length > 0 && (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>SKILLS</div>
+            <div className={styles.previewSkills}>
+              {sec.skills.map((s) => s.title).filter(Boolean).join(' • ')}
+            </div>
+          </div>
+        )}
+
+        {sec.certifications?.length > 0 && (
+          <div className={styles.previewSection}>
+            <div className={styles.previewSectionTitle}>CERTIFICATIONS</div>
+            {sec.certifications.map((e) => (
+              <div key={e.id} className={styles.previewEntry}>
+                <div className={styles.previewRow}>
+                  <strong>{e.title}</strong>
+                  <span className={styles.previewDate}>{e.duration}</span>
+                </div>
+                {e.company && <div className={styles.previewSub}>{e.company}</div>}
+                {parseB(e.content).map((b, i) => (
+                  <div key={i} className={styles.previewBullet}>• {b}</div>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!sec.education?.length &&
+          !sec.experience?.length &&
+          !sec.projects?.length &&
+          !sec.skills?.filter((s) => s.title).length && (
+            <p className={styles.previewEmpty}>
+              Fill in your info to see a preview here.
+            </p>
+          )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Page ────────────────────────────────────────────────────────────────────
+
+export default function ResumeNewPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, refreshAccessToken } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
+  const [theme, setTheme] = useState('classic');
 
-  // Undo/Redo history
+  // Collapsed state for each form section
+  const [collapsed, setCollapsed] = useState({
+    personal: false,
+    education: false,
+    experience: false,
+    projects: false,
+    skills: false,
+    certifications: true,
+  });
+
+  const toggleSection = (key) =>
+    setCollapsed((prev) => ({ ...prev, [key]: !prev[key] }));
+
+  const openSection = (key) =>
+    setCollapsed((prev) => ({ ...prev, [key]: false }));
+
+  // Undo / Redo
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const historyRef = useRef(null);
 
   // Main state
-  const [templateIndex, setTemplateIndex] = useState(0);
   const [projects, setProjects] = useState([]);
-  const [resumeData, setResumeData] = useState({
-    name: 'John Anderson',
-    sections: {
-      summary: 'Results-driven professional with 5+ years of experience in software development and project management. Proven track record of delivering high-impact solutions and leading cross-functional teams to success.',
-      experience: [
-        {
-          id: 1,
-          title: 'Senior Software Engineer',
-          company: 'Tech Solutions Inc.',
-          duration: 'Jan 2022 - Present',
-          content: 'Led development of microservices architecture serving 2M+ users. Reduced API latency by 40% through optimization. Mentored team of 5 junior developers.'
-        },
-        {
-          id: 2,
-          title: 'Software Developer',
-          company: 'Digital Systems Ltd.',
-          duration: 'Jun 2019 - Dec 2021',
-          content: 'Built and maintained full-stack applications using React and Django. Implemented CI/CD pipeline reducing deployment time by 60%. Collaborated with product team on feature design.'
-        }
-      ],
-      projects: [],
-      skills: [
-        { id: 1, title: 'Python' },
-        { id: 2, title: 'JavaScript/React' },
-        { id: 3, title: 'Django' },
-        { id: 4, title: 'REST APIs' },
-        { id: 5, title: 'PostgreSQL' },
-        { id: 6, title: 'Docker' }
-      ],
-      education: [
-        {
-          id: 1,
-          title: 'Bachelor of Science in Computer Science',
-          company: 'State University',
-          duration: '2015 - 2019',
-          content: 'GPA: 3.8/4.0. Dean\'s List all semesters.'
-        }
-      ],
-      certifications: [
-        {
-          id: 1,
-          title: 'AWS Solutions Architect Associate',
-          company: 'Amazon Web Services',
-          duration: '2021',
-          content: 'Certified in cloud architecture and AWS services.'
-        }
-      ]
-    }
-  });
-
-  // UI state
-  const [editingPath, setEditingPath] = useState(null);
-  const [showProjectMenu, setShowProjectMenu] = useState(false);
   const [selectedProjects, setSelectedProjects] = useState(new Set());
+  const [resumeData, setResumeData] = useState(EMPTY_RESUME);
 
-  const currentTemplate = getTemplateMetadata(templateIndex);
-  const TemplateComponent = getTemplateComponent(templateIndex);
+  // Panel widths (px)
+  const [sidebarWidth, setSidebarWidth] = useState(300);
+  const [previewWidth, setPreviewWidth] = useState(400);
+  const draggingRef = useRef(null);
 
-  // Initialize page
+  const startDrag = useCallback((which) => (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startSidebar = sidebarWidth;
+    const startPreview = previewWidth;
+    draggingRef.current = which;
+
+    const onMove = (ev) => {
+      const dx = ev.clientX - startX;
+      if (which === 'left') {
+        setSidebarWidth(Math.max(160, Math.min(520, startSidebar + dx)));
+      } else {
+        setPreviewWidth(Math.max(200, Math.min(660, startPreview - dx)));
+      }
+    };
+    const onUp = () => {
+      draggingRef.current = null;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }, [sidebarWidth, previewWidth]);
+
+  // ── history helpers ──────────────────────────────────────────────────────
+
+  const pushToHistory = useCallback(
+    (data) => {
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(JSON.parse(JSON.stringify(data)));
+      setHistory(newHistory);
+      setHistoryIndex(newHistory.length - 1);
+      historyRef.current = data;
+    },
+    [history, historyIndex]
+  );
+
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const newIndex = historyIndex - 1;
+      setHistoryIndex(newIndex);
+      setResumeData(JSON.parse(JSON.stringify(history[newIndex])));
+    }
+  }, [history, historyIndex]);
+
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const newIndex = historyIndex + 1;
+      setHistoryIndex(newIndex);
+      setResumeData(JSON.parse(JSON.stringify(history[newIndex])));
+    }
+  }, [history, historyIndex]);
+
+  // Keyboard undo/redo
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      }
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        (e.key === 'y' || (e.shiftKey && e.key === 'z'))
+      ) {
+        e.preventDefault();
+        redo();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo]);
 
-    // Don't proceed if token hasn't been loaded yet
-    if (!token) {
-      return;
-    }
+  // ── init ─────────────────────────────────────────────────────────────────
 
-    const initializeResumePage = async () => {
+  useEffect(() => {
+    if (!isAuthenticated) { router.push('/login'); return; }
+    if (!token) return;
+
+    const init = async () => {
       try {
-        const [userData, projectsData, previewData] = await Promise.all([
+        const [userData, projectsData, skillsData] = await Promise.all([
           getCurrentUser(token),
           getProjects(token),
-          getResumePreview(token),
+          getSkills(token).catch(() => ({ languages: [], frameworks: [] })),
         ]);
 
-        // Build name from user data
-        const userFullName = (() => {
-          const firstName = userData.user?.first_name || '';
-          const lastName = userData.user?.last_name || '';
-          if (firstName && lastName) return `${firstName} ${lastName}`;
-          if (firstName) return firstName;
-          if (lastName) return lastName;
-          return 'Your Name';
-        })();
+        const u = userData.user || {};
+        const firstName = u.first_name || '';
+        const lastName = u.last_name || '';
+        const fullName =
+          firstName && lastName
+            ? `${firstName} ${lastName}`
+            : firstName || lastName || 'Your Name';
 
-        // Handle projects - ensure it's an array with all details
-        const projectsList = Array.isArray(projectsData) 
-          ? projectsData 
-          : (projectsData.projects || projectsData.results || []);
-        console.log('Projects loaded:', projectsList);
+        const city = u.education_city || u.city || '';
+        const state = u.education_state || u.state || '';
+        const country = u.country || '';
+        const location =
+          city && state
+            ? `${city}, ${state}`
+            : city || state || country || '';
+
+        const contactInfo = {
+          name: fullName,
+          email: u.email || '',
+          phone: u.phone || '',
+          github_url: u.github_username ? `https://github.com/${u.github_username}` : '',
+          portfolio_url: u.portfolio_url || '',
+          linkedin_url: u.linkedin_url || '',
+          location,
+        };
+
+        const projectsList = Array.isArray(projectsData)
+          ? projectsData
+          : projectsData.projects || projectsData.results || [];
         setProjects(projectsList);
 
-        // Build initial education entry from user data
-        const userEducation = [];
-        if (userData.user?.university || userData.user?.degree_major) {
-          const degreeTitle = userData.user?.degree_major ? 
-            `${userData.user.degree_major}` : 'Degree';
-          const university = userData.user?.university || '';
-          
-          let duration = '';
-          if (userData.user?.expected_graduation) {
-            const gradDate = new Date(userData.user.expected_graduation);
-            duration = `Expected ${gradDate.getFullYear()}`;
-          }
-          
-          userEducation.push({
-            id: 1,
-            title: degreeTitle,
-            company: university,
-            duration: duration,
-            content: userData.user?.education_city || ''
+        // Build pre-populated skills from the skills endpoint
+        const allSkills = [
+          ...(skillsData.languages || []).map((l) => ({ id: `lang-${l.name}`, title: l.name })),
+          ...(skillsData.frameworks || []).map((f) => ({ id: `fw-${f.name}`, title: f.name })),
+        ];
+
+        // Build pre-populated education entry
+        const education = [];
+        if (u.university || u.degree_major) {
+          education.push({
+            id: Date.now(),
+            title: u.university || 'University',
+            degree_type: '',
+            company: u.degree_major || '',
+            duration: (() => {
+              const gradYear = u.graduation_year || u.expected_graduation;
+              return gradYear ? `Graduating ${gradYear}` : '';
+            })(),
+            content: '',
           });
         }
 
-        // Load resume from backend context (has user's actual data)
-        if (previewData && previewData.context) {
-          const context = previewData.context;
-          setResumeData(prev => ({
-            ...prev,
-            name: context.summary?.user_name || userFullName,
-            sections: {
-              summary: context.summary?.summary || prev.sections.summary,
-              experience: context.experience || prev.sections.experience,
-              education: context.education && context.education.length > 0 
-                ? context.education 
-                : userEducation.length > 0 ? userEducation : prev.sections.education,
-              skills: context.skills || prev.sections.skills,
-              certifications: context.certifications || prev.sections.certifications,
-              projects: []
-            }
-          }));
-        } else {
-          // Fallback: Load saved draft or use user data
-          const savedDraft = getCurrentDraft();
-          if (savedDraft && savedDraft.resumeData) {
-            setResumeData(savedDraft.resumeData);
-          } else {
-            // Use user data to populate resume
-            setResumeData(prev => ({
-              ...prev,
-              name: userFullName,
-              sections: {
-                ...prev.sections,
-                education: userEducation.length > 0 ? userEducation : prev.sections.education
-              }
-            }));
-          }
-        }
+        const initial = {
+          ...contactInfo,
+          sections: {
+            summary: '',
+            education,
+            experience: [],
+            projects: [],
+            skills: allSkills,
+            certifications: [],
+          },
+        };
 
-        // Don't show success message on initial load
+        // Restore draft if available
+        const draft = getCurrentDraft();
+        if (draft && draft.sections) {
+          // Merge any new skills the user doesn't already have saved in their draft
+          const draftSkillTitles = new Set((draft.sections.skills || []).map((s) => s.title));
+          const newSkills = allSkills.filter((s) => !draftSkillTitles.has(s.title));
+          const mergedDraft = newSkills.length
+            ? { ...draft, sections: { ...draft.sections, skills: [...draft.sections.skills, ...newSkills] } }
+            : draft;
+          setResumeData(mergedDraft);
+          const initialHistory = [mergedDraft];
+          setHistory(initialHistory);
+          setHistoryIndex(0);
+        } else {
+          setResumeData(initial);
+          const initialHistory = [initial];
+          setHistory(initialHistory);
+          setHistoryIndex(0);
+        }
       } catch (err) {
-        console.error('Error initializing resume page:', err);
-        setMessage({ 
-          type: 'error', 
-          text: 'Failed to load templates or projects' 
-        });
+        console.error('Init error:', err);
+        setMessage({ type: 'error', text: 'Failed to load resume data.' });
       } finally {
         setLoading(false);
       }
     };
 
-    initializeResumePage();
+    init();
   }, [isAuthenticated, token, router]);
 
-  // Undo/Redo functions
-  const pushToHistory = (data) => {
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(JSON.parse(JSON.stringify(data)));
-    setHistory(newHistory);
-    setHistoryIndex(newHistory.length - 1);
-  };
-
-  const undo = () => {
-    if (historyIndex > 0) {
-      const newIndex = historyIndex - 1;
-      setResumeData(JSON.parse(JSON.stringify(history[newIndex])));
-      setHistoryIndex(newIndex);
-      setMessage({ type: 'info', text: 'Undo completed' });
+  // Auto-save draft
+  useEffect(() => {
+    if (!loading && resumeData.name) {
+      saveDraft('current', resumeData);
     }
+  }, [resumeData, loading]);
+
+  // ── section helpers ──────────────────────────────────────────────────────
+
+  const updateSection = (sectionType, newItems) => {
+    const updated = {
+      ...resumeData,
+      sections: { ...resumeData.sections, [sectionType]: newItems },
+    };
+    setResumeData(updated);
+    pushToHistory(updated);
   };
 
-  const redo = () => {
-    if (historyIndex < history.length - 1) {
-      const newIndex = historyIndex + 1;
-      setResumeData(JSON.parse(JSON.stringify(history[newIndex])));
-      setHistoryIndex(newIndex);
-      setMessage({ type: 'info', text: 'Redo completed' });
-    }
-  };
-
-  // Navigation
-  const nextTemplate = useCallback(() => {
-    setTemplateIndex(getNextTemplateIndex(templateIndex));
-  }, [templateIndex]);
-
-  const prevTemplate = useCallback(() => {
-    setTemplateIndex(getPreviousTemplateIndex(templateIndex));
-  }, [templateIndex]);
-
-  // Editing functions
-  const updateResumeData = (path, value) => {
-    setResumeData(prev => {
-      const newData = JSON.parse(JSON.stringify(prev));
-      const keys = path.split('.');
-      let current = newData;
-      
-      for (let i = 0; i < keys.length - 1; i++) {
-        if (!current[keys[i]]) current[keys[i]] = {};
-        current = current[keys[i]];
-      }
-      
-      current[keys[keys.length - 1]] = value;
-      
-      // Track history
-      if (historyRef.current) {
-        clearTimeout(historyRef.current);
-      }
-      historyRef.current = setTimeout(() => {
-        pushToHistory(newData);
-      }, 500); // Debounce history tracking
-      
-      return newData;
-    });
-
-    // Auto-save draft
-    saveDraft({ resumeData });
-  };
-
-  const addSection = (sectionType) => {
-    const newSection = {
+  const addEntry = (sectionType, extra = {}) => {
+    const newItem = {
       id: Date.now(),
       title: '',
-      content: ''
-    };
-
-    setResumeData(prev => ({
-      ...prev,
-      sections: {
-        ...prev.sections,
-        [sectionType]: [...(prev.sections[sectionType] || []), newSection]
-      }
-    }));
-  };
-
-  const removeSection = (sectionType, id) => {
-    setResumeData(prev => ({
-      ...prev,
-      sections: {
-        ...prev.sections,
-        [sectionType]: prev.sections[sectionType].filter(item => item.id !== id)
-      }
-    }));
-  };
-
-  const saveResume = async () => {
-    try {
-      await generateResume(token, resumeData.name || 'My Resume', resumeData.sections);
-      setMessage({ type: 'success', text: 'Resume saved successfully' });
-    } catch (err) {
-      console.error('Save error:', err);
-      setMessage({ type: 'error', text: 'Failed to save resume' });
-    }
-  };
-
-  const addProjectBullet = (projectId) => {
-    const project = projects.find(p => p.id === projectId);
-    if (!project) return;
-
-    // Create a project item with resume bullet points from backend
-    const projectItem = {
-      id: Date.now(),
-      title: project.name,
-      company: project.classification_type || 'Project',
+      company: '',
       duration: '',
-      content: (project.resume_bullet_points || []).join('\n')
+      content: '',
+      ...(sectionType === 'education' ? { degree_type: '' } : {}),
+      ...extra,
     };
-
-    setResumeData(prev => ({
-      ...prev,
-      sections: {
-        ...prev.sections,
-        projects: [...(prev.sections.projects || []), projectItem]
-      }
-    }));
-
-    setSelectedProjects(prev => new Set(prev).add(projectId));
+    const items = [...(resumeData.sections[sectionType] || []), newItem];
+    updateSection(sectionType, items);
+    openSection(sectionType);
   };
 
-  // Drag and Drop handlers
+  const updateEntry = (sectionType, updatedItem) => {
+    const items = (resumeData.sections[sectionType] || []).map((i) =>
+      i.id === updatedItem.id ? updatedItem : i
+    );
+    updateSection(sectionType, items);
+  };
+
+  const removeEntry = (sectionType, id) => {
+    const items = (resumeData.sections[sectionType] || []).filter((i) => i.id !== id);
+    updateSection(sectionType, items);
+  };
+
+  const updatePersonal = (field, value) => {
+    const updated = { ...resumeData, [field]: value };
+    setResumeData(updated);
+  };
+
+  const flushPersonal = () => pushToHistory(resumeData);
+
+  /** Coerce a raw phone string to E.164 format (+1XXXXXXXXXX for NA numbers). */
+  const normalizePhone = (raw) => {
+    if (!raw) return '';
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.length === 10) return `+1${digits}`;
+    if (digits.length === 11 && digits[0] === '1') return `+${digits}`;
+    // already has country code (more than 11 digits treated as-is with +)
+    return `+${digits}`;
+  };
+
+  const handlePhoneBlur = () => {
+    const normalized = normalizePhone(resumeData.phone);
+    const updated = { ...resumeData, phone: normalized };
+    setResumeData(updated);
+    pushToHistory(updated);
+  };
+
+  // ── drag and drop ────────────────────────────────────────────────────────
+
   const handleDragOver = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
@@ -344,86 +612,59 @@ export default function ResumePage() {
     e.preventDefault();
     try {
       const data = JSON.parse(e.dataTransfer.getData('application/json'));
-      if (data.type === 'skill') {
-        const timestamp = Date.now();
-        
-        // Determine if we should add skill or create experience entry with project context
-        if (data.projectName) {
-          // Check if experience entry for this project already exists
-          const existingIndex = (resumeData.sections.experience || []).findIndex(
-            exp => exp.company === data.projectName
-          );
-          
-          const dateRange = getProjectDateRange(data.projectFirstCommitDate, data.projectCreatedAt);
-          const skillText = `Worked with ${data.item.title} on ${data.projectName}`;
-          
-          let updatedExperience;
-          
-          if (existingIndex >= 0) {
-            // Append to existing entry
-            updatedExperience = [...(resumeData.sections.experience || [])];
-            const existingEntry = updatedExperience[existingIndex];
-            updatedExperience[existingIndex] = {
-              ...existingEntry,
-              content: `${existingEntry.content}\n• ${data.item.title}`
-            };
-            setMessage({ type: 'success', text: `Added "${data.item.title}" to ${data.projectName}` });
-          } else {
-            // Create new entry with bullet point
-            const newExperience = {
+      if (data.type !== 'skill') return;
+
+      const timestamp = Date.now();
+      if (data.projectName) {
+        const existingIndex = (resumeData.sections.projects || []).findIndex(
+          (p) => p.company === data.projectName
+        );
+        const dateRange = getProjectDateRange(
+          data.projectFirstCommitDate,
+          data.projectCreatedAt
+        );
+        let updatedProjects;
+        if (existingIndex >= 0) {
+          updatedProjects = [...(resumeData.sections.projects || [])];
+          const entry = updatedProjects[existingIndex];
+          updatedProjects[existingIndex] = {
+            ...entry,
+            content: `${entry.content}\n• ${data.item.title}`,
+          };
+        } else {
+          updatedProjects = [
+            ...(resumeData.sections.projects || []),
+            {
               id: timestamp,
               title: data.item.title,
               company: data.projectName,
               duration: dateRange,
-              content: `• ${data.item.title}`
-            };
-            updatedExperience = [...(resumeData.sections.experience || []), newExperience];
-            setMessage({ type: 'success', text: `Added "${data.item.title}" from ${data.projectName}` });
-          }
-          
-          setResumeData(prev => ({
-            ...prev,
-            sections: {
-              ...prev.sections,
-              experience: updatedExperience
-            }
-          }));
-          
-          pushToHistory({
-            ...resumeData,
-            sections: {
-              ...resumeData.sections,
-              experience: updatedExperience
-            }
-          });
-        } else {
-          // Simple skill addition without project context
-          const newSkill = {
-            id: timestamp,
-            title: data.item.title
-          };
-          
-          setResumeData(prev => ({
-            ...prev,
-            sections: {
-              ...prev.sections,
-              skills: [...(prev.sections.skills || []), newSkill]
-            }
-          }));
-          
-          pushToHistory({
-            ...resumeData,
-            sections: {
-              ...resumeData.sections,
-              skills: [...(resumeData.sections.skills || []), newSkill]
-            }
-          });
-          
-          setMessage({ type: 'success', text: 'Skill added!' });
+              content: `• ${data.item.title}`,
+            },
+          ];
         }
+        const updated = {
+          ...resumeData,
+          sections: { ...resumeData.sections, projects: updatedProjects },
+        };
+        setResumeData(updated);
+        pushToHistory(updated);
+        openSection('projects');
+      } else {
+        const newSkill = { id: timestamp, title: data.item.title };
+        const updated = {
+          ...resumeData,
+          sections: {
+            ...resumeData.sections,
+            skills: [...(resumeData.sections.skills || []), newSkill],
+          },
+        };
+        setResumeData(updated);
+        pushToHistory(updated);
+        openSection('skills');
       }
     } catch (err) {
-      console.error('Drop error:', err);
+      console.error('Drop skill error:', err);
     }
   };
 
@@ -431,386 +672,544 @@ export default function ResumePage() {
     e.preventDefault();
     try {
       const data = JSON.parse(e.dataTransfer.getData('application/json'));
-      if (data.type === 'bullet') {
-        // Extract project info from drag data
-        const projectName = data.projectName || 'Project Work';
-        const dateRange = getProjectDateRange(data.projectFirstCommitDate, data.projectCreatedAt);
-        
-        // Check if experience entry for this project already exists
-        const existingIndex = (resumeData.sections.experience || []).findIndex(
-          exp => exp.title === projectName
-        );
-        
-        let updatedExperience;
-        
-        if (existingIndex >= 0) {
-          // Append to existing entry
-          updatedExperience = [...(resumeData.sections.experience || [])];
-          const existingEntry = updatedExperience[existingIndex];
-          updatedExperience[existingIndex] = {
-            ...existingEntry,
-            content: `${existingEntry.content}\n• ${data.item.content}`
-          };
-          setMessage({ type: 'success', text: `Added to ${projectName}` });
-        } else {
-          // Create new entry with bullet
-          const newExperience = {
+      if (data.type !== 'bullet') return;
+
+      const projectName = data.projectName || 'Project Work';
+      const dateRange = getProjectDateRange(
+        data.projectFirstCommitDate,
+        data.projectCreatedAt
+      );
+      const existingIndex = (resumeData.sections.projects || []).findIndex(
+        (p) => p.title === projectName
+      );
+      let updatedProjects;
+      if (existingIndex >= 0) {
+        updatedProjects = [...(resumeData.sections.projects || [])];
+        const entry = updatedProjects[existingIndex];
+        updatedProjects[existingIndex] = {
+          ...entry,
+          content: `${entry.content}\n• ${data.item.content}`,
+        };
+      } else {
+        updatedProjects = [
+          ...(resumeData.sections.projects || []),
+          {
             id: Date.now(),
             title: projectName,
             company: '',
             duration: dateRange,
-            content: `• ${data.item.content}`
-          };
-          updatedExperience = [...(resumeData.sections.experience || []), newExperience];
-          setMessage({ type: 'success', text: `Added achievement from ${projectName}` });
-        }
-        
-        setResumeData(prev => ({
-          ...prev,
-          sections: {
-            ...prev.sections,
-            experience: updatedExperience
-          }
-        }));
-        
-        pushToHistory({
-          ...resumeData,
-          sections: {
-            ...resumeData.sections,
-            experience: updatedExperience
-          }
-        });
+            content: `• ${data.item.content}`,
+          },
+        ];
       }
+      const updated = {
+        ...resumeData,
+        sections: { ...resumeData.sections, projects: updatedProjects },
+      };
+      setResumeData(updated);
+      pushToHistory(updated);
+      openSection('projects');
     } catch (err) {
-      console.error('Drop error:', err);
+      console.error('Drop bullet error:', err);
     }
   };
 
   const handleQuickAdd = (item, type) => {
+    const timestamp = Date.now();
     if (type === 'skill') {
-      const timestamp = Date.now();
-      
-      // Determine if we should add skill or create experience entry with project context
       if (item.projectName) {
-        // Need to find the project to get dates - look through projects array
-        const project = projects.find(p => p.id === item.projectId);
-        const dateRange = project 
+        const project = projects.find((p) => p.id === item.projectId);
+        const dateRange = project
           ? getProjectDateRange(project.first_commit_date, project.created_at)
           : 'Present';
-        
-        // Check if experience entry for this project already exists
-        const existingIndex = (resumeData.sections.experience || []).findIndex(
-          exp => exp.company === item.projectName
+        const existingIndex = (resumeData.sections.projects || []).findIndex(
+          (p) => p.company === item.projectName
         );
-        
-        let updatedExperience;
-        
+        let updatedProjects;
         if (existingIndex >= 0) {
-          // Append to existing entry
-          updatedExperience = [...(resumeData.sections.experience || [])];
-          const existingEntry = updatedExperience[existingIndex];
-          updatedExperience[existingIndex] = {
-            ...existingEntry,
-            content: `${existingEntry.content}\n• ${item.title}`
+          updatedProjects = [...(resumeData.sections.projects || [])];
+          const entry = updatedProjects[existingIndex];
+          updatedProjects[existingIndex] = {
+            ...entry,
+            content: `${entry.content}\n• ${item.title}`,
           };
-          setMessage({ type: 'success', text: `Added "${item.title}" to ${item.projectName}` });
         } else {
-          // Create new entry with bullet
-          const newExperience = {
-            id: timestamp,
-            title: item.title,
-            company: item.projectName,
-            duration: dateRange,
-            content: `• ${item.title}`
-          };
-          updatedExperience = [...(resumeData.sections.experience || []), newExperience];
-          setMessage({ type: 'success', text: `Added "${item.title}" from ${item.projectName}` });
+          updatedProjects = [
+            ...(resumeData.sections.projects || []),
+            {
+              id: timestamp,
+              title: item.title,
+              company: item.projectName,
+              duration: dateRange,
+              content: `• ${item.title}`,
+            },
+          ];
         }
-        
-        setResumeData(prev => ({
-          ...prev,
-          sections: {
-            ...prev.sections,
-            experience: updatedExperience
-          }
-        }));
-        
-        pushToHistory({
+        const updated = {
           ...resumeData,
-          sections: {
-            ...resumeData.sections,
-            experience: updatedExperience
-          }
-        });
-      } else {
-        // Simple skill addition
-        const newSkill = {
-          id: timestamp,
-          title: item.title
+          sections: { ...resumeData.sections, projects: updatedProjects },
         };
-        
-        setResumeData(prev => ({
-          ...prev,
-          sections: {
-            ...prev.sections,
-            skills: [...(prev.sections.skills || []), newSkill]
-          }
-        }));
-        
-        pushToHistory({
+        setResumeData(updated);
+        pushToHistory(updated);
+        openSection('projects');
+      } else {
+        const newSkill = { id: timestamp, title: item.title };
+        const updated = {
           ...resumeData,
           sections: {
             ...resumeData.sections,
-            skills: [...(resumeData.sections.skills || []), newSkill]
-          }
-        });
-        
-        setMessage({ type: 'success', text: 'Skill added!' });
+            skills: [...(resumeData.sections.skills || []), newSkill],
+          },
+        };
+        setResumeData(updated);
+        pushToHistory(updated);
+        openSection('skills');
       }
     } else if (type === 'bullet') {
-      // Find project to get dates
-      const project = projects.find(p => p.id === item.projectId);
+      const project = projects.find((p) => p.id === item.projectId);
       const projectName = item.projectName || 'Project Work';
-      const dateRange = project 
+      const dateRange = project
         ? getProjectDateRange(project.first_commit_date, project.created_at)
         : 'Present';
-      
-      // Check if experience entry for this project already exists
-      const existingIndex = (resumeData.sections.experience || []).findIndex(
-        exp => exp.title === projectName
+      const existingIndex = (resumeData.sections.projects || []).findIndex(
+        (p) => p.title === projectName
       );
-      
-      let updatedExperience;
-      
+      let updatedProjects;
       if (existingIndex >= 0) {
-        // Append to existing entry
-        updatedExperience = [...(resumeData.sections.experience || [])];
-        const existingEntry = updatedExperience[existingIndex];
-        updatedExperience[existingIndex] = {
-          ...existingEntry,
-          content: `${existingEntry.content}\n• ${item.content}`
+        updatedProjects = [...(resumeData.sections.projects || [])];
+        const entry = updatedProjects[existingIndex];
+        updatedProjects[existingIndex] = {
+          ...entry,
+          content: `${entry.content}\n• ${item.content}`,
         };
-        setMessage({ type: 'success', text: `Added to ${projectName}` });
       } else {
-        // Create new entry with bullet
-        const newExperience = {
-          id: Date.now(),
-          title: projectName,
-          company: '',
-          duration: dateRange,
-          content: `• ${item.content}`
-        };
-        updatedExperience = [...(resumeData.sections.experience || []), newExperience];
-        setMessage({ type: 'success', text: `Added achievement from ${projectName}` });
+        updatedProjects = [
+          ...(resumeData.sections.projects || []),
+          {
+            id: Date.now(),
+            title: projectName,
+            company: '',
+            duration: dateRange,
+            content: `• ${item.content}`,
+          },
+        ];
       }
-      
-      setResumeData(prev => ({
-        ...prev,
-        sections: {
-          ...prev.sections,
-          experience: updatedExperience
-        }
-      }));
-      
-      pushToHistory({
+      const updated = {
         ...resumeData,
-        sections: {
-          ...resumeData.sections,
-          experience: updatedExperience
-        }
-      });
-    }
-  };
-
-  const reorderItems = (sectionType, fromIndex, toIndex) => {
-    setResumeData(prev => {
-      const newData = JSON.parse(JSON.stringify(prev));
-      const items = newData.sections[sectionType];
-      const [movedItem] = items.splice(fromIndex, 1);
-      items.splice(toIndex, 0, movedItem);
-      
-      pushToHistory(newData);
-      return newData;
-    });
-  };
-
-  const exportPDF = async () => {
-    try {
-      const html2pdf = (await import('html2pdf.js')).default;
-      
-      // Wait a moment to ensure all changes are rendered
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const element = document.getElementById('resume-preview');
-      
-      if (!element) {
-        setMessage({ type: 'error', text: 'Resume not found' });
-        return;
-      }
-      
-      // Create a clone of the element to avoid modifying the original
-      const clone = element.cloneNode(true);
-      
-      // Remove all edit controls from clone
-      const editButtons = clone.querySelectorAll('button');
-      editButtons.forEach(btn => btn.remove());
-      
-      // Remove max-height constraint from the clone
-      const wrapper = clone.querySelector('[style*="max-height"]');
-      if (wrapper) {
-        wrapper.style.maxHeight = 'none';
-        wrapper.style.overflow = 'visible';
-      }
-      
-      // Use cleaned resume data
-      const cleanedResume = cleanResumeForExport(resumeData);
-      
-      const options = {
-        margin: [8, 8, 8, 8],
-        filename: `${cleanedResume.name || 'resume'}.pdf`,
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          logging: false,
-          backgroundColor: '#ffffff',
-          allowTaint: true,
-          windowHeight: clone.scrollHeight || 2000
-        },
-        jsPDF: { 
-          orientation: 'portrait', 
-          unit: 'mm', 
-          format: 'a4'
-        },
-        pagebreak: { 
-          mode: ['avoid-all', 'css', 'legacy'] 
-        }
+        sections: { ...resumeData.sections, projects: updatedProjects },
       };
-      
-      const pdf = html2pdf().set(options);
-      await pdf.from(clone).save();
-    } catch (err) {
-      console.error('PDF export error:', err);
-      setMessage({ type: 'error', text: 'Failed to export PDF' });
+      setResumeData(updated);
+      pushToHistory(updated);
+      openSection('projects');
     }
   };
 
-  const exportLatex = async () => {
+  const addProjectBullet = (projectId) => {
+    const project = projects.find((p) => p.id === projectId);
+    if (!project) return;
+    const projectItem = {
+      id: Date.now(),
+      title: project.name,
+      company: project.classification_type || 'Project',
+      duration: '',
+      content: (project.resume_bullet_points || []).join('\n'),
+    };
+    const updated = {
+      ...resumeData,
+      sections: {
+        ...resumeData.sections,
+        projects: [...(resumeData.sections.projects || []), projectItem],
+      },
+    };
+    setResumeData(updated);
+    pushToHistory(updated);
+    setSelectedProjects((prev) => new Set(prev).add(projectId));
+    openSection('projects');
+  };
+
+  // ── PDF generation ───────────────────────────────────────────────────────
+
+  const handleGeneratePDF = async () => {
+    setGenerating(true);
+    setMessage({ type: '', text: '' });
     try {
-      // Clean the resume data before sending
-      const cleanedResume = cleanResumeForExport(resumeData);
-      
-      // First save the cleaned resume to ensure backend has latest edits
-      await generateResume(token, cleanedResume.name || 'My Resume', cleanedResume.sections);
-      
-      // Then generate LaTeX from backend (will use saved data)
-      await generateLatexResume(token);
-      
-      setMessage({ type: 'success', text: 'LaTeX exported successfully' });
+      let activeToken = token;
+      try {
+        await generateRenderCVPdf(activeToken, resumeData, theme);
+      } catch (err) {
+        if (err.message?.includes('401')) {
+          activeToken = await refreshAccessToken();
+          if (!activeToken) throw new Error('Session expired. Please log in again.');
+          await generateRenderCVPdf(activeToken, resumeData, theme);
+        } else {
+          throw err;
+        }
+      }
+      setMessage({ type: 'success', text: 'PDF downloaded!' });
     } catch (err) {
-      console.error('LaTeX export error:', err);
-      setMessage({ type: 'error', text: 'Failed to export LaTeX' });
+      console.error('PDF generation error:', err);
+      setMessage({ type: 'error', text: err.message || 'Failed to generate PDF.' });
+    } finally {
+      setGenerating(false);
     }
   };
+
+  const handleDownloadYAML = async () => {
+    try {
+      let activeToken = token;
+      try {
+        await downloadRenderCVYaml(activeToken, resumeData, theme);
+      } catch (err) {
+        if (err.message?.includes('401')) {
+          activeToken = await refreshAccessToken();
+          if (!activeToken) throw new Error('Session expired. Please log in again.');
+          await downloadRenderCVYaml(activeToken, resumeData, theme);
+        } else {
+          throw err;
+        }
+      }
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message || 'Failed to download YAML.' });
+    }
+  };
+
+  // ── render ───────────────────────────────────────────────────────────────
 
   if (loading) {
     return (
-      <div className={styles.container}>
+      <div className={styles.page}>
         <Header />
         <div className={styles.loadingContainer}>
-          <p>Loading resume builder...</p>
+          <div className={styles.spinner} />
+          <p>Loading resume builder…</p>
         </div>
       </div>
     );
   }
 
+  const sec = resumeData.sections;
+
   return (
-    <div className={styles.container}>
+    <div className={styles.page}>
       <Header />
-      
       {message.text && (
-        <Toast 
-          message={message.text} 
-          type={message.type} 
+        <Toast
+          message={message.text}
+          type={message.type}
           onClose={() => setMessage({ type: '', text: '' })}
         />
       )}
 
-      <div className={styles.resumePageContainer}>
-        {/* Left Sidebar - Projects Panel */}
-        <div className={styles.leftSidebar}>
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidePanelHeader}>
-              <h3>Templates</h3>
-            </div>
-            <div className={styles.templateNav}>
-              <button onClick={prevTemplate} className={styles.navButton}>← Prev</button>
-              <div className={styles.templateName}>{currentTemplate?.name || 'Select'}</div>
-              <button onClick={nextTemplate} className={styles.navButton}>Next →</button>
-            </div>
-          </div>
-
-          <div className={styles.sidebarDivider} />
-
-          <div className={styles.sidebarSection}>
-            <div className={styles.sidePanelHeader}>
-              <h3>Edit Controls</h3>
-            </div>
-            <div className={styles.controlsGroup}>
-              <button 
-                onClick={undo} 
-                disabled={historyIndex <= 0}
-                className={styles.controlBtn}
-                title="Undo (Ctrl+Z)"
-              >
-                ↶ Undo
-              </button>
-              <button 
-                onClick={redo} 
-                disabled={historyIndex >= history.length - 1}
-                className={styles.controlBtn}
-                title="Redo (Ctrl+Y)"
-              >
-                ↷ Redo
-              </button>
-            </div>
-          </div>
-
-          <div className={styles.sidebarDivider} />
-
-          <ProjectsPanel 
+      <div className={styles.layout}>
+        {/* ── Left: Projects Panel ── */}
+        <aside className={styles.sidebar} key="sidebar" style={{ width: sidebarWidth }}>
+          <ProjectsPanel
             projects={projects}
             onAddItem={handleQuickAdd}
           />
-        </div>
+        </aside>
 
-        {/* Main Resume Editor - Center */}
-        <div className={styles.mainResume}>
-          <div 
-            className={styles.resumeEditorWrapper} 
-            id="resume-preview"
-            onDragOver={handleDragOver}
-          >
-            <TemplateComponent
-              data={resumeData}
-              onEdit={updateResumeData}
-              onAddSection={addSection}
-              onRemoveSection={removeSection}
-              onDeleteContent={(path) => updateResumeData(path, '')}
-              editingPath={editingPath}
-              setEditingPath={setEditingPath}
-              onDropSkill={handleDropSkill}
-              onDropExperience={handleDropExperience}
-              onReorder={reorderItems}
+        {/* drag handle: sidebar ↔ editor */}
+        <div
+          className={styles.dragHandle}
+          onMouseDown={startDrag('left')}
+          title="Drag to resize"
+        />
+
+        {/* ── Center: Form Editor ── */}
+        <main
+          className={styles.editor}
+          onDragOver={handleDragOver}
+          onDrop={(e) => {
+            try {
+              const data = JSON.parse(e.dataTransfer.getData('application/json'));
+              if (data.type === 'skill') handleDropSkill(e);
+              else handleDropExperience(e);
+            } catch { handleDropExperience(e); }
+          }}
+        >
+          {/* Toolbar */}
+          <div className={styles.toolbar}>
+            <div className={styles.toolbarLeft}>
+              <button
+                className={styles.toolbarBtn}
+                onClick={undo}
+                disabled={historyIndex <= 0}
+                title="Undo (Ctrl+Z)"
+              >
+                ↩ Undo
+              </button>
+              <button
+                className={styles.toolbarBtn}
+                onClick={redo}
+                disabled={historyIndex >= history.length - 1}
+                title="Redo (Ctrl+Y)"
+              >
+                ↪ Redo
+              </button>
+            </div>
+            <div className={styles.toolbarRight}>
+              <label className={styles.themeLabel}>Theme:</label>
+              <select
+                className={styles.themeSelect}
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
+              >
+                {THEMES.map((t) => (
+                  <option key={t.value} value={t.value}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                className={styles.yamlBtn}
+                onClick={handleDownloadYAML}
+                title="Download RenderCV YAML"
+              >
+                ↓ YAML
+              </button>
+              <button
+                className={`${styles.generateBtn} ${generating ? styles.generating : ''}`}
+                onClick={handleGeneratePDF}
+                disabled={generating}
+              >
+                {generating ? (
+                  <>
+                    <span className={styles.btnSpinner} /> Generating…
+                  </>
+                ) : (
+                  '⬇ Generate PDF'
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Personal Info */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Personal Info"
+              collapsed={collapsed.personal}
+              onToggle={() => toggleSection('personal')}
             />
-          </div>
+            {!collapsed.personal && (
+              <div className={styles.personalGrid}>
+                {[
+                  { key: 'name', placeholder: 'Full Name' },
+                  { key: 'email', placeholder: 'Email' },
+                  { key: 'phone', placeholder: 'Phone (e.g. 1234567890)' },
+                  { key: 'location', placeholder: 'City, State' },
+                  { key: 'github_url', placeholder: 'GitHub URL' },
+                  { key: 'linkedin_url', placeholder: 'LinkedIn URL' },
+                  { key: 'portfolio_url', placeholder: 'Portfolio URL' },
+                ].map(({ key, placeholder }) => (
+                  <input
+                    key={key}
+                    type={key === 'phone' ? 'tel' : 'text'}
+                    className={styles.personalInput}
+                    value={resumeData[key] || ''}
+                    onChange={(e) => {
+                      if (key === 'phone') {
+                        // only allow digits, +, spaces, dashes, parens
+                        const val = e.target.value.replace(/[^\d+\s()\-]/g, '');
+                        updatePersonal('phone', val);
+                      } else {
+                        updatePersonal(key, e.target.value);
+                      }
+                    }}
+                    onBlur={key === 'phone' ? handlePhoneBlur : flushPersonal}
+                    placeholder={placeholder}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
 
-          <div className={styles.exportButtons}>
-            <button onClick={saveResume} className={styles.btn}>💾 Save</button>
-            <button onClick={exportPDF} className={styles.btn}>📄 PDF</button>
-            <button onClick={exportLatex} className={styles.btn}>📝 LaTeX</button>
-          </div>
-        </div>
+          {/* Education */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Education"
+              collapsed={collapsed.education}
+              onToggle={() => toggleSection('education')}
+              onAdd={() => addEntry('education')}
+            />
+            {!collapsed.education && sec.education.length === 0 && (
+              <p className={styles.emptyHint}>No education entries yet — click + Add</p>
+            )}
+            {!collapsed.education &&
+              sec.education.map((item) => (
+                <EntryCard
+                  key={item.id}
+                  item={item}
+                  onUpdate={(u) => updateEntry('education', u)}
+                  onRemove={() => removeEntry('education', item.id)}
+                  fields={[
+                    { key: 'title', placeholder: 'School / University' },
+                    {
+                      key: 'degree_type',
+                      placeholder: 'Degree Type',
+                      type: 'select',
+                      options: ['B.Sc.', 'B.A.', 'B.Eng.', 'B.Com.', 'M.Sc.', 'M.A.', 'M.Eng.', 'MBA', 'Ph.D.', 'J.D.', 'M.D.'],
+                    },
+                    { key: 'company', placeholder: 'Major / Field of Study' },
+                    { key: 'duration', placeholder: 'Date Range' },
+                  ]}
+                />
+              ))}
+          </section>
+
+          {/* Experience */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Experience"
+              collapsed={collapsed.experience}
+              onToggle={() => toggleSection('experience')}
+              onAdd={() => addEntry('experience')}
+            />
+            {!collapsed.experience && sec.experience.length === 0 && (
+              <p className={styles.emptyHint}>No experience entries yet — click + Add</p>
+            )}
+            {!collapsed.experience &&
+              sec.experience.map((item) => (
+                <EntryCard
+                  key={item.id}
+                  item={item}
+                  onUpdate={(u) => updateEntry('experience', u)}
+                  onRemove={() => removeEntry('experience', item.id)}
+                  fields={[
+                    { key: 'title', placeholder: 'Job Title' },
+                    { key: 'company', placeholder: 'Company' },
+                    { key: 'duration', placeholder: 'Date Range' },
+                  ]}
+                />
+              ))}
+          </section>
+
+          {/* Projects (drop zone) */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Projects"
+              collapsed={collapsed.projects}
+              onToggle={() => toggleSection('projects')}
+              onAdd={() => addEntry('projects')}
+            />
+            {!collapsed.projects && (
+              <>
+                {sec.projects.length === 0 && (
+                  <p className={styles.emptyHint}>
+                    No projects yet — drag items from the left panel or click + Add
+                  </p>
+                )}
+                {sec.projects.map((item) => (
+                  <EntryCard
+                    key={item.id}
+                    item={item}
+                    onUpdate={(u) => updateEntry('projects', u)}
+                    onRemove={() => removeEntry('projects', item.id)}
+                    fields={[
+                      { key: 'title', placeholder: 'Project Name' },
+                      { key: 'company', placeholder: 'Technologies Used' },
+                      { key: 'duration', placeholder: 'Date Range' },
+                    ]}
+                  />
+                ))}
+              </>
+            )}
+          </section>
+
+          {/* Skills */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Skills"
+              collapsed={collapsed.skills}
+              onToggle={() => toggleSection('skills')}
+              onAdd={() => {
+                const newSkill = { id: Date.now(), title: '' };
+                const updated = {
+                  ...resumeData,
+                  sections: {
+                    ...sec,
+                    skills: [...sec.skills, newSkill],
+                  },
+                };
+                setResumeData(updated);
+                pushToHistory(updated);
+              }}
+            />
+            {!collapsed.skills && sec.skills.length === 0 && (
+              <p className={styles.emptyHint}>No skills yet — drag from the panel or click + Add</p>
+            )}
+            {!collapsed.skills && (
+              <div className={styles.skillsGrid}>
+                {sec.skills.map((skill) => (
+                  <div key={skill.id} className={styles.skillChip}>
+                    <input
+                      className={styles.skillInput}
+                      value={skill.title || ''}
+                      onChange={(e) => {
+                        const items = sec.skills.map((s) =>
+                          s.id === skill.id ? { ...s, title: e.target.value } : s
+                        );
+                        setResumeData((prev) => ({
+                          ...prev,
+                          sections: { ...prev.sections, skills: items },
+                        }));
+                      }}
+                      onBlur={flushPersonal}
+                      placeholder="Skill"
+                    />
+                    <button
+                      className={styles.removeSkillBtn}
+                      onClick={() => removeEntry('skills', skill.id)}
+                      type="button"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Certifications */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Certifications"
+              collapsed={collapsed.certifications}
+              onToggle={() => toggleSection('certifications')}
+              onAdd={() => addEntry('certifications')}
+            />
+            {!collapsed.certifications && sec.certifications.length === 0 && (
+              <p className={styles.emptyHint}>No certifications yet — click + Add</p>
+            )}
+            {!collapsed.certifications &&
+              sec.certifications.map((item) => (
+                <EntryCard
+                  key={item.id}
+                  item={item}
+                  onUpdate={(u) => updateEntry('certifications', u)}
+                  onRemove={() => removeEntry('certifications', item.id)}
+                  fields={[
+                    { key: 'title', placeholder: 'Certification Name' },
+                    { key: 'company', placeholder: 'Issuing Organization' },
+                    { key: 'duration', placeholder: 'Date' },
+                  ]}
+                />
+              ))}
+          </section>
+        </main>
+
+        {/* drag handle: editor ↔ preview */}
+        <div
+          className={`${styles.dragHandle} ${styles.previewHandle}`}
+          onMouseDown={startDrag('right')}
+          title="Drag to resize"
+        />
+
+        {/* ── Right: Live Preview ── */}
+        <aside className={styles.previewPanel} style={{ width: previewWidth }}>
+          <div className={styles.previewHeader}>Preview</div>
+          <ResumePreview resumeData={resumeData} />
+        </aside>
       </div>
     </div>
   );

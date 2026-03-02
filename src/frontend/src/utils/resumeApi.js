@@ -161,3 +161,87 @@ export const updateResume = async (token, resumeId, name, content) => {
 
   return response.json();
 };
+
+/**
+ * Generate a PDF via RenderCV and trigger a browser download.
+ * @param {string} token  - JWT access token
+ * @param {object} resumeData - frontend resumeData state object
+ * @param {string} theme  - "classic" | "moderncv" | "engineeringclassic" | "sb2nov"
+ */
+export const generateRenderCVPdf = async (token, resumeData, theme = 'classic') => {
+  const response = await fetch(`${config.API_URL}/api/resume/render-pdf/`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ resumeData, theme }),
+  });
+
+  if (!response.ok) {
+    let message = `Failed to generate PDF: ${response.status}`;
+    try {
+      const body = await response.json();
+      if (body?.error) message = body.error;
+    } catch (_) { /* ignore parse errors */ }
+    throw new Error(message);
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'resume.pdf';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};
+
+/**
+ * Fetch all aggregated skills (languages + frameworks) for the authenticated user.
+ * Returns { languages:[{name, project_count}], frameworks:[{name, project_count}], total_projects }
+ */
+export const getSkills = async (token) => {
+  const response = await fetch(`${config.API_URL}/api/skills/`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch skills: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+/**
+ * Download the raw RenderCV YAML for the current resume (for debugging).
+ */
+export const downloadRenderCVYaml = async (token, resumeData, theme = 'classic') => {
+  const response = await fetch(`${config.API_URL}/api/resume/render-yaml/`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ resumeData, theme }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch YAML: ${response.status}`);
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'resume.yaml';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(url);
+};

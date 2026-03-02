@@ -10,15 +10,17 @@ import config from '@/config';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, token, user, setCurrentUser } = useAuth();
+  const { isAuthenticated, token, user, setCurrentUser, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
+  const [evaluations, setEvaluations] = useState([]);
   const [skills, setSkills] = useState({
     languages: {},
     frameworks: {},
   });
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -68,6 +70,19 @@ export default function DashboardPage() {
             frameworks: frameworkCount,
           });
         }
+
+        // Fetch evaluations
+        try {
+          const evalResponse = await fetch(`${config.API_URL}/api/evaluations/`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (evalResponse.ok) {
+            const evalData = await evalResponse.json();
+            setEvaluations(evalData.evaluations || []);
+          }
+        } catch (err) {
+          console.log('Evaluations not available:', err);
+        }
       } catch (err) {
         console.log('Error fetching data:', err);
       } finally {
@@ -76,8 +91,39 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, []);
+  }, [authLoading, isAuthenticated, token, router]);
 
+  const getGrade = (score) => {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  };
+
+  const getGradeColor = (score) => {
+    if (score >= 90) return 'text-green-400';
+    if (score >= 80) return 'text-blue-400';
+    if (score >= 70) return 'text-yellow-400';
+    if (score >= 60) return 'text-orange-400';
+    return 'text-red-400';
+  };
+
+  const getGradeBg = (score) => {
+    if (score >= 90) return 'bg-green-500/20 border-green-500/30';
+    if (score >= 80) return 'bg-blue-500/20 border-blue-500/30';
+    if (score >= 70) return 'bg-yellow-500/20 border-yellow-500/30';
+    if (score >= 60) return 'bg-orange-500/20 border-orange-500/30';
+    return 'bg-red-500/20 border-red-500/30';
+  };
+
+  const avgScore = evaluations.length > 0
+    ? evaluations.reduce((sum, e) => sum + e.overall_score, 0) / evaluations.length
+    : null;
+
+  const getEvalForProject = (projectId) => {
+    return evaluations.find(e => e.project_id === projectId);
+  };
   if (loading) {
     return (
       <>
@@ -125,10 +171,13 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Profile Links */}
-                <div className="space-y-2 mb-6 border-t border-white/10 pt-6">
+                <div className="space-y-2 mb-6 pt-6" style={{ borderTop: '1px solid #27272a' }}>
                   <Link
                     href="/profile"
-                    className="block w-full px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-center transition-colors text-sm"
+                    className="block w-full px-4 py-2 rounded-lg text-white font-medium text-center transition-colors text-sm"
+                    style={{ background: '#4f7cf7' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#3b6ce4'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = '#4f7cf7'}
                   >
                     Edit Profile
                   </Link>
@@ -143,7 +192,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Skills Breakdown */}
-                <div className="border-t border-white/10 pt-6">
+                <div className="pt-6" style={{ borderTop: '1px solid #27272a' }}>
                   <h3 className="text-lg font-semibold text-white mb-4">Skills Insights</h3>
 
                   {/* Languages */}
@@ -186,7 +235,7 @@ export default function DashboardPage() {
             {/* Right Content - Main Area */}
             <div className="lg:col-span-3 space-y-6">
               {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
                   <p className="text-white/60 text-sm mb-1">Total Projects</p>
                   <p className="text-3xl font-bold text-white">{projects.length}</p>
@@ -199,6 +248,17 @@ export default function DashboardPage() {
                   <p className="text-white/60 text-sm mb-1">Frameworks Used</p>
                   <p className="text-3xl font-bold text-white">{Object.keys(skills.frameworks).length}</p>
                 </div>
+                <div className="bg-[var(--card-bg)] rounded-lg p-4">
+                  <p className="text-white/60 text-sm mb-1">Avg Quality Score</p>
+                  {avgScore !== null ? (
+                    <div className="flex items-baseline gap-2">
+                      <p className={`text-3xl font-bold ${getGradeColor(avgScore)}`}>{getGrade(avgScore)}</p>
+                      <p className="text-white/60 text-sm">{avgScore.toFixed(1)}%</p>
+                    </div>
+                  ) : (
+                    <p className="text-white/40 text-sm mt-1">No evaluations yet</p>
+                  )}
+                </div>
               </div>
 
               {/* Previous Projects - Scrollable Carousel */}
@@ -210,10 +270,13 @@ export default function DashboardPage() {
                       <Link
                         key={project.id}
                         href={`/projects/${project.id}`}
-                        className="flex-shrink-0 w-72 bg-gradient-to-br from-blue-500/20 to-purple-500/20 border border-white/20 rounded-lg overflow-hidden snap-start hover:border-white/40 transition-colors"
+                        className="flex-shrink-0 w-72 rounded-lg overflow-hidden snap-start transition-colors"
+                        style={{ background: 'rgba(79, 124, 247, 0.08)', border: '1px solid #27272a' }}
+                        onMouseEnter={(e) => e.currentTarget.style.borderColor = '#4f7cf7'}
+                        onMouseLeave={(e) => e.currentTarget.style.borderColor = '#27272a'}
                       >
                         {/* Thumbnail */}
-                        <div className="h-40 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden">
+                        <div className="relative h-40 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden">
                           {project.thumbnail_url ? (
                             <img
                               src={project.thumbnail_url}
@@ -222,6 +285,12 @@ export default function DashboardPage() {
                             />
                           ) : (
                             <span className="text-4xl">📁</span>
+                          )}
+                          {/* Grade Badge */}
+                          {getEvalForProject(project.id) && (
+                            <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold border ${getGradeBg(getEvalForProject(project.id).overall_score)} ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
+                              {getGrade(getEvalForProject(project.id).overall_score)} · {getEvalForProject(project.id).overall_score.toFixed(0)}%
+                            </div>
                           )}
                         </div>
                         
@@ -262,7 +331,8 @@ export default function DashboardPage() {
                     <p className="text-white/60 mb-4">No projects uploaded yet</p>
                     <Link
                       href="/upload"
-                      className="inline-block px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded transition-colors"
+                      className="inline-block px-4 py-2 text-white font-medium rounded transition-colors"
+                      style={{ background: '#4f7cf7' }}
                     >
                       Upload Your First Project
                     </Link>
@@ -271,12 +341,13 @@ export default function DashboardPage() {
               </div>
 
               {/* Upload New Project Section */}
-              <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-lg p-6">
+              <div className="rounded-lg p-6" style={{ background: 'rgba(79, 124, 247, 0.08)', border: '1px solid rgba(79, 124, 247, 0.15)' }}>
                 <h2 className="text-2xl font-bold text-white mb-2">Analyze a New Project</h2>
                 <p className="text-white/70 mb-4">Upload your portfolio to extract skills, frameworks, and get AI-powered insights</p>
                 <Link
                   href="/upload"
-                  className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                  className="inline-block px-6 py-3 text-white font-semibold rounded-lg transition-colors"
+                  style={{ background: '#4f7cf7' }}
                 >
                   Upload Portfolio
                 </Link>

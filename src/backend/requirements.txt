@@ -14,3 +14,5 @@ pytest
 pytest-django
 django-cors-headers
 Pillow
+rendercv[full]
+pyyaml

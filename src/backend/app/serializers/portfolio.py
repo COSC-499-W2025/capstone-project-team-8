@@ -117,13 +117,14 @@ class PortfolioGenerateSerializer(serializers.Serializer):
         required=False,
         default=list
     )
-    is_public = serializers.BooleanField(default=False)
-    target_audience = serializers.CharField(max_length=100, required=False, default='')
+    is_public = serializers.BooleanField(default=False, required=False)
+    target_audience = serializers.CharField(max_length=100, required=False, default='general audience')
     tone = serializers.ChoiceField(
         choices=['professional', 'casual', 'technical', 'creative'],
-        default='professional'
+        default='professional',
+        required=False
     )
-    generate_summary = serializers.BooleanField(default=True)
+    generate_summary = serializers.BooleanField(default=True, required=False)
     
     def validate_slug(self, value):
         # Just slugify; uniqueness is handled by the view with auto-increment
