@@ -350,6 +350,7 @@ Overall I am very happy with the progress made and the project itself. Things co
 
 ## February 8-March 1
 
+<img width="1087" height="638" alt="February8-March1" src="https://github.com/user-attachments/assets/808c681e-8b89-4f66-91d6-081833e81eb8" />
 
 - Implemented additional features for resume builder
 - Users can now chose from multiple templates for their resume
