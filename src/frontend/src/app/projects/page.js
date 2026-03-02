@@ -9,7 +9,7 @@ import config from '@/config';
 
 export default function ProjectsPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,6 +19,7 @@ export default function ProjectsPage() {
   const [deletingProject, setDeletingProject] = useState(null);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -47,7 +48,7 @@ export default function ProjectsPage() {
     };
 
     fetchProjects();
-  }, [isAuthenticated, token, router]);
+  }, [authLoading, isAuthenticated, token, router]);
 
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';

@@ -10,7 +10,7 @@ import config from '@/config';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { isAuthenticated, token, user, setCurrentUser } = useAuth();
+  const { isAuthenticated, token, user, setCurrentUser, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
   const [skills, setSkills] = useState({
@@ -19,6 +19,7 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -76,7 +77,7 @@ export default function DashboardPage() {
     };
 
     fetchData();
-  }, []);
+  }, [authLoading, isAuthenticated, token, router]);
 
   if (loading) {
     return (
