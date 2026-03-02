@@ -10,7 +10,7 @@ import config from '@/config';
 export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,6 +19,7 @@ export default function ProjectDetailPage() {
   const [evalLoading, setEvalLoading] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -53,7 +54,7 @@ export default function ProjectDetailPage() {
       fetchProject();
       fetchEvaluation();
     }
-  }, [isAuthenticated, token, router, params.id]);
+  }, [authLoading, isAuthenticated, token, router, params.id]);
 
   const fetchEvaluation = async () => {
     setEvalLoading(true);

@@ -11,7 +11,7 @@ import config from '@/config';
 export default function EditPortfolioPage() {
   const router = useRouter();
   const params = useParams();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -35,6 +35,7 @@ export default function EditPortfolioPage() {
   const portfolioId = params.id;
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -90,7 +91,7 @@ export default function EditPortfolioPage() {
     };
 
     fetchData();
-  }, [isAuthenticated, token, portfolioId, router]);
+  }, [authLoading, isAuthenticated, token, portfolioId, router]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
