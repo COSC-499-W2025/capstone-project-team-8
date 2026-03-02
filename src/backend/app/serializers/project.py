@@ -29,10 +29,18 @@ class ProjectDetailSerializer(serializers.Serializer):
     files = serializers.ListField()
 
 
+VALID_USER_ROLES = [
+    'solo_developer', 'lead_developer', 'contributor',
+    'frontend_developer', 'backend_developer', 'full_stack_developer',
+    'designer', 'writer', 'architect', 'other',
+]
+
+
 class ProjectUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(required=False)
     description = serializers.CharField(required=False, allow_blank=True)
     classification = serializers.CharField(required=False)
+    user_role = serializers.ChoiceField(choices=VALID_USER_ROLES, required=False)
 
 
 class ProjectStatsSerializer(serializers.Serializer):

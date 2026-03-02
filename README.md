@@ -2,6 +2,8 @@
 
 A web application that enables users to upload, scan, and analyze their work artifacts. The app helps organize and showcase selected files via a dashboard, allowing users to export a portfolio folder for employers to review their skills and growth.
 
+<img width="1891" height="939" alt="image" src="https://github.com/user-attachments/assets/7f354905-3b3d-442f-8a18-6709c0a0a5e0" />
+
 - **Course:** COSC 499 (Winter 2025)  
 - **Team:** Team 8
 - **Team Members**:
