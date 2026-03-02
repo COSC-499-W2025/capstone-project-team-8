@@ -1,7 +1,8 @@
 # Charlie Schwebius' weekly logs
 
 ### Milestone 2
-| [Week 1](#milestone-2-week-1-jan-5---jan-11) | [Week 2](#milestone-2-week-2-jan-12-18) | [Week 3](#milestone-2-week-3-jan-19-25) | [Week 4-5](#milestone-2-week-4-5-jan-26-feb-8)
+| [Week 1](#milestone-2-week-1-jan-5---jan-11) | [Week 2](#milestone-2-week-2-jan-12-18) | [Week 3](#milestone-2-week-3-jan-19-25) | [Week 4-5](#milestone-2-week-4-5-jan-26-feb-8) | 
+[Week 6-7-8](#milestone-2-week-6-7-8-feb-9-mar-1)
 
 
 ### Milestone 1
@@ -353,4 +354,8 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 
 #### Issues
 - Nothing major comes to mind, was able to work quickly with minimal troubleshooting this week.
+
+## Milestone 2 Week 6-7-8 (Feb 9 - Mar 1)
+
+<img width="1886" height="1088" alt="image" src="https://github.com/user-attachments/assets/1e38e50e-4902-4e6f-92fe-47d7fedbaf08" />
 
