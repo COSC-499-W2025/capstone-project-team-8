@@ -98,6 +98,25 @@ export default function ProjectsPage() {
     return evaluations.find(e => e.project_id === projectId);
   };
 
+  // Fetch evaluations
+  useEffect(() => {
+    if (!isAuthenticated || !token) return;
+    const fetchEvaluations = async () => {
+      try {
+        const response = await fetch(`${config.API_URL}/api/evaluations/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setEvaluations(data.evaluations || []);
+        }
+      } catch (err) {
+        console.log('Evaluations not available');
+      }
+    };
+    fetchEvaluations();
+  }, [isAuthenticated, token]);
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
