@@ -48,17 +48,17 @@ export default function ThumbnailUpload({ onUpload }) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Portfolio Thumbnail</h3>
+    <div className="rounded-lg p-6" style={{ background: '#18181b', border: '1px solid #27272a' }}>
+      <h3 className="text-lg font-semibold text-white mb-4">Portfolio Thumbnail</h3>
 
       {preview ? (
         <div className="space-y-4">
           <div className="relative">
-            <img src={preview} alt="Thumbnail preview" className="w-full h-48 object-cover rounded-lg border border-gray-200" />
+            <img src={preview} alt="Thumbnail preview" className="w-full h-48 object-cover rounded-lg" style={{ border: '1px solid #27272a' }} />
           </div>
           <button
             onClick={clearThumbnail}
-            className="w-full px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+            className="w-full px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
           >
             Remove Thumbnail
           </button>
@@ -70,7 +70,7 @@ export default function ThumbnailUpload({ onUpload }) {
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            isDragging ? 'border-indigo-500 bg-indigo-50' : 'border-gray-300 hover:border-indigo-400'
+            isDragging ? 'border-blue-400 bg-blue-500/10' : 'border-white/20 hover:border-white/40'
           }`}
         >
           <input
@@ -81,10 +81,10 @@ export default function ThumbnailUpload({ onUpload }) {
             className="hidden"
           />
 
-          <div className="text-gray-600">
+          <div>
             <p className="text-4xl mb-2">🖼️</p>
-            <p className="font-semibold mb-1">Upload a thumbnail</p>
-            <p className="text-sm">Drag and drop or click to browse</p>
+            <p className="font-semibold mb-1 text-white">Upload a thumbnail</p>
+            <p className="text-sm" style={{ color: '#a1a1aa' }}>Drag and drop or click to browse</p>
           </div>
         </div>
       )}

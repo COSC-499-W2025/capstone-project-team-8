@@ -10,7 +10,7 @@ import config from '@/config';
 export default function ProjectDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -19,6 +19,7 @@ export default function ProjectDetailPage() {
   const [evalLoading, setEvalLoading] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -53,7 +54,7 @@ export default function ProjectDetailPage() {
       fetchProject();
       fetchEvaluation();
     }
-  }, [isAuthenticated, token, router, params.id]);
+  }, [authLoading, isAuthenticated, token, router, params.id]);
 
   const fetchEvaluation = async () => {
     setEvalLoading(true);
@@ -321,6 +322,8 @@ export default function ProjectDetailPage() {
             <div className="flex flex-wrap items-center gap-0 border-t border-b border-white/10 text-[11px] uppercase tracking-widest">
               {[
                 { label: 'First Commit', value: project.first_commit_date ? new Date(project.first_commit_date * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
+                { label: 'Created', value: project.created_at ? new Date(project.created_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
+                { label: 'Last Updated', value: project.updated_at ? new Date(project.updated_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
                 { label: 'Total Files', value: project.total_files ?? 0 },
                 { label: 'Contributors', value: project.contributors?.length ?? 0 },
                 { label: 'Commits', value: project.contributors?.reduce((s, c) => s + (c.commits || 0), 0) || 0 },
@@ -384,6 +387,21 @@ export default function ProjectDetailPage() {
                 )}
               </div>
             </div>
+
+            {/* User Role Section */}
+            {project.user_role && (
+              <div className="px-5 py-4 border-t border-white/10">
+                <p className="text-xs uppercase tracking-widest text-white/70 mb-3 font-black">Your Role in Project</p>
+                <div className="flex items-center gap-3">
+                  <p className="text-lg font-black text-white capitalize">
+                    {project.user_role.replace(/_/g, ' ')}
+                  </p>
+                  <span className="px-3 py-1 bg-blue-500/20 text-blue-300 rounded text-[10px] font-bold tracking-widest uppercase border border-blue-500/30">
+                    {project.user_role.replace(/_/g, ' ')}
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Contributor distribution bar */}
             {project.contributors && project.contributors.length > 0 && (() => {
