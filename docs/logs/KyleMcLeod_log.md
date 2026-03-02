@@ -17,7 +17,7 @@
 - [T2 Week 2 (Jan 12–16)](#week-16-january-12-16)
 - [T2 Week 3 (Jan 19-23)](#week-17-january-19-23)
 - [T2 Week 4-5 (Jan 26-Feb 6)](#week-18--19-january-26---february-6)
-- [T2 Week 6-7-8 (Feb 9-27)](#week-20--21--22-february-9-27)
+- [T2 Week 6–7–8 (Feb 9–27)](#week-20--21--22-february-9---27)
 
 
 ## Week 3 September 15-21
