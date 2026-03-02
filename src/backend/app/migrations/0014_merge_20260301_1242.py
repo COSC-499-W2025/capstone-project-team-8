@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("app", "0013_add_user_role_to_project"),
         ("app", "0013_projectevaluation"),
+        ("app", "0013_add_portfolio_stats_fields"),
     ]
 
     operations = []
