@@ -306,6 +306,7 @@ This week:
 - reviewed harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/294
 - reviewed harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/295
 - reviewed matins PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/299
+- review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/304
   
 What went well:
 - lots of small manageable PR's
