@@ -331,6 +331,8 @@ The majority of our system can now be used through our user interface and we are
 ## Week 9 Mar 02-08
 
 This week:
+- added information to the portfolio page PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/313
+- review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315
 - review jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/312
 
 What went well:
