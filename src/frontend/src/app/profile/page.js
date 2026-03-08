@@ -105,6 +105,19 @@ export default function ProfilePage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleGraduationDateChange = (e) => {
+    const { value } = e.target;
+    if (value) {
+      const year = new Date(value).getFullYear();
+      const currentYear = new Date().getFullYear();
+      if (year < currentYear - 10 || year > currentYear + 20) {
+        setMessage({ type: 'error', text: 'Please enter a reasonable graduation year' });
+        return;
+      }
+    }
+    setFormData(prev => ({ ...prev, expected_graduation: value }));
+  };
+
   const handlePasswordChange = (e) => {
     const { name, value } = e.target;
     setPasswordData(prev => ({ ...prev, [name]: value }));
@@ -540,7 +553,9 @@ export default function ProfilePage() {
                       type="date"
                       name="expected_graduation"
                       value={formData.expected_graduation}
-                      onChange={handleInputChange}
+                      onChange={handleGraduationDateChange}
+                      min={`${new Date().getFullYear() - 10}-01-01`}
+                      max={`${new Date().getFullYear() + 20}-12-31`}
                       className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
                     />
                   </div>
