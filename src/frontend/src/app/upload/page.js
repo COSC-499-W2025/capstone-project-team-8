@@ -8,6 +8,7 @@ import { uploadFolder } from '@/utils/api';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import LoadingAnimation from '@/components/LoadingAnimation';
+import { addNewProject, addNewProjects, clearNewProjects } from '@/utils/newProjectsSession';
 import config from '@/config';
 
 export default function UploadPage() {
@@ -111,7 +112,55 @@ export default function UploadPage() {
     setMessage({ type: '', text: '' });
 
     try {
-      await uploadFolder(selectedFile, scanConsent, llmConsent, token, selectedProject);
+      // Clear previous "new" tags when uploading new files
+      clearNewProjects();
+      
+      const response = await uploadFolder(selectedFile, scanConsent, llmConsent, token, selectedProject);
+      
+      console.log('Upload response:', response);
+      
+      // Extract project IDs from response and mark as new
+      const newProjectIds = [];
+      
+      // Try multiple ways the API might return project ID(s)
+      if (response.project_id) {
+        newProjectIds.push(response.project_id);
+      }
+      if (response.project && response.project.id) {
+        newProjectIds.push(response.project.id);
+      }
+      if (response.id) {
+        newProjectIds.push(response.id);
+      }
+      if (selectedProject) {
+        // If we selected an existing project, mark it as updated (new)
+        newProjectIds.push(selectedProject);
+      }
+      
+      // Add all new project IDs
+      if (newProjectIds.length > 0) {
+        console.log('Adding new projects:', newProjectIds);
+        addNewProjects(newProjectIds);
+      } else {
+        console.log('No project IDs found in response, checking fetch...');
+        // If nothing worked, fetch fresh projects to get IDs
+        try {
+          const projectsResponse = await fetch(`${config.API_URL}/api/projects/`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (projectsResponse.ok) {
+            const projectsData = await projectsResponse.json();
+            const allProjects = projectsData.projects || [];
+            if (allProjects.length > 0) {
+              const latestProject = allProjects[allProjects.length - 1];
+              console.log('Latest project:', latestProject);
+              addNewProject(latestProject.id);
+            }
+          }
+        } catch (err) {
+          console.log('Error fetching projects:', err);
+        }
+      }
       
       let successMessage = 'Portfolio uploaded and analysis started!';
       if (selectedProject) {
