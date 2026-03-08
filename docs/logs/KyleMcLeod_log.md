@@ -18,6 +18,7 @@
 - [T2 Week 3 (Jan 19-23)](#week-17-january-19-23)
 - [T2 Week 4-5 (Jan 26-Feb 6)](#week-18--19-january-26---february-6)
 - [T2 Week 6–7–8 (Feb 9–27)](#week-20--21--22-february-9---27)
+- [T2 Week 9 (Mar 02-08)](#week-9-mar-02-08)
 
 
 ## Week 3 September 15-21
@@ -326,4 +327,18 @@ Next week:
 
 Reflection:
 The majority of our system can now be used through our user interface and we are close to having a working product. We will continue to fix bugs and refine the accuracy of our system and implement additional features for the last couple months.
+
+## Week 9 Mar 02-08
+
+This week:
+  
+What went well:
+
+What went wrong:
+
+Next week:
+
+
+Reflection:
+
 
