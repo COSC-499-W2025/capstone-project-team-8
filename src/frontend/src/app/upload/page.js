@@ -115,51 +115,55 @@ export default function UploadPage() {
       // Clear previous "new" tags when uploading new files
       clearNewProjects();
       
-      const response = await uploadFolder(selectedFile, scanConsent, llmConsent, token, selectedProject);
+      // Fetch projects BEFORE upload to compare
+      let projectsBeforeUpload = [];
+      try {
+        const beforeResponse = await fetch(`${config.API_URL}/api/projects/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (beforeResponse.ok) {
+          const beforeData = await beforeResponse.json();
+          projectsBeforeUpload = (beforeData.projects || []).map(p => p.id);
+          console.log('Projects before upload:', projectsBeforeUpload);
+        }
+      } catch (err) {
+        console.error('Error fetching projects before upload:', err);
+      }
       
+      // Perform the upload
+      const response = await uploadFolder(selectedFile, scanConsent, llmConsent, token, selectedProject);
       console.log('Upload response:', response);
       
-      // Extract project IDs from response and mark as new
-      const newProjectIds = [];
+      // Wait a moment for backend to process
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Try multiple ways the API might return project ID(s)
-      if (response.project_id) {
-        newProjectIds.push(response.project_id);
-      }
-      if (response.project && response.project.id) {
-        newProjectIds.push(response.project.id);
-      }
-      if (response.id) {
-        newProjectIds.push(response.id);
-      }
-      if (selectedProject) {
-        // If we selected an existing project, mark it as updated (new)
-        newProjectIds.push(selectedProject);
-      }
-      
-      // Add all new project IDs
-      if (newProjectIds.length > 0) {
-        console.log('Adding new projects:', newProjectIds);
-        addNewProjects(newProjectIds);
-      } else {
-        console.log('No project IDs found in response, checking fetch...');
-        // If nothing worked, fetch fresh projects to get IDs
-        try {
-          const projectsResponse = await fetch(`${config.API_URL}/api/projects/`, {
-            headers: { 'Authorization': `Bearer ${token}` },
-          });
-          if (projectsResponse.ok) {
-            const projectsData = await projectsResponse.json();
-            const allProjects = projectsData.projects || [];
-            if (allProjects.length > 0) {
-              const latestProject = allProjects[allProjects.length - 1];
-              console.log('Latest project:', latestProject);
-              addNewProject(latestProject.id);
-            }
+      // Fetch projects AFTER upload to identify new ones
+      let newProjectIds = [];
+      try {
+        const afterResponse = await fetch(`${config.API_URL}/api/projects/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (afterResponse.ok) {
+          const afterData = await afterResponse.json();
+          const projectsAfterUpload = (afterData.projects || []).map(p => p.id);
+          console.log('Projects after upload:', projectsAfterUpload);
+          
+          // Find projects that exist after but not before
+          newProjectIds = projectsAfterUpload.filter(id => !projectsBeforeUpload.includes(id));
+          
+          // Also include the selected project if updating existing
+          if (selectedProject && !newProjectIds.includes(selectedProject)) {
+            newProjectIds.push(selectedProject);
           }
-        } catch (err) {
-          console.log('Error fetching projects:', err);
+          
+          console.log('New/updated project IDs:', newProjectIds);
+          
+          if (newProjectIds.length > 0) {
+            addNewProjects(newProjectIds);
+          }
         }
+      } catch (err) {
+        console.error('Error fetching projects after upload:', err);
       }
       
       let successMessage = 'Portfolio uploaded and analysis started!';
