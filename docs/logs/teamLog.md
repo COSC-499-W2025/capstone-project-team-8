@@ -42,6 +42,7 @@
 | Add Date Validation | [@jordany78](https://github.com/jordany78) | N/A | [#314](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/314) |
 | Add Toast for No Link | [@jordany78](https://github.com/jordany78) | N/A | [#316](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/316) |
 | Upload Animation + New Badge | [@harperkerstens](https://github.com/harperkerstens) | N/A | [#315](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315) |
+| Resume from portfolio | [cschwebi](https://github.com/cschwebi) | [#324](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/324)  | [#325](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/325)  |
 
 ### Our Goals this week:
 
@@ -95,7 +96,6 @@ We want to focus on continueing getting Milestone 3 requirements done. We also p
 | Incremental Upload Fix  |  [@harperkerstens](https://github.com/harperkerstens)  | N/A | [#305](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/305)   |
 | Createdate Bugfix  | [@jordany78](https://github.com/jordany78)  | N/A  | [#307](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/307)  |
 | Feature/Skills endpoint  | [@matin0014](https://github.com/matin0014)  | [#308](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/308)  | [#309](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/309)  |
-|Resume from portfolio|[cschwebi](https://github.com/cschwebi)|| [#324](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/324)  | [#325](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/325)  |
 
 ### Our Goals this week:
 
