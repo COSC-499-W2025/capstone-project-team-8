@@ -431,14 +431,23 @@ class PortfolioStatsView(APIView):
     
     Statistics are cached and updated when projects are added/removed.
     On first access (lazy loading), stats are calculated and cached.
+    Public portfolios can be accessed without authentication.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, pk):
         try:
-            portfolio = Portfolio.objects.get(pk=pk, user=request.user)
+            portfolio = Portfolio.objects.get(pk=pk)
         except Portfolio.DoesNotExist:
             return JsonResponse({"error": "Portfolio not found"}, status=404)
+        
+        # Public portfolios: anyone can access
+        # Private portfolios: require authentication (401), non-owners get 404
+        if not portfolio.is_public:
+            if not request.user.is_authenticated:
+                return JsonResponse({"error": "Authentication required"}, status=401)
+            if portfolio.user != request.user:
+                return JsonResponse({"error": "Portfolio not found"}, status=404)
         
         # Lazy initialization: calculate stats if never computed
         if portfolio.stats_updated_at is None:
