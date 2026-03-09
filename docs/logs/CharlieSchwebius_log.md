@@ -2,7 +2,7 @@
 
 ### Milestone 2
 | [Week 1](#milestone-2-week-1-jan-5---jan-11) | [Week 2](#milestone-2-week-2-jan-12-18) | [Week 3](#milestone-2-week-3-jan-19-25) | [Week 4-5](#milestone-2-week-4-5-jan-26-feb-8) | 
-[Week 6-7-8](#milestone-2-week-6-7-8-feb-9-mar-1)|[Week 9](#milestone-2-week-9-mar-2-mar-8)
+[Week 6-7-8](#milestone-2-week-6-7-8-feb-9---mar-1) | [Week 9](#milestone-2-week-9-mar-2---mar-8)
 
 
 ### Milestone 1
@@ -401,3 +401,39 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 ## Milestone 2 Week 9 (Mar 2 - Mar 8)
 
 <img width="1893" height="1101" alt="image" src="https://github.com/user-attachments/assets/15777787-37ab-4846-ba19-0d215cee1ef8" />
+
+#### PR's Worked on
+
+- **[#325](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/325) Resume from portfolio**
+
+#### PR's Reviewed
+
+- **[#314](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/314) add date validation**
+- **[#320](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/320) debouce search feature**
+
+#### Coding
+- Created PR which allows users to generate resumes from their portfolios in one click
+- Resolved merge conflicts resulting from the new Portfolio layout
+
+#### Testing or Debugging
+- Created automated tests for my PR to ensure new API endpoints were fully functional
+- Ran automated testing for PR # 320
+- Manually tested PR # 314 and # 320
+- Fixed merge conflicts which were occurring with new portfolio layout
+- Discovered failing tests as a result of our OpenAI key expiring (should be skipping)
+
+#### Reviewing or Collaboration
+- reviewed and commented on 2 PRs
+- Collaborated with team members to complete our weekly team log
+
+#### Last week to this week
+- Last week my goal was to implement the new portfolio stats AND implement automatic resume generation for portfolios
+- Instead of doing it all myself, Harper took over the redesign of the Portfolio page, implementing stats in the process
+- I succesfully achieved my goal of implementing the resume generator
+
+#### Upcoming goals
+- Mostly meet with the team and prepare for Milestone 3
+- Fix the bug causing OpenAI tests to fail when they should be skipped
+
+#### Issues
+- Had to resolve some merge conflicts in my branch, which were fortunaltely sorted smoothly
