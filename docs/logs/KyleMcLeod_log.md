@@ -329,6 +329,8 @@ Reflection:
 The majority of our system can now be used through our user interface and we are close to having a working product. We will continue to fix bugs and refine the accuracy of our system and implement additional features for the last couple months.
 
 ## Week 9 Mar 02-08
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/d18f0356-e37b-44a8-aaa6-935590b532da" />
+
 
 This week:
 - added information to the portfolio page PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/313
