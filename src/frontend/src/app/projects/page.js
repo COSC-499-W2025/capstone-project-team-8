@@ -42,7 +42,7 @@ export default function ProjectsPage() {
     }
   }, [token]);
 
-  // Debounce search — wait 300ms after user stops typing before hitting the API
+  // Debounce search — wait after user stops typing before hitting the API
   useEffect(() => {
     if (authLoading) return;
     if (!isAuthenticated) {
