@@ -338,6 +338,7 @@ This week:
 - search feature projects PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/320 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/319
 - review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315
 - review jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/312
+- reiew jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/316
 
 What went well:
 - spent time prepping for quiz 3
