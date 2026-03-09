@@ -29,6 +29,47 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Milestone 2 Week 9
+
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| Auto Generate Resume | [@matin0014](https://github.com/matin0014) | [#321](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/321) | [#322](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/322) |
+| Portfolio Page Additions | [@kylekmcleod](https://github.com/kylekmcleod) | N/A | [#313](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/313) |
+| Longer Token Expiry | [@kylekmcleod](https://github.com/kylekmcleod) | N/A | [#318](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/318) |
+| Debounce Search Feature | [@kylekmcleod](https://github.com/kylekmcleod) | [#319](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/319) | [#320](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/320) |
+| Add Flag for New Sign Ups | [@jordany78](https://github.com/jordany78) | N/A | [#312](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/312) |
+| Add Date Validation | [@jordany78](https://github.com/jordany78) | N/A | [#314](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/314) |
+| Add Toast for No Link | [@jordany78](https://github.com/jordany78) | N/A | [#316](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/316) |
+| Upload Animation + New Badge | [@harperkerstens](https://github.com/harperkerstens) | N/A | [#315](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315) |
+
+### Our Goals this week:
+
+Our goals are to meet on Monday and review Milestone 3 requirements and plan ahead and figure out how we want to delgate tasks and address how we can get all requirements done.
+
+### Reflection
+
+This week flowed well, the team was able to get back into the flow of things like usual after our presentations and focusing on finishing on Milestone 2
+
+### What went well:
+
+Feedback from Milestone 2 presentation was taken well and we plan to address it further at our next team meeting to improve those features.
+
+### What didn't go well:
+
+Lots of pull requests were left last minute and lots of merge conflicts within those branches emerged and had to be addressed which turned out to be a headache.
+
+### Test Report
+
+
+
+### Plan for next week:
+
+We want to focus on continueing getting Milestone 3 requirements done. We also plan on meeting to discuss any other additions we can add to our system and anything worth refactoring and fixing in the system as well.
+
+
+### Burn up chart
+
 ## Milestone 2 Week 6-8
 
 ### Completed Tasks
