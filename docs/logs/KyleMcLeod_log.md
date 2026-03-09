@@ -332,6 +332,8 @@ The majority of our system can now be used through our user interface and we are
 
 This week:
 - added information to the portfolio page PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/313
+- quick token expiry fix PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/318
+- search feature projects PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/320 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/319
 - review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315
 - review jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/312
 
@@ -340,7 +342,9 @@ What went well:
 What went wrong:
 
 Next week:
-
+- continue to fix front and backend bugs
+- coordinate who will be next in our group to setip Azure account since our AI trial is expired
+  
 Reflection:
 
 
