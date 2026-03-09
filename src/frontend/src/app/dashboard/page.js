@@ -261,7 +261,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Previous Projects - Scrollable Carousel */}
+              {/* Recent Projects - Scrollable Carousel */}
               <div className="bg-[var(--card-bg)] rounded-lg p-6">
                 <h2 className="text-2xl font-bold text-white mb-4">Recent Projects</h2>
                 {projects.length > 0 ? (
@@ -389,4 +389,3 @@ export default function DashboardPage() {
     </>
   );
 }
-
