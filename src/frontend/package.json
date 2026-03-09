@@ -10,6 +10,7 @@
     "test": "jest --verbose"
   },
   "dependencies": {
+    "framer-motion": "^12.35.1",
     "gsap": "^3.14.2",
     "html2pdf.js": "^0.10.1",
     "next": "15.5.4",
