@@ -338,13 +338,20 @@ This week:
 - review jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/312
 
 What went well:
+- spent time prepping for quiz 3
+- many small manageble PR's this week
+- our project is mostly usable as is
 
 What went wrong:
+- our video demo missed some portions of the rubric
+- some parts of our code is becoming messy, a refactor on our nextjs project could be useful
+- Azure AI trial expired
 
 Next week:
 - continue to fix front and backend bugs
 - coordinate who will be next in our group to setip Azure account since our AI trial is expired
+- refactor cluttered code logic
   
 Reflection:
-
+We are making steady progress on our prject and we will continue to make improvements for the last couple months. Our workflow as a team has improved a lot over the last few months. We are on schedule and should have a final project ready to present in time.
 
