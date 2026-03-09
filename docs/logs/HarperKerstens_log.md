@@ -383,6 +383,8 @@ This week was productive and stress-free, which is always a positive outcome. De
 
 ## March 2-8
 
+<img width="1084" height="633" alt="March2-8th" src="https://github.com/user-attachments/assets/95aa969e-40c8-44e1-b0b7-ef70e836d50a" />
+
 - Implemented new tag for recently uploaded projects
 - Improved upload flow with redirect following upload
 - Implemented loading animation for uploading a project to reflect system state
