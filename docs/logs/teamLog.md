@@ -1,7 +1,7 @@
 # T8BG Team Log
 
 ## Weekly Logs
-
+- [Milestone 2 Week 9](#milestone-2-week-9)
 - [Milestone 2 Week 6-8](#milestone-2-week-6-8)
 - [Milestone 2 Week 4-5](#milestone-2-week-4-5)
 - [Milestone 2 Week 3](#milestone-2-week-3)
@@ -29,6 +29,52 @@
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
 
+## Milestone 2 Week 9
+
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| Auto Generate Resume | [@matin0014](https://github.com/matin0014) | [#321](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/321) | [#322](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/322) |
+| Portfolio Page Additions | [@kylekmcleod](https://github.com/kylekmcleod) | N/A | [#313](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/313) |
+| Longer Token Expiry | [@kylekmcleod](https://github.com/kylekmcleod) | N/A | [#318](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/318) |
+| Debounce Search Feature | [@kylekmcleod](https://github.com/kylekmcleod) | [#319](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/319) | [#320](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/320) |
+| Add Flag for New Sign Ups | [@jordany78](https://github.com/jordany78) | N/A | [#312](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/312) |
+| Add Date Validation | [@jordany78](https://github.com/jordany78) | N/A | [#314](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/314) |
+| Add Toast for No Link | [@jordany78](https://github.com/jordany78) | N/A | [#316](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/316) |
+| Upload Animation + New Badge | [@harperkerstens](https://github.com/harperkerstens) | N/A | [#315](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315) |
+| Resume from portfolio | [cschwebi](https://github.com/cschwebi) | [#324](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/324)  | [#325](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/325)  |
+
+### Our Goals this week:
+
+Our goals are to meet on Monday and review Milestone 3 requirements and plan ahead and figure out how we want to delgate tasks and address how we can get all requirements done.
+
+### Reflection
+
+This week flowed well, the team was able to get back into the flow of things like usual after our presentations and focusing on finishing on Milestone 2
+
+### What went well:
+
+Feedback from Milestone 2 presentation was taken well and we plan to address it further at our next team meeting to improve those features.
+
+### What didn't go well:
+
+Lots of pull requests were left last minute and lots of merge conflicts within those branches emerged and had to be addressed which turned out to be a headache.
+
+### Test Report
+
+<img width="919" height="144" alt="image" src="https://github.com/user-attachments/assets/0ff4344b-9477-4273-ba6a-397622497bf0" />
+(errors are caused by our expired OpenAI key)
+
+### Plan for next week:
+
+We want to focus on continueing getting Milestone 3 requirements done. We also plan on meeting to discuss any other additions we can add to our system and anything worth refactoring and fixing in the system as well.
+
+
+### Burn up chart
+
+<img width="1801" height="949" alt="image" src="https://github.com/user-attachments/assets/b1883309-4739-4269-b3d3-10045fa74846" />
+
+
 ## Milestone 2 Week 6-8
 
 ### Completed Tasks
@@ -50,7 +96,6 @@
 | Incremental Upload Fix  |  [@harperkerstens](https://github.com/harperkerstens)  | N/A | [#305](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/305)   |
 | Createdate Bugfix  | [@jordany78](https://github.com/jordany78)  | N/A  | [#307](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/307)  |
 | Feature/Skills endpoint  | [@matin0014](https://github.com/matin0014)  | [#308](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/308)  | [#309](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/309)  |
-
 
 ### Our Goals this week:
 
@@ -82,7 +127,7 @@ Going forward we plan to meet early and look forward to Milestone 3. We want to 
 
 
 ### Burn up chart
-![alt text](image-8.png)
+![alt text](data/image-8.png)
 
 ## Milestone 2 Week 4-5
 
@@ -129,7 +174,7 @@ Next week we plan to continue building on the features implemented this week. We
 
 ### Burn up chart
 
-![alt text](image-6.png)
+![alt text](data/image-6.png)
 
 <img width="1787" height="874" alt="image" src="https://github.com/user-attachments/assets/573407c4-42c6-4140-885e-a0f5aca91edb" />
 
@@ -229,7 +274,7 @@ We want to work meet on Monday and delegate our tasks accordingly based off the 
 
 ### Burn up chart
 
-![alt text](image-2.png)
+![alt text](data/image-2.png)
 
 ## Milestone 2 Week 1
 
