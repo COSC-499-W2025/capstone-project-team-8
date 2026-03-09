@@ -1,7 +1,7 @@
 # T8BG Team Log
 
 ## Weekly Logs
-
+- [Milestone 2 Week 9](#milestone-2-week-9)
 - [Milestone 2 Week 6-8](#milestone-2-week-6-8)
 - [Milestone 2 Week 4-5](#milestone-2-week-4-5)
 - [Milestone 2 Week 3](#milestone-2-week-3)
@@ -61,7 +61,8 @@ Lots of pull requests were left last minute and lots of merge conflicts within t
 
 ### Test Report
 
-
+<img width="919" height="144" alt="image" src="https://github.com/user-attachments/assets/0ff4344b-9477-4273-ba6a-397622497bf0" />
+(errors are caused by our expired OpenAI key)
 
 ### Plan for next week:
 
@@ -69,6 +70,9 @@ We want to focus on continueing getting Milestone 3 requirements done. We also p
 
 
 ### Burn up chart
+
+<img width="1801" height="949" alt="image" src="https://github.com/user-attachments/assets/b1883309-4739-4269-b3d3-10045fa74846" />
+
 
 ## Milestone 2 Week 6-8
 
@@ -91,7 +95,7 @@ We want to focus on continueing getting Milestone 3 requirements done. We also p
 | Incremental Upload Fix  |  [@harperkerstens](https://github.com/harperkerstens)  | N/A | [#305](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/305)   |
 | Createdate Bugfix  | [@jordany78](https://github.com/jordany78)  | N/A  | [#307](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/307)  |
 | Feature/Skills endpoint  | [@matin0014](https://github.com/matin0014)  | [#308](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/308)  | [#309](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/309)  |
-
+|Resume from portfolio|[cschwebi](https://github.com/cschwebi)|| [#324](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/324)  | [#325](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/325)  |
 
 ### Our Goals this week:
 
