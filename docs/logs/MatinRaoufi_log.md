@@ -1,5 +1,5 @@
 
-[Jump to latest week](#t2-week-8-february-23---march-1)
+[Jump to latest week](#t2-week-9-march-2---march-8)
 
 September 15-21
 
@@ -328,7 +328,7 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 
 - PR: [#293](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/293) - Skills Endpoint Implementation
 
-- Reviewed PRs from teammates:
+https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315- Reviewed PRs from teammates:
   - [#286](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/286) - Which is a bugfix
   
 
@@ -378,4 +378,33 @@ Some issues with merge conflicts and local DB came up but were easy to deal with
 - The `resume_skills` column already physically existed in MySQL before the migration was formally applied, causing a duplicate column error that required, local Database issue
 - Numerous merge conflicts in the repository which had to be resolved due to numerous PRs and workflow
 - 
+
+## T2 Week 9 March 2 - March 8
+
+![alt text](image-9.png)
+
+**Coding tasks:**
+- Implemented auto-generate resume feature on the frontend
+- Added `autoGenerateResume` utility that scores and ranks projects by bullet-point count, skill diversity, and recency. Picks the top 4 and selects the top 15 skills by frequency
+- PR: [#322](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/322) — Feature/auto generate resume (Closes [#321](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/321))
+
+**Reviewing:**
+- Reviewed [#316](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/316) 
+- Reviewed [#315](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315) 
+- Reviewed [#314](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/314)
+
+**What went well:**
+- Implementation went smoothly
+- Reviewing PRs went smoothly
+
+**Connection to previous week:**
+- Directly builds on the resume builder page that was already in place and was criticized for not implemented by professor on Milestone 2 presentation review so I addressed it
+
+**Plan/goals for next week:**
+- Address any review feedback 
+- Plan Milestone 3 features with the team
+- Look into improving the auto-generate scoring 
+**Issues/blockers:**
+- Struggled with figuring out a good way for auto generate feature to select resume points, skills and experiences worthy of being on resume
+
 
