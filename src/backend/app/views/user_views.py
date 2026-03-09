@@ -158,8 +158,18 @@ class PublicUserView(APIView):
 		
 		return {
 			'username': user.username,
+			'first_name': user.first_name,
+			'last_name': user.last_name,
 			'bio': user.bio,
+			'github_username': user.github_username,
+			'linkedin_url': user.linkedin_url,
+			'portfolio_url': user.portfolio_url,
+			'twitter_username': user.twitter_username,
 			'profile_image_url': profile_image_url,
+			'university': user.university,
+			'degree_major': user.degree_major,
+			'education_city': user.education_city,
+			'education_state': user.education_state,
 			'date_joined': user.date_joined.isoformat() if user.date_joined else None,
 		}
 
