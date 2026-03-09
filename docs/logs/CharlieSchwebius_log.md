@@ -2,7 +2,7 @@
 
 ### Milestone 2
 | [Week 1](#milestone-2-week-1-jan-5---jan-11) | [Week 2](#milestone-2-week-2-jan-12-18) | [Week 3](#milestone-2-week-3-jan-19-25) | [Week 4-5](#milestone-2-week-4-5-jan-26-feb-8) | 
-[Week 6-7-8](#milestone-2-week-6-7-8-feb-9-mar-1)
+[Week 6-7-8](#milestone-2-week-6-7-8-feb-9-mar-1)|[Week 9](#milestone-2-week-9-mar-2-mar-8)
 
 
 ### Milestone 1
@@ -397,3 +397,7 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 
 #### Issues
 - Aside from minor merge conflicts and troubleshooting to use a more sufficient automated testing command (django instead of pytest), I havent personally ran into any big issues.
+
+## Milestone 2 Week 9 (Mar 2 - Mar 8)
+
+<img width="1893" height="1101" alt="image" src="https://github.com/user-attachments/assets/15777787-37ab-4846-ba19-0d215cee1ef8" />
