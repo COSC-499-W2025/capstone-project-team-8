@@ -10,6 +10,7 @@ import { getProjects, getSkills, getResume } from '@/utils/resumeApi';
 import { generateRenderCVPdf, downloadRenderCVYaml } from '@/utils/resumeApi';
 import { saveDraft, getDraft, getCurrentDraft } from '@/utils/draftStorage';
 import { getProjectDateRange } from '@/utils/resumeCleanup';
+import { autoGenerateResume } from '@/utils/autoGenerateResume';
 import ProjectsPanel from '@/components/resume/ProjectsPanel';
 import styles from './resume-new.module.css';
 
@@ -317,11 +318,14 @@ export default function ResumeNewPage() {
   const { isAuthenticated, token, refreshAccessToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [autoGenerating, setAutoGenerating] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [theme, setTheme] = useState('classic');
 
   // Track if we've done initial load (to avoid marking first load as unsaved changes)
   const initialLoadRef = useRef(true);
+  // Store skills data for auto-generate
+  const [aggregatedSkills, setAggregatedSkills] = useState(null);
 
   // Collapsed state for each form section
   const [collapsed, setCollapsed] = useState({
@@ -472,6 +476,9 @@ export default function ResumeNewPage() {
         setProjects(projectsList);
 
         // Build pre-populated skills from the skills endpoint
+        // Store aggregated skills for auto-generate feature
+        setAggregatedSkills(skillsData);
+
         const allSkills = [
           ...(skillsData.languages || []).map((l) => ({ id: `lang-${l.name}`, title: l.name })),
           ...(skillsData.frameworks || []).map((f) => ({ id: `fw-${f.name}`, title: f.name })),
@@ -866,6 +873,38 @@ export default function ResumeNewPage() {
     openSection('projects');
   };
 
+  // ── Auto-generate handler ────────────────────────────────────────────────
+
+  const handleAutoGenerate = useCallback(() => {
+    setAutoGenerating(true);
+    // Small delay so the overlay renders before the synchronous work
+    setTimeout(() => {
+      try {
+        const generated = autoGenerateResume({
+          currentResumeData: resumeData,
+          projects,
+          aggregatedSkills,
+        });
+        setResumeData(generated);
+        pushToHistory(generated);
+
+        // Open the sections that were populated
+        setCollapsed((prev) => ({
+          ...prev,
+          projects: false,
+          skills: false,
+        }));
+
+        setMessage({ type: 'success', text: 'Resume auto-generated! Review and tweak, then pick a theme and generate PDF.' });
+      } catch (err) {
+        console.error('Auto-generate error:', err);
+        setMessage({ type: 'error', text: 'Failed to auto-generate resume.' });
+      } finally {
+        setAutoGenerating(false);
+      }
+    }, 100);
+  }, [resumeData, projects, aggregatedSkills, pushToHistory]);
+
   // ── PDF generation ───────────────────────────────────────────────────────
 
   const handleGeneratePDF = async () => {
@@ -939,6 +978,17 @@ export default function ResumeNewPage() {
         />
       )}
 
+      {/* Auto-Generate Overlay */}
+      {autoGenerating && (
+        <div className={styles.autoGenerateOverlay}>
+          <div className={styles.autoGenerateModal}>
+            <div className={styles.autoGenerateSpinner} />
+            <h2>Building Your Resume</h2>
+            <p>Selecting top projects and skills…</p>
+          </div>
+        </div>
+      )}
+
       <div className={styles.layout}>
         {/* ── Left: Projects Panel ── */}
         <aside className={styles.sidebar} key="sidebar" style={{ width: sidebarWidth }}>
@@ -970,6 +1020,20 @@ export default function ResumeNewPage() {
           {/* Toolbar */}
           <div className={styles.toolbar}>
             <div className={styles.toolbarLeft}>
+              <button
+                className={styles.autoGenerateBtn}
+                onClick={handleAutoGenerate}
+                disabled={autoGenerating || projects.length === 0}
+                title="Automatically pick the best projects and skills for your resume"
+              >
+                {autoGenerating ? (
+                  <>
+                    <span className={styles.btnSpinner} /> Generating…
+                  </>
+                ) : (
+                  '✨ Auto-Generate'
+                )}
+              </button>
               <button
                 className={styles.toolbarBtn}
                 onClick={undo}

@@ -2,7 +2,9 @@
 ### Milestone 1
 | [Week 3](#week-3) | [Week 4](#week-4) | [Week 5](#week-5) | [Week 6](#week-6) | [Week 7](#week-7) | [Week 8](#week-8) | [Week 9](#week-9) | [Week 10](#week-10) | [Week 12](#week-12) | [Week 13](#week-13) | [Week 14](#week-14) |
 ### Milestone 2
-| [Week 1](#week-1-t2) | [Week 2](#week-2-t2) | [Week 3](#week-3-t2) | [Week 5](#week-5-t2) | [Week 8](#week-8-t2) | 
+| [Week 1](#week-1-t2) | [Week 2](#week-2-t2) | [Week 3](#week-3-t2) | [Week 5](#week-5-t2) | [Week 8](#week-8-t2) | [Week 9](#week-9-t2) | 
+### Milestone 3
+| [Week 1](#week-1-t3) | [Week 2](#week-2-t3) | [Week 3](#week-3-t3) | 
 
 ## Week 3
 ### September 15th - September 19th:
@@ -308,3 +310,29 @@ I was running into issues with my database fields and Django's fields causing a 
 
 ### What's next
 Next week, we start working on Milestone 3 and fully create a frontend for our users. We already have some frontend done, so it shouldn't be too long to have the whole thing done, which'll give us more time if any bugs arise.
+
+## Week 9 T2
+### March 2nd - March 6th:
+<img width="1075" height="629" alt="image" src="https://github.com/user-attachments/assets/efce0aa2-e450-4ccd-a467-a6bfe1882f71" /></br>
+
+### PRs Completed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/312 | bugfix |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/314 | bugfix |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/316 | minor ux enhancement |
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/313 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315 |
+
+### What went well
+This week, we had our Quiz 3 and I think I managed my time well with studying, contributing to the project, and homework for other classes. I was able to find a couple bugs and a minor ux feature that helps make the app feel easier to use and understand any unexpected behaviours.
+
+### What didn't go well
+I originally planned to get most of the work done by Saturday, but something came up and I had to slightly rush the final things on Sunday.
+
+### What's next
+Next week, I plan on adding some more features to our frontend and checking the flow to ensure it is smooth and no bugs occur.
