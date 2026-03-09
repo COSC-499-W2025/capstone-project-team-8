@@ -120,7 +120,15 @@ class PortfolioGenerateView(APIView):
     def post(self, request):
         serializer = PortfolioGenerateSerializer(data=request.data, context={'request': request})
         if not serializer.is_valid():
-            return JsonResponse({"error": serializer.errors}, status=400)
+            # Format errors as readable message
+            error_messages = []
+            for field, errors in serializer.errors.items():
+                if isinstance(errors, list):
+                    error_messages.extend([str(err) for err in errors])
+                else:
+                    error_messages.append(str(errors))
+            error_msg = '; '.join(error_messages) or 'Invalid portfolio data'
+            return JsonResponse({"error": error_msg}, status=400)
         
         data = serializer.validated_data
         
@@ -186,20 +194,29 @@ class PortfolioDetailView(APIView):
     serializer_class = PortfolioSerializer
 
     def get_portfolio(self, pk, user=None):
-        """Get portfolio, respecting visibility rules."""
+        """Get portfolio, respecting visibility rules.
+        Returns (portfolio, status) where status is 'ok', 'private', or 'not_found'.
+        """
         try:
             portfolio = Portfolio.objects.prefetch_related('portfolio_projects__project').get(pk=pk)
             # Allow access if public or if user is owner
             if portfolio.is_public or (user and user.is_authenticated and portfolio.user == user):
-                return portfolio
-            return None
+                return portfolio, 'ok'
+            return portfolio, 'private'
         except Portfolio.DoesNotExist:
-            return None
+            return None, 'not_found'
 
     def get(self, request, pk):
-        portfolio = self.get_portfolio(pk, request.user)
-        if not portfolio:
+        portfolio, status = self.get_portfolio(pk, request.user)
+        if status == 'not_found':
             return JsonResponse({"error": "Portfolio not found"}, status=404)
+        if status == 'private':
+            return JsonResponse({
+                "error": "This portfolio is private",
+                "is_private": True,
+                "portfolio_title": portfolio.title,
+                "owner": portfolio.user.username if portfolio.user else None,
+            }, status=403)
         
         serializer = PortfolioSerializer(portfolio, context={'request': request})
         return JsonResponse(serializer.data)
@@ -318,6 +335,9 @@ class PortfolioAddProjectView(APIView):
             featured=data.get('featured', False),
         )
         
+        # Recalculate portfolio statistics
+        portfolio.update_cached_stats()
+        
         return JsonResponse({
             "ok": True,
             "portfolio_project_id": portfolio_project.id,
@@ -349,6 +369,10 @@ class PortfolioRemoveProjectView(APIView):
             return JsonResponse({"error": "Project not in portfolio"}, status=404)
         
         portfolio_project.delete()
+        
+        # Recalculate portfolio statistics
+        portfolio.update_cached_stats()
+        
         return JsonResponse({"ok": True, "removed_project_id": project_id})
 
 
@@ -397,3 +421,43 @@ class PortfolioReorderProjectsView(APIView):
                 ).update(order=order)
         
         return JsonResponse({"ok": True, "new_order": project_ids})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PortfolioStatsView(APIView):
+    """
+    Get portfolio statistics including lines of code per language.
+    GET /portfolio/{id}/stats/
+    
+    Statistics are cached and updated when projects are added/removed.
+    On first access (lazy loading), stats are calculated and cached.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            portfolio = Portfolio.objects.get(pk=pk, user=request.user)
+        except Portfolio.DoesNotExist:
+            return JsonResponse({"error": "Portfolio not found"}, status=404)
+        
+        # Lazy initialization: calculate stats if never computed
+        if portfolio.stats_updated_at is None:
+            portfolio.update_cached_stats()
+            portfolio.refresh_from_db()
+        
+        return JsonResponse({
+            "portfolio_id": portfolio.id,
+            "total_projects": portfolio.total_projects,
+            "total_files": portfolio.total_files,
+            "code_files_count": portfolio.code_files_count,
+            "text_files_count": portfolio.text_files_count,
+            "image_files_count": portfolio.image_files_count,
+            "total_lines_of_code": portfolio.total_lines_of_code,
+            "total_commits": portfolio.total_commits,
+            "total_contributors": portfolio.total_contributors,
+            "languages": portfolio.languages_stats,
+            "frameworks": portfolio.frameworks_stats,
+            "date_range_start": portfolio.date_range_start.isoformat() if portfolio.date_range_start else None,
+            "date_range_end": portfolio.date_range_end.isoformat() if portfolio.date_range_end else None,
+            "stats_updated_at": portfolio.stats_updated_at.isoformat() if portfolio.stats_updated_at else None,
+        })

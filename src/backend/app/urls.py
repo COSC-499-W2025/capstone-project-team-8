@@ -22,7 +22,8 @@ from .views.portfolio_views import (
     PortfolioEditView,
     PortfolioAddProjectView,
     PortfolioRemoveProjectView,
-    PortfolioReorderProjectsView
+    PortfolioReorderProjectsView,
+    PortfolioStatsView,
 )
 from .views.resume_views import (
     ResumeTemplatesView, 
@@ -31,6 +32,17 @@ from .views.resume_views import (
     ResumeGenerateView,
     ResumeDetailView,
     ResumeEditView,
+    RenderCVPDFView,
+    RenderCVYAMLView,
+)
+from .views.evaluation_views import (
+    LanguageEvaluationsView,
+    ProjectEvaluationDetailView,
+    TopProjectsByLanguageView,
+    LanguageEvaluationStatisticsView,
+    ProjectEvaluationSummaryView,
+    ProjectAllEvaluationsView,
+    AllEvaluationsView,
 )
 
 urlpatterns = [
@@ -49,6 +61,15 @@ urlpatterns = [
     path("projects/ranked/summary/", TopProjectsSummaryView.as_view(), name="projects-ranked-summary"),
     path("projects/<int:pk>/", ProjectDetailView.as_view(), name="projects-detail"),
 
+    # Evaluation endpoints
+    path("evaluations/", AllEvaluationsView.as_view(), name="all-evaluations"),
+    path("evaluations/<str:language>/", LanguageEvaluationsView.as_view(), name="evaluations-by-language"),
+    path("evaluations/<str:language>/top/", TopProjectsByLanguageView.as_view(), name="top-projects-by-language"),
+    path("evaluations/<str:language>/stats/", LanguageEvaluationStatisticsView.as_view(), name="language-evaluation-stats"),
+    path("evaluations/project/<int:project_id>/", ProjectAllEvaluationsView.as_view(), name="project-all-evaluations"),
+    path("evaluations/project/<int:project_id>/<str:language>/", ProjectEvaluationDetailView.as_view(), name="project-evaluation-detail"),
+    path("evaluations/project/<int:project_id>/<str:language>/summary/", ProjectEvaluationSummaryView.as_view(), name="project-evaluation-summary"),
+  
     # Skills endpoints
     path("skills/", SkillsView.as_view(), name="skills"),
 
@@ -57,6 +78,7 @@ urlpatterns = [
     path("portfolio/generate/", PortfolioGenerateView.as_view(), name="portfolio-generate"),
     path("portfolio/<int:pk>/", PortfolioDetailView.as_view(), name="portfolio-detail"),
     path("portfolio/<int:pk>/edit/", PortfolioEditView.as_view(), name="portfolio-edit"),
+    path("portfolio/<int:pk>/stats/", PortfolioStatsView.as_view(), name="portfolio-stats"),
     path("portfolio/<int:pk>/projects/add/", PortfolioAddProjectView.as_view(), name="portfolio-add-project"),
     path("portfolio/<int:pk>/projects/<int:project_id>/", PortfolioRemoveProjectView.as_view(), name="portfolio-remove-project"),
     path("portfolio/<int:pk>/projects/reorder/", PortfolioReorderProjectsView.as_view(), name="portfolio-reorder-projects"),
@@ -66,6 +88,8 @@ urlpatterns = [
     path("resume/preview/", ResumePreviewView.as_view(), name="resume-preview"),
     path("resume/generate/latex/", GenerateLatexResumeView.as_view(), name="resume-generate-latex"),
     path("resume/generate/", ResumeGenerateView.as_view(), name="resume-generate"),
+    path("resume/render-pdf/", RenderCVPDFView.as_view(), name="resume-render-pdf"),
+    path("resume/render-yaml/", RenderCVYAMLView.as_view(), name="resume-render-yaml"),
     path("resume/<int:pk>/", ResumeDetailView.as_view(), name="resume-detail"),
     path("resume/<int:pk>/edit/", ResumeEditView.as_view(), name="resume-edit"),
     

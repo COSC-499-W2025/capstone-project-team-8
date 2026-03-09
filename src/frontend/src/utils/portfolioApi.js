@@ -21,7 +21,15 @@ async function authenticatedFetch(endpoint, options = {}, token) {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || errorData.detail || errorData.message || `API error: ${response.statusText}`);
+    let errorMessage = `API error: ${response.statusText}`;
+    if (errorData.error) {
+      errorMessage = typeof errorData.error === 'string' ? errorData.error : JSON.stringify(errorData.error);
+    } else if (errorData.detail) {
+      errorMessage = errorData.detail;
+    } else if (errorData.message) {
+      errorMessage = errorData.message;
+    }
+    throw new Error(errorMessage);
   }
 
   // Handle 204 No Content
@@ -44,12 +52,31 @@ export async function getPortfolios(token) {
 
 /**
  * Get a single portfolio by ID
+ * Returns portfolio data on success, or { is_private: true, ... } for private portfolios.
  */
 export async function getPortfolio(portfolioId, token = null) {
-  const data = await authenticatedFetch(`/api/portfolio/${portfolioId}/`, {
-    method: 'GET',
-  }, token);
-  return data;
+  const url = `${config.API_URL}/api/portfolio/${portfolioId}/`;
+  const headers = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(url, { method: 'GET', headers });
+
+  if (response.status === 403) {
+    const data = await response.json().catch(() => ({}));
+    if (data.is_private) {
+      return { is_private: true, portfolio_title: data.portfolio_title, owner: data.owner };
+    }
+    throw new Error(data.error || 'Access denied');
+  }
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || errorData.detail || `API error: ${response.statusText}`);
+  }
+
+  return response.json();
 }
 
 /**

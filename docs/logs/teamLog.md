@@ -1,6 +1,8 @@
 # T8BG Team Log
 
 ## Weekly Logs
+
+- [Milestone 2 Week 6-8](#milestone-2-week-6-8)
 - [Milestone 2 Week 4-5](#milestone-2-week-4-5)
 - [Milestone 2 Week 3](#milestone-2-week-3)
 - [Milestone 2 Week 2](#milestone-2-week-2)
@@ -26,6 +28,61 @@
 |matin0014|Matin Raoufi|
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
+
+## Milestone 2 Week 6-8
+
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| Portfolio Private Error | [@kylekmcleod](https://github.com/kylekmcleod)  | [#285](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/285)  | [#286](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/286)  |
+| Styling Consistancy  | [@kylekmcleod](https://github.com/kylekmcleod)  | [#287](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/287) | [#288](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/288) |
+| Resume Builder Auto Link | [@kylekmcleod](https://github.com/kylekmcleod) | [#289](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/289) | [#290](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/290) |
+|Feature/skills endpoint | [@matin0014](https://github.com/matin0014)  | [#292](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/292) | [#293](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/293) |
+| Test Folders  | [@harperkerstens](https://github.com/harperkerstens)  | N/A | [#294](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/294) |
+| Success Metrics  | [@harperkerstens](https://github.com/harperkerstens) | [#226](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/226)  | [#295](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/295) |
+| Portfolio stats  | [@cschwebi](https://github.com/cschwebi)   | [#296](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/296)  | [#297](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/297) |
+|  Key role in project |  [@matin0014](https://github.com/matin0014)  | [#298](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/298)  | [#299](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/299) |
+| auth refresh fix  | [@kylekmcleod](https://github.com/kylekmcleod)  | [#300](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/300)  | [#301](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/301)  |
+| Quaility Eval Dashboard  | [@kylekmcleod](https://github.com/kylekmcleod)  | N/A | [#302](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/302)  |
+| Key role in project UI  | [@harperkerstens](https://github.com/harperkerstens)  | N/A  | [#303](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/303)  |
+| Portfolio page fix  | [@harperkerstens](https://github.com/harperkerstens)  | N/A  | [#304](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/304)  |
+| Resume module refactor  | [@kylekmcleod](https://github.com/kylekmcleod)  | N/A  | [#306](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/306)  |
+| Incremental Upload Fix  |  [@harperkerstens](https://github.com/harperkerstens)  | N/A | [#305](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/305)   |
+| Createdate Bugfix  | [@jordany78](https://github.com/jordany78)  | N/A  | [#307](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/307)  |
+| Feature/Skills endpoint  | [@matin0014](https://github.com/matin0014)  | [#308](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/308)  | [#309](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/309)  |
+
+
+### Our Goals this week:
+
+  This week our goal was to finalize the features we needed for Milestone 2. Lots of work had been implemented in the previous weeks but was in a broken or buggy state, fixing these things before moving forward with what was left was a key priority.
+
+
+### Reflection
+Overall we are very satisfied with our progress this week, lots of work was done on top of the presentation. We were able to complete all our goals we set out for this week. Looking forward to Milestone 3 we feel confident in our ability to build off what was done to reach the final requirements.
+
+
+
+
+### What went well:
+Our collaboration over these weeks was definitely a highlight, we were able to work together to get a lot done. This teamwork streamlined debugging previous features immensly. The presentation was also a highlight, we were able to showcase our project well and feel confident in our work.
+
+
+
+### What didn't go well:
+There were some hiccups in some PR's regarding bug fixes, determining the bugs was challenging at points but we were able to eventually find them all to fix them.
+
+
+### Test Report
+
+<img width="1025" height="167" alt="image" src="https://github.com/user-attachments/assets/8b07d9b0-61ff-48ce-a1e8-f309a8abd442" />
+
+### Plan for next week:
+Going forward we plan to meet early and look forward to Milestone 3. We want to build primarily off the resume builder and portfolio features we have built so far. 
+
+
+
+### Burn up chart
+![alt text](image-8.png)
 
 ## Milestone 2 Week 4-5
 
@@ -71,6 +128,8 @@ Next week we plan to continue building on the features implemented this week. We
 
 
 ### Burn up chart
+
+![alt text](image-6.png)
 
 <img width="1787" height="874" alt="image" src="https://github.com/user-attachments/assets/573407c4-42c6-4140-885e-a0f5aca91edb" />
 

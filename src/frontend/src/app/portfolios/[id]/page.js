@@ -122,6 +122,42 @@ export default function PortfolioDetailPage() {
     );
   }
 
+  if (portfolio && portfolio.is_private) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-screen p-8">
+          <div className="max-w-4xl mx-auto">
+            <div className="bg-[var(--card-bg)] rounded-lg p-8 text-center" style={{ border: '1px solid #27272a' }}>
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ background: 'rgba(79, 124, 247, 0.1)' }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4f7cf7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+              </div>
+              <h2 className="text-2xl font-semibold text-white mb-2">Private Portfolio</h2>
+              <p className="text-white/60 mb-1">
+                <span className="font-medium text-white">{portfolio.portfolio_title}</span>
+              </p>
+              {portfolio.owner && (
+                <p className="text-white/50 text-sm mb-6">by {portfolio.owner}</p>
+              )}
+              <p className="text-white/50 text-sm mb-6">
+                The owner has set this portfolio to private. It is not available for public viewing.
+              </p>
+              <Link
+                href="/portfolios"
+                className="inline-block px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors"
+              >
+                Back to Portfolios
+              </Link>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   if (error && !portfolio) {
     return (
       <>

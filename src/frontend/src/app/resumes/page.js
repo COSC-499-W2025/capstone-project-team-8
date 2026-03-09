@@ -9,12 +9,13 @@ import styles from './resumes.module.css';
 
 export default function ResumesListPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [resumes, setResumes] = useState([]);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -23,7 +24,7 @@ export default function ResumesListPage() {
     // Note: This endpoint would need to be added to the backend
     // For now, we'll show a placeholder
     setLoading(false);
-  }, [isAuthenticated, token, router]);
+  }, [authLoading, isAuthenticated, token, router]);
 
   const handleNewResume = () => {
     router.push('/resume');

@@ -10,7 +10,7 @@ import config from '@/config';
 
 export default function NewPortfolioPage() {
   const router = useRouter();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [projects, setProjects] = useState([]);
@@ -28,6 +28,7 @@ export default function NewPortfolioPage() {
   const [selectedProjects, setSelectedProjects] = useState(new Set());
 
   useEffect(() => {
+    if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
@@ -56,7 +57,7 @@ export default function NewPortfolioPage() {
     };
 
     fetchProjects();
-  }, [isAuthenticated, token, router]);
+  }, [authLoading, isAuthenticated, token, router]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -92,6 +93,16 @@ export default function NewPortfolioPage() {
 
     if (!formData.title.trim()) {
       setError('Please enter a portfolio title');
+      return;
+    }
+
+    if (!formData.target_audience.trim()) {
+      setError('Please specify a target audience');
+      return;
+    }
+
+    if (selectedProjects.size === 0) {
+      setError('Please select at least one project for your portfolio');
       return;
     }
 
@@ -208,7 +219,7 @@ export default function NewPortfolioPage() {
                     {/* Target Audience */}
                     <div>
                       <label htmlFor="target_audience" className="block text-sm font-medium mb-2 text-white">
-                        Target Audience
+                        Target Audience <span className="text-red-400">*</span>
                       </label>
                       <input
                         id="target_audience"
@@ -230,7 +241,7 @@ export default function NewPortfolioPage() {
                     {/* Tone */}
                     <div>
                       <label htmlFor="tone" className="block text-sm font-medium mb-2 text-white">
-                        Tone
+                        Tone <span className="text-red-400">*</span>
                       </label>
                       <select
                         id="tone"
@@ -288,7 +299,7 @@ export default function NewPortfolioPage() {
                 <div className="bg-[var(--card-bg)] rounded-lg p-6" style={{ border: '1px solid #27272a' }}>
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-white">
-                      Select Projects ({selectedProjects.size} selected)
+                      Select Projects ({selectedProjects.size} selected) <span className="text-red-400">*</span>
                     </h2>
                     {projects.length > 0 && (
                       <button

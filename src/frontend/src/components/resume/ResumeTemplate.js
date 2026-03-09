@@ -89,6 +89,38 @@ export default function ResumeTemplate({
           placeholder="Your Name"
           className={styles.nameField}
         />
+        
+        {/* Location directly under name */}
+        {data.location && (
+          <div className={styles.locationLine}>
+            <EditableField
+              path="location"
+              value={data.location}
+              placeholder="City, State"
+              className={styles.locationField}
+            />
+          </div>
+        )}
+        
+        {/* Contact Information under location */}
+        <div className={styles.contactLine}>
+          {[
+            data.phone && { value: data.phone, path: 'phone' },
+            data.email && { value: data.email, path: 'email' },
+            data.linkedin_url && { value: data.linkedin_url, path: 'linkedin_url' },
+            data.github_url && { value: data.github_url, path: 'github_url' },
+            data.portfolio_url && { value: data.portfolio_url, path: 'portfolio_url' }
+          ].filter(Boolean).map((contact, index, array) => (
+            <span key={index} className={styles.contactItem}>
+              <EditableField
+                path={contact.path}
+                value={contact.value}
+                placeholder=""
+                className={styles.contactField}
+              />{index < array.length - 1 && <span className={styles.contactSeparator}>|</span>}
+            </span>
+          ))}
+        </div>
       </div>
 
       {/* Summary Section */}

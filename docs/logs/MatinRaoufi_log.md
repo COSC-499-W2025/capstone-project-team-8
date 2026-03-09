@@ -1,5 +1,5 @@
 
-[Jump to latest week](#week-18-january-26---february-8)
+[Jump to latest week](#t2-week-8-february-23---march-1)
 
 September 15-21
 
@@ -251,7 +251,7 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 
 
 
-## Week 17 January 18-25
+## T2 Week 5 January 18-25
 
 ![alt text](image-4.png)
 
@@ -291,27 +291,21 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 - Needed to carefully manage migrations to avoid data loss.
 - Some circular import issues required careful use of string references in Django relationships.
 
-## Week 18 January 26 - February 8
+## T2 Week 6 January 26 - February 8
 
 ![alt text](image-5.png)
 
 **Coding tasks:**
 - Refactored the `project_classifier.py` module to improve code maintainability and testability by following the Single Responsibility Principle.
-- Split the original 412-line file into 5 focused modules:
-  - `file_type_registry.py`
-  - `feature_extractor.py` 
-  - `scoring_classifier.py`
-  - `confidence_calculator.py`
-  - `project_classifier.py`
-
+- Split the original 412-line file into 5 modules
 - PR: [#281](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/281) 
 
 
 **Reviewing:**
 - Reviewed PRs from teammates:
-  - [#278](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278) - Provided feedback on code structure
-  - [#279](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/279) - Tested functionality and UI changes
-  - [#275](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/275) - Reviewed implementation and suggested improvements
+  - [#278](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/278)
+  - [#279](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/279)
+  - [#275](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/275) 
 
 **Connection to previous week:**
 - Last week, I refactored Django models into modular files. This week continued the modularization effort by refactoring the project classifier, making the codebase more maintainable and easier to extend.
@@ -327,4 +321,61 @@ The refactoring we did in earlier weeks is paying off—adding the human file fi
 
 - No use for LLM service at the moment so maintained on using free credits as of right now
 
+## T2 Week 7 February 9 - 22
+
+- Implemented `GET /api/skills/` endpoint
+- test suite with 6 unit tests
+
+- PR: [#293](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/293) - Skills Endpoint Implementation
+
+- Reviewed PRs from teammates:
+  - [#286](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/286) - Which is a bugfix
+  
+
+**Connection to previous week:**
+- Worked on Milestone Requirements and checked them off
+- No urgency for LLM usage yet
+- Finished Presentations for Milestone
+
+
+**Plan/goals for next week:**
+- Work on demo
+- Improve skills endpoint
+
+**What went well:**
+Reviewing PRs, coding went well.
+
+**Issues/blockers:**
+Some issues with merge conflicts and local DB came up but were easy to deal with
+
+## T2 Week 8 February 23 - March 1
+![alt text](image-5.png)
+
+**Coding tasks:**
+- Enhanced `GET /api/skills/` endpoint to show `resume_skills`
+- PR: [#309](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/309) — Feature/skills endpoint (Closes [#308](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/308))
+
+**Reviewing:**
+- Reviewed [#305](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/305) 
+- Reviewed [#306](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/306)
+
+**What went well:**
+- Basic flow of things
+- Implementation of feature was easy
+- Added 
+
+**Connection to previous week:**
+- Directly extends Week 7's skills endpoint by broadening the data it surfaces beyond languages and frameworks
+- Finished Presentation
+- Finished video
+- Got submission organized for grading and submission of Milestone 2
+
+**Plan/goals for next week:**
+- Study for quiz
+- Plan out Milestone 3 with team
+
+**Issues/blockers**
+- The `resume_skills` column already physically existed in MySQL before the migration was formally applied, causing a duplicate column error that required, local Database issue
+- Numerous merge conflicts in the repository which had to be resolved due to numerous PRs and workflow
+- 
 

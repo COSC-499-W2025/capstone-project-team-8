@@ -81,11 +81,13 @@ class ProjectsListView(APIView):
                 "git_repository": bool(p.git_repository),
                 "first_commit_date": int(p.first_commit_date.timestamp()) if p.first_commit_date else None,
                 "created_at": int(p.created_at.timestamp()) if p.created_at else None,
+                "updated_at": int(p.updated_at.timestamp()) if p.updated_at else None,
                 "thumbnail_url": request.build_absolute_uri(p.thumbnail.url) if p.thumbnail else None,
                 "framework_count": framework_count,
                 "languages": languages,
                 "frameworks": frameworks,
-                "resume_bullet_points": p.resume_bullet_points or []
+                "resume_bullet_points": p.resume_bullet_points or [],
+                "user_role": p.user_role or 'other',
             })
 
         return JsonResponse({"projects": out})
@@ -155,8 +157,9 @@ class ProjectDetailView(APIView):
             "contributors": contributors,
             "git_repository": bool(p.git_repository),
             "first_commit_date": int(p.first_commit_date.timestamp()) if p.first_commit_date else None,
-            "created_at": int(p.created.timestamp()) if getattr(p, "created", None) else None,
-            "resume_bullet_points": p.resume_bullet_points or []
+            "created_at": int(p.created_at.timestamp()) if p.created_at else None,
+            "resume_bullet_points": p.resume_bullet_points or [],
+            "user_role": p.user_role or 'other',
         }
         return JsonResponse(resp)
 
@@ -180,9 +183,23 @@ class ProjectDetailView(APIView):
         except Exception:
             data = {}
 
+        from app.serializers.project import VALID_USER_ROLES
+        from django.utils import timezone
+
         name = data.get("name")
         description = data.get("description")
+        user_role = data.get("user_role")
         changed = False
+
+        if user_role is not None:
+            if user_role not in VALID_USER_ROLES:
+                return JsonResponse(
+                    {"error": f"Invalid user_role '{user_role}'. Valid choices: {VALID_USER_ROLES}"},
+                    status=400,
+                )
+            p.user_role = user_role
+            changed = True
+
         if name:
             p.name = str(name)[:255]
             changed = True
@@ -193,6 +210,7 @@ class ProjectDetailView(APIView):
                 changed = True
 
         if changed:
+            p.updated_at = timezone.now()
             p.save()
 
         return JsonResponse({"ok": True, "id": p.id})

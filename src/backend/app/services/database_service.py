@@ -19,6 +19,10 @@ from app.models import (
     Contributor, ProjectContribution
 )
 
+from app.services.role_inference import infer_user_role
+from app.services.evaluation import ProjectEvaluationService
+
+
 
 class ProjectDatabaseService:
     """
@@ -33,7 +37,8 @@ class ProjectDatabaseService:
         user: User, 
         analysis_data: Dict[str, Any], 
         upload_filename: str = "",
-        project_name_override: str = ""
+        project_name_override: str = "",
+        existing_project_id: int = None
     ) -> List[Project]:
         """
         Save complete project analysis results to database.
@@ -43,9 +48,10 @@ class ProjectDatabaseService:
             analysis_data: JSON response from folder upload analysis
             upload_filename: Original filename of uploaded ZIP
             project_name_override: Custom name for the project (optional)
+            existing_project_id: If provided, merge files into existing project instead of creating new ones
             
         Returns:
-            List of created Project objects
+            List of created or updated Project objects
             
         Raises:
             ValueError: If analysis_data is invalid or missing required fields
@@ -58,74 +64,116 @@ class ProjectDatabaseService:
         
         created_projects = []
         
-        # Build last-updated lookups from analysis_data if provided
-        last_updated_meta = {}
-        lu = analysis_data.get("analysis_meta", {}).get("last_updated") if isinstance(analysis_data.get("analysis_meta"), dict) else None
-        if lu:
-            # lu expected shape: {"projects": [{"project_root": "...", "project_tag": int, "last_updated": "ISO"}, ...], "overall_last_updated": "..."}"
+        # If merging into existing project, handle differently
+        if existing_project_id:
             try:
-                for entry in lu.get("projects", []) if isinstance(lu.get("projects", []), list) else []:
-                    tag = entry.get("project_tag")
-                    root = entry.get("project_root")
-                    iso = entry.get("last_updated")
-                    if tag is not None and iso:
-                        last_updated_meta.setdefault("by_tag", {})[int(tag)] = iso
-                    if root is not None and iso:
-                        # normalize root key similar to view/transformer
-                        rk = root.strip()
-                        if rk in ("", ".", "./"):
-                            rk = "."
-                        else:
-                            rk = rk.lstrip("./").rstrip("/")
-                        last_updated_meta.setdefault("by_root", {})[rk] = iso
-            except Exception:
-                # non-fatal: ignore malformed timestamps
-                last_updated_meta = {}
-
-        with transaction.atomic():
-            for project_data in projects:
-                # Attach matched last-updated ISO onto project_data for _create_project to consume
+                merge_project = Project.objects.get(id=existing_project_id, user=user)
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Starting merge into project {merge_project.id}, current files: {merge_project.total_files}")
+                
+                # Add all files from the analysis to the existing project
+                for project_data in projects:
+                    self._add_files_to_existing_project(merge_project, project_data)
+                
+                # Refresh from database to ensure we have latest data
+                merge_project.refresh_from_db()
+                logger.info(f"After merge, project {merge_project.id} has {merge_project.total_files} files")
+                created_projects.append(merge_project)
+                
+                # Re-evaluate the project since files have been updated
                 try:
-                    matched_iso = None
-                    pid = project_data.get("id")
-                    root = str(project_data.get("root", "") or "")
-                    # 1) by tag
-                    if pid is not None and "by_tag" in last_updated_meta:
-                        matched_iso = last_updated_meta["by_tag"].get(int(pid))
-                    # 2) by root
-                    if not matched_iso and root and "by_root" in last_updated_meta:
-                        rk = root.strip()
-                        if rk in ("", ".", "./"):
-                            rk = "."
-                        else:
-                            rk = rk.lstrip("./").rstrip("/")
-                        matched_iso = last_updated_meta["by_root"].get(rk)
-                    if matched_iso:
-                        project_data["_last_updated_iso"] = matched_iso
+                    logger.info(f"Starting evaluation for merged project {merge_project.id}")
+                    evaluation_service = ProjectEvaluationService()
+                    evaluations = evaluation_service.evaluate_project_for_all_languages(merge_project)
+                    logger.info(f"Evaluation completed for project {merge_project.id}, created {len(evaluations)} evaluations")
+                except Exception as e:
+                    logger.error(f"Failed to evaluate merged project {merge_project.id}: {str(e)}", exc_info=True)
+            except Project.DoesNotExist:
+                raise ValueError(f"Project {existing_project_id} not found or does not belong to this user")
+        else:
+            # Original behavior: create new project(s)
+            # Build last-updated lookups from analysis_data if provided
+            last_updated_meta = {}
+            lu = analysis_data.get("analysis_meta", {}).get("last_updated") if isinstance(analysis_data.get("analysis_meta"), dict) else None
+            if lu:
+                # lu expected shape: {"projects": [{"project_root": "...", "project_tag": int, "last_updated": "ISO"}, ...], "overall_last_updated": "..."}"
+                try:
+                    for entry in lu.get("projects", []) if isinstance(lu.get("projects", []), list) else []:
+                        tag = entry.get("project_tag")
+                        root = entry.get("project_root")
+                        iso = entry.get("last_updated")
+                        if tag is not None and iso:
+                            last_updated_meta.setdefault("by_tag", {})[int(tag)] = iso
+                        if root is not None and iso:
+                            # normalize root key similar to view/transformer
+                            rk = root.strip()
+                            if rk in ("", ".", "./"):
+                                rk = "."
+                            else:
+                                rk = rk.lstrip("./").rstrip("/")
+                            last_updated_meta.setdefault("by_root", {})[rk] = iso
                 except Exception:
-                    # ignore matching errors and continue
-                    pass
+                    # non-fatal: ignore malformed timestamps
+                    last_updated_meta = {}
 
-                project = self._create_project(
-                    user=user,
-                    project_data=project_data,
-                    overall_data=overall,
-                    upload_filename=upload_filename,
-                    project_name_override=project_name_override,
-                    project_summaries=analysis_data.get('project_summaries', {}),
-                    send_to_llm=analysis_data.get('send_to_llm', False)
-                )
-                created_projects.append(project)
-                
-                # Save languages and frameworks
-                self._save_project_languages(project, project_data)
-                self._save_project_frameworks(project, project_data)
-                
-                # Save files
-                self._save_project_files(project, project_data)
-                
-                # Save contributors
-                self._save_project_contributors(project, project_data)
+            with transaction.atomic():
+                for project_data in projects:
+                    # Attach matched last-updated ISO onto project_data for _create_project to consume
+                    try:
+                        matched_iso = None
+                        pid = project_data.get("id")
+                        root = str(project_data.get("root", "") or "")
+                        # 1) by tag
+                        if pid is not None and "by_tag" in last_updated_meta:
+                            matched_iso = last_updated_meta["by_tag"].get(int(pid))
+                        # 2) by root
+                        if not matched_iso and root and "by_root" in last_updated_meta:
+                            rk = root.strip()
+                            if rk in ("", ".", "./"):
+                                rk = "."
+                            else:
+                                rk = rk.lstrip("./").rstrip("/")
+                            matched_iso = last_updated_meta["by_root"].get(rk)
+                        if matched_iso:
+                            project_data["_last_updated_iso"] = matched_iso
+                    except Exception:
+                        # ignore matching errors and continue
+                        pass
+
+                    project = self._create_project(
+                        user=user,
+                        project_data=project_data,
+                        overall_data=overall,
+                        upload_filename=upload_filename,
+                        project_name_override=project_name_override,
+                        project_summaries=analysis_data.get('project_summaries', {}),
+                        send_to_llm=analysis_data.get('send_to_llm', False)
+                    )
+                    created_projects.append(project)
+                    
+                    # Save languages and frameworks
+                    self._save_project_languages(project, project_data)
+                    self._save_project_frameworks(project, project_data)
+                    
+                    # Save files
+                    self._save_project_files(project, project_data)
+                    
+                    # Save contributors and recalculate percentages
+                    self._save_project_contributors(project, project_data)
+                    self._recalculate_contributor_percentages(project)
+        
+        # Evaluate projects AFTER atomic block completes successfully
+        # This prevents transaction rollback errors if evaluation fails
+        import logging
+        logger = logging.getLogger(__name__)
+        for project in created_projects:
+            try:
+                evaluation_service = ProjectEvaluationService()
+                evaluation_service.evaluate_project_for_all_languages(project)
+            except Exception as e:
+                # Log evaluation error but don't fail the upload
+                logger.warning(f"Failed to evaluate project {project.id}: {str(e)}")
         
         return created_projects
     
@@ -277,9 +325,120 @@ class ProjectDatabaseService:
         if resume_skills:
             project.resume_skills = resume_skills
 
+        # Infer and persist the user's key role in this project
+        project.user_role = self._infer_role_for_user(user, project_data)
+
         project.save()
 
         return project
+
+    def _infer_role_for_user(
+        self,
+        user: User,
+        project_data: Dict[str, Any],
+    ) -> str:
+        """
+        Build the inference payload for infer_user_role() from raw project_data.
+
+        Looks up the uploading user's contribution percentage by matching
+        their email (primary + github) or normalised display name against
+        the contributors list returned by the analyser.
+        """
+        is_collaborative = bool(project_data.get('collaborative', False))
+
+        # Locate the user's own contribution entry
+        user_percent = 0.0
+        if is_collaborative:
+            contributors = project_data.get('contributors', [])
+            # Collect all identifiers for this user
+            user_emails = {
+                e.lower() for e in [
+                    getattr(user, 'email', '') or '',
+                    getattr(user, 'github_email', '') or '',
+                ] if e
+            }
+            user_name_norm = (
+                getattr(user, 'username', '') or ''
+            ).lower().replace(' ', '')
+            full_name_norm = (
+                f"{getattr(user, 'first_name', '')} {getattr(user, 'last_name', '')}"
+            ).strip().lower().replace(' ', '')
+
+            for contrib in contributors:
+                c_email = (contrib.get('email') or '').lower()
+                c_name_norm = (
+                    contrib.get('name') or ''
+                ).lower().replace(' ', '')
+                if c_email in user_emails or c_name_norm in (user_name_norm, full_name_norm):
+                    user_percent = float(contrib.get('percent_commits', 0.0))
+                    break
+
+        classification = project_data.get('classification', {})
+        languages = classification.get('languages', []) if isinstance(classification, dict) else []
+
+        return infer_user_role({
+            'classification': classification,
+            'is_collaborative': is_collaborative,
+            'user_contribution_percent': user_percent,
+            'languages': languages,
+        })
+    
+    def _add_files_to_existing_project(self, project: Project, project_data: Dict[str, Any]) -> None:
+        """
+        Add files from a new upload to an existing project (incremental upload).
+        
+        Args:
+            project: The existing project instance
+            project_data: Project analysis data containing files to add
+        """
+        # Update project languages and frameworks
+        self._save_project_languages(project, project_data)
+        self._save_project_frameworks(project, project_data)
+        
+        # Add new files and get counts of only NEW files (not updated ones)
+        new_file_counts = self._save_project_files(project, project_data)
+        
+        # Update contributors
+        self._save_project_contributors(project, project_data)
+        
+        # Recalculate contributor percentages after updating stats
+        self._recalculate_contributor_percentages(project)
+        
+        # Update git insights to reflect current upload state
+        contributors = project_data.get('contributors', [])
+        project_id = project_data.get('id', 0)
+        root = project_data.get('root', '')
+        
+        # Update first_commit_date if new data available
+        if project_data.get('first_commit_date'):
+            try:
+                first_commit_ts = float(project_data.get('first_commit_date', 0))
+                first_commit_dt = dt.datetime.fromtimestamp(first_commit_ts, tz=dt.timezone.utc)
+                project.first_commit_date = first_commit_dt
+            except (ValueError, TypeError):
+                pass
+        
+        # Update git_repository flag based on current upload
+        project.git_repository = (
+            bool(project_id) and project_id > 0 and
+            bool(contributors) and len(contributors) > 0 and
+            root not in ('(non-git-files)', '(non-project files)')
+        )
+        
+        # Update project stats ONLY for new files
+        code_files = new_file_counts.get('code', 0)
+        content_files = new_file_counts.get('content', 0)
+        image_files = new_file_counts.get('image', 0)
+        unknown_files = new_file_counts.get('unknown', 0)
+        new_total = code_files + content_files + image_files + unknown_files
+        
+        # Only increment file counts for truly NEW files
+        project.code_files_count = (project.code_files_count or 0) + code_files
+        project.text_files_count = (project.text_files_count or 0) + content_files
+        project.image_files_count = (project.image_files_count or 0) + image_files
+        project.total_files = (project.total_files or 0) + new_total
+        project.updated_at = timezone.now()
+        project.save()
     
     def _save_project_languages(self, project: Project, project_data: Dict[str, Any]) -> None:
         """
@@ -332,12 +491,20 @@ class ProjectDatabaseService:
             if file_count == 0 and code_files:
                 file_count = max(1, len(code_files) // len(language_objects))
             
-            ProjectLanguage.objects.create(
+            # Use get_or_create to handle existing relationships
+            proj_lang, created = ProjectLanguage.objects.get_or_create(
                 project=project,
                 language=language,
-                file_count=file_count,
-                is_primary=bool(i == 0)
+                defaults={
+                    'file_count': file_count,
+                    'is_primary': bool(i == 0)
+                }
             )
+            
+            # If it already existed, increment the file count
+            if not created:
+                proj_lang.file_count = (proj_lang.file_count or 0) + file_count
+                proj_lang.save()
     
     def _save_project_frameworks(self, project: Project, project_data: Dict[str, Any]) -> None:
         """
@@ -363,22 +530,29 @@ class ProjectDatabaseService:
                 }
             )
             
-            # Create relationship
-            ProjectFramework.objects.create(
+            # Use get_or_create for relationship to avoid duplicates when merging
+            ProjectFramework.objects.get_or_create(
                 project=project,
                 framework=framework,
-                detected_from='dependencies'  # Default, could be enhanced
+                defaults={
+                    'detected_from': 'dependencies'  # Default, could be enhanced
+                }
             )
     
-    def _save_project_files(self, project: Project, project_data: Dict[str, Any]) -> None:
+    def _save_project_files(self, project: Project, project_data: Dict[str, Any]) -> Dict[str, int]:
         """
         Save individual file analysis results.
+        Tracks which files are new vs updated.
         
         Args:
             project: The project instance
             project_data: Project analysis data containing file information
+            
+        Returns:
+            Dictionary with counts of new files by type: {'code': 5, 'content': 2, ...}
         """
         files = project_data.get('files', {})
+        new_counts = {'code': 0, 'content': 0, 'image': 0, 'unknown': 0}
         
         # Process each file type
         for file_type, file_list in files.items():
@@ -386,15 +560,132 @@ class ProjectDatabaseService:
                 # Handle unknown files (just filenames)
                 for filename in file_list:
                     if isinstance(filename, str):
-                        self._create_project_file(project, filename, file_type)
+                        is_new = self._create_or_update_project_file(project, filename, file_type)
+                        if is_new:
+                            new_counts[file_type] = new_counts.get(file_type, 0) + 1
             else:
                 # Handle structured file data
                 for file_info in file_list:
                     if isinstance(file_info, dict):
                         filename = file_info.get('path', '')
-                        self._create_project_file(project, filename, file_type, file_info)
+                        is_new = self._create_or_update_project_file(project, filename, file_type, file_info)
                     elif isinstance(file_info, str):
-                        self._create_project_file(project, file_info, file_type)
+                        is_new = self._create_or_update_project_file(project, file_info, file_type)
+                    
+                    if is_new:
+                        new_counts[file_type] = new_counts.get(file_type, 0) + 1
+        
+        return new_counts
+    
+    def _create_or_update_project_file(
+        self, 
+        project: Project, 
+        filename: str, 
+        file_type: str, 
+        file_info: Dict[str, Any] = None
+    ) -> bool:
+        """
+        Create or update a ProjectFile record from file analysis data.
+        If a file with the same path exists in this project, update it.
+        Otherwise, create a new one.
+        
+        Args:
+            project: The project instance
+            filename: Name of the file
+            file_type: Type of file (code, content, image, unknown)
+            file_info: Additional file metadata
+            
+        Returns:
+            True if a new file was created, False if an existing file was updated
+        """
+        if not file_info:
+            file_info = {}
+        
+        # Extract file extension
+        file_extension = ''
+        if '.' in filename:
+            file_extension = '.' + filename.split('.')[-1].lower()
+        
+        # Get file metrics - populate for all file types
+        line_count = file_info.get('lines')
+        character_count = file_info.get('length') or file_info.get('chars')
+        file_size_bytes = file_info.get('size') or file_info.get('bytes')
+        
+        # Fallback: calculate size from character count if not provided
+        if file_size_bytes is None and character_count:
+            file_size_bytes = character_count  # Approximate bytes from chars
+        
+        # Content preview for text files
+        content_preview = file_info.get('text', '')
+        is_truncated_raw = file_info.get('truncated', False)
+        is_truncated = bool(is_truncated_raw) if is_truncated_raw not in [None, [], ''] else False
+        
+        # Detect language for code files
+        detected_language = None
+        if file_type == 'code' and file_extension:
+            ext_to_lang = self._get_extension_language_mapping()
+            lang_name = ext_to_lang.get(file_extension.lstrip('.'))
+            if lang_name:
+                detected_language, _ = ProgrammingLanguage.objects.get_or_create(
+                    name=lang_name,
+                    defaults={'category': self._get_language_category(lang_name)}
+                )
+        
+        # Compute content hash for deduplication
+        content_hash = self._compute_file_hash(file_info, content_preview)
+        
+        # Check for existing file with same path in this project
+        existing_file = ProjectFile.objects.filter(
+            project=project,
+            file_path=filename
+        ).first()
+        
+        if existing_file:
+            # Update existing file with new content
+            existing_file.file_type = file_type
+            existing_file.file_size_bytes = file_size_bytes
+            existing_file.line_count = line_count
+            existing_file.character_count = character_count
+            existing_file.content_preview = content_preview[:10000] if content_preview else ''
+            existing_file.is_content_truncated = is_truncated
+            existing_file.detected_language = detected_language
+            existing_file.content_hash = content_hash
+            existing_file.save()
+            return False  # This was an update, not a new file
+        
+        # File doesn't exist, create it
+        # Check for duplicates by content hash
+        original_file = None
+        is_duplicate = False
+        if content_hash:
+            existing = ProjectFile.objects.filter(
+                project__user=project.user,
+                content_hash=content_hash,
+                is_duplicate=False  # Only match against original files
+            ).first()
+            
+            if existing:
+                # This is a duplicate
+                original_file = existing
+                is_duplicate = True
+        
+        ProjectFile.objects.create(
+            project=project,
+            file_path=filename,
+            filename=filename.split('/')[-1],  # Extract just the filename
+            file_extension=file_extension,
+            file_type=file_type,
+            file_size_bytes=file_size_bytes,
+            line_count=line_count,
+            character_count=character_count,
+            content_preview=content_preview[:10000] if content_preview else '',
+            is_content_truncated=is_truncated,
+            detected_language=detected_language,
+            content_hash=content_hash,
+            is_duplicate=is_duplicate,
+            original_file=original_file
+        )
+        return True  # This was a new file
     
     def _create_project_file(
         self, 
@@ -517,15 +808,25 @@ class ProjectDatabaseService:
                 contributor.user = matched_user
                 contributor.save(update_fields=['user'])
             
-            # Create contribution record
-            ProjectContribution.objects.create(
+            # Get or create contribution record, or update if exists
+            contribution, created = ProjectContribution.objects.get_or_create(
                 project=project,
                 contributor=contributor,
-                commit_count=contributor_info.get('commits', 0),
-                lines_added=contributor_info.get('lines_added', 0),
-                lines_deleted=contributor_info.get('lines_deleted', 0),
-                percent_of_commits=contributor_info.get('percent_commits', 0.0)
+                defaults={
+                    'commit_count': contributor_info.get('commits', 0),
+                    'lines_added': contributor_info.get('lines_added', 0),
+                    'lines_deleted': contributor_info.get('lines_deleted', 0),
+                    'percent_of_commits': contributor_info.get('percent_commits', 0.0)
+                }
             )
+            
+            # If contribution already exists, REPLACE the stats (not increment)
+            # because the analyzer returns absolute counts, not deltas
+            if not created:
+                contribution.commit_count = contributor_info.get('commits', 0)
+                contribution.lines_added = contributor_info.get('lines_added', 0)
+                contribution.lines_deleted = contributor_info.get('lines_deleted', 0)
+                contribution.save()
     
     def _compute_file_hash(self, file_info: Dict[str, Any], content_preview: str = '') -> str:
         """
@@ -626,6 +927,34 @@ class ProjectDatabaseService:
             if candidate and '@' in candidate:
                 emails.append(candidate)
         return emails
+    
+    def _recalculate_contributor_percentages(self, project: Project) -> None:
+        """
+        Recalculate the percent_of_commits for all contributors in a project.
+        This is used after merging/updating contributor statistics.
+        
+        Args:
+            project: The project instance
+        """
+        # Get all project contributions for this project
+        contributions = ProjectContribution.objects.filter(project=project)
+        
+        # Calculate total commits
+        total_commits = sum(c.commit_count or 0 for c in contributions)
+        
+        # Update each contribution's percentage
+        if total_commits > 0:
+            for contribution in contributions:
+                new_percentage = ((contribution.commit_count or 0) / total_commits) * 100.0
+                if contribution.percent_of_commits != new_percentage:
+                    contribution.percent_of_commits = new_percentage
+                    contribution.save(update_fields=['percent_of_commits'])
+        else:
+            # If no commits, set all to 0
+            for contribution in contributions:
+                if contribution.percent_of_commits != 0:
+                    contribution.percent_of_commits = 0
+                    contribution.save(update_fields=['percent_of_commits'])
     
     # Helper methods for categorization
     def _get_language_category(self, language: str) -> str:
