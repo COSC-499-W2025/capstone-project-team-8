@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import { getCurrentUser } from '@/utils/api';
-import { getProjects, getSkills } from '@/utils/resumeApi';
+import { getProjects, getSkills, getResume } from '@/utils/resumeApi';
 import { generateRenderCVPdf, downloadRenderCVYaml } from '@/utils/resumeApi';
-import { saveDraft, getDraft, getCurrentDraft, clearCurrentDraft } from '@/utils/draftStorage';
+import { saveDraft, getDraft, getCurrentDraft } from '@/utils/draftStorage';
 import { getProjectDateRange } from '@/utils/resumeCleanup';
 import { autoGenerateResume } from '@/utils/autoGenerateResume';
 import ProjectsPanel from '@/components/resume/ProjectsPanel';
@@ -314,6 +314,7 @@ function ResumePreview({ resumeData }) {
 
 export default function ResumeNewPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, token, refreshAccessToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -321,6 +322,8 @@ export default function ResumeNewPage() {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [theme, setTheme] = useState('classic');
 
+  // Track if we've done initial load (to avoid marking first load as unsaved changes)
+  const initialLoadRef = useRef(true);
   // Store skills data for auto-generate
   const [aggregatedSkills, setAggregatedSkills] = useState(null);
 
@@ -509,35 +512,70 @@ export default function ResumeNewPage() {
           },
         };
 
-        // Restore draft if available
-        const draft = getCurrentDraft();
-        if (draft && draft.sections) {
-          // Merge any new skills the user doesn't already have saved in their draft
-          const draftSkillTitles = new Set((draft.sections.skills || []).map((s) => s.title));
-          const newSkills = allSkills.filter((s) => !draftSkillTitles.has(s.title));
-          const mergedDraft = newSkills.length
-            ? { ...draft, sections: { ...draft.sections, skills: [...draft.sections.skills, ...newSkills] } }
-            : draft;
-          setResumeData(mergedDraft);
-          const initialHistory = [mergedDraft];
-          setHistory(initialHistory);
-          setHistoryIndex(0);
+        // Check if we have a resume_id to load from portfolio generation
+        const resumeId = searchParams.get('resume_id');
+        
+        if (resumeId) {
+          try {
+            const savedResume = await getResume(token, resumeId);
+            const resumeContent = savedResume.content || {};
+            
+            // Always load the generated resume directly (overwrite any draft)
+            setResumeData(resumeContent);
+            setHistory([resumeContent]);
+            setHistoryIndex(0);
+            setMessage({ type: 'success', text: `Resume loaded from portfolio!` });
+          } catch (err) {
+            console.error('Error loading resume:', err);
+            setMessage({ type: 'error', text: 'Failed to load generated resume. Starting with a new one.' });
+            // Fall back to draft or initial
+            const draft = getCurrentDraft();
+            if (draft && draft.content && draft.content.sections) {
+              setResumeData(draft.content);
+              setHistory([draft.content]);
+              setHistoryIndex(0);
+            } else {
+              setResumeData(initial);
+              setHistory([initial]);
+              setHistoryIndex(0);
+            }
+          }
         } else {
-          setResumeData(initial);
-          const initialHistory = [initial];
-          setHistory(initialHistory);
-          setHistoryIndex(0);
+          // Restore draft if available (original behavior)
+          const draft = getCurrentDraft();
+          if (draft && draft.content && draft.content.sections) {
+            // Merge any new skills the user doesn't already have saved in their draft
+            const draftContent = draft.content;
+            const draftSkillTitles = new Set((draftContent.sections.skills || []).map((s) => s.title));
+            const newSkills = allSkills.filter((s) => !draftSkillTitles.has(s.title));
+            const mergedDraft = newSkills.length
+              ? { ...draftContent, sections: { ...draftContent.sections, skills: [...draftContent.sections.skills, ...newSkills] } }
+              : draftContent;
+            setResumeData(mergedDraft);
+            const initialHistory = [mergedDraft];
+            setHistory(initialHistory);
+            setHistoryIndex(0);
+          } else {
+            setResumeData(initial);
+            const initialHistory = [initial];
+            setHistory(initialHistory);
+            setHistoryIndex(0);
+          }
         }
       } catch (err) {
         console.error('Init error:', err);
         setMessage({ type: 'error', text: 'Failed to load resume data.' });
       } finally {
         setLoading(false);
+        // Mark initial load as complete after a short delay
+        setTimeout(() => {
+          initialLoadRef.current = false;
+        }, 100);
       }
     };
 
     init();
-  }, [isAuthenticated, token, router]);
+  }, [isAuthenticated, token, router, searchParams]);
 
   // Auto-save draft
   useEffect(() => {

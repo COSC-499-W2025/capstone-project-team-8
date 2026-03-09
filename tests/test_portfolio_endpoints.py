@@ -1053,3 +1053,238 @@ class PortfolioStatisticsTests(TestCase):
         self.assertEqual(languages[0]["language"], "Python")
         self.assertEqual(languages[1]["language"], "TypeScript")
         self.assertEqual(languages[2]["language"], "JavaScript")
+
+
+class PortfolioGenerateResumeTests(TestCase):
+    """Tests for POST /api/portfolio/{id}/generate-resume/ endpoint."""
+    
+    def setUp(self):
+        from app.models import Resume
+        self.Resume = Resume
+        
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="resume_test_user",
+            email="resume_test@example.com",
+            password="pass123",
+            first_name="John",
+            last_name="Doe",
+            university="Test University",
+            degree_major="Computer Science",
+        )
+        self.other_user = User.objects.create_user(
+            username="other_user",
+            email="other@example.com",
+            password="pass123"
+        )
+        
+        now = timezone.now()
+        
+        # Create projects with resume bullet points
+        self.project1 = Project.objects.create(
+            user=self.user,
+            name="Web Application",
+            description="A full-stack web application",
+            project_tag=1,
+            classification_type="coding",
+            total_files=10,
+            code_files_count=8,
+            created_at=now,
+            resume_bullet_points=[
+                "Built RESTful API using Django REST Framework",
+                "Implemented user authentication with JWT",
+            ],
+        )
+        self.project2 = Project.objects.create(
+            user=self.user,
+            name="Mobile App",
+            description="Cross-platform mobile application",
+            project_tag=2,
+            classification_type="coding",
+            total_files=15,
+            code_files_count=12,
+            created_at=now,
+            resume_bullet_points=[
+                "Developed cross-platform app using Flutter",
+                "Integrated Firebase for real-time data sync",
+            ],
+        )
+        
+        # Create portfolio with projects
+        self.portfolio = Portfolio.objects.create(
+            user=self.user,
+            title="My Developer Portfolio",
+            slug="my-dev-portfolio",
+            description="Showcasing my best work",
+            is_public=True,
+            tone="professional",
+        )
+        PortfolioProject.objects.create(
+            portfolio=self.portfolio, project=self.project1, order=0
+        )
+        PortfolioProject.objects.create(
+            portfolio=self.portfolio, project=self.project2, order=1
+        )
+        
+        # Update portfolio stats
+        self.portfolio.update_cached_stats()
+        
+        self.client.force_authenticate(user=self.user)
+    
+    # ==================== Authentication Tests ====================
+    
+    def test_generate_resume_requires_auth(self):
+        """POST /api/portfolio/{id}/generate-resume/ requires authentication."""
+        self.client.logout()
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        self.assertIn(resp.status_code, (401, 403))
+    
+    def test_cannot_generate_resume_from_others_portfolio(self):
+        """Cannot generate resume from another user's portfolio."""
+        self.client.force_authenticate(user=self.other_user)
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 404)
+    
+    def test_generate_resume_nonexistent_portfolio(self):
+        """Returns 404 for nonexistent portfolio."""
+        url = reverse("portfolio-generate-resume", args=[99999])
+        resp = self.client.post(url)
+        self.assertEqual(resp.status_code, 404)
+    
+    # ==================== Success Tests ====================
+    
+    def test_generate_resume_creates_resume_object(self):
+        """Successfully creates a Resume object in the database."""
+        initial_count = self.Resume.objects.filter(user=self.user).count()
+        
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(
+            self.Resume.objects.filter(user=self.user).count(),
+            initial_count + 1
+        )
+    
+    def test_generate_resume_returns_resume_id(self):
+        """Response includes resume_id."""
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        
+        self.assertEqual(resp.status_code, 201)
+        data = resp.json()
+        self.assertIn("resume_id", data)
+        self.assertIsInstance(data["resume_id"], int)
+    
+    def test_generate_resume_returns_content(self):
+        """Response includes the resume content structure."""
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        
+        self.assertEqual(resp.status_code, 201)
+        data = resp.json()
+        self.assertIn("content", data)
+        content = data["content"]
+        
+        # Check personal info fields
+        self.assertIn("name", content)
+        self.assertIn("email", content)
+        self.assertIn("sections", content)
+    
+    def test_generate_resume_populates_user_info(self):
+        """Resume is populated with user profile data."""
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        
+        data = resp.json()
+        content = data["content"]
+        
+        self.assertEqual(content["name"], "John Doe")
+        self.assertEqual(content["email"], "resume_test@example.com")
+    
+    def test_generate_resume_populates_education(self):
+        """Resume includes education from user profile."""
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        
+        data = resp.json()
+        education = data["content"]["sections"]["education"]
+        
+        self.assertEqual(len(education), 1)
+        self.assertEqual(education[0]["title"], "Test University")
+        self.assertEqual(education[0]["company"], "Computer Science")
+    
+    def test_generate_resume_includes_portfolio_projects(self):
+        """Resume includes all projects from the portfolio."""
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        
+        data = resp.json()
+        projects = data["content"]["sections"]["projects"]
+        
+        self.assertEqual(len(projects), 2)
+        project_titles = [p["title"] for p in projects]
+        self.assertIn("Web Application", project_titles)
+        self.assertIn("Mobile App", project_titles)
+    
+    def test_generate_resume_projects_ordered_by_portfolio_order(self):
+        """Projects are ordered according to PortfolioProject.order."""
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        
+        data = resp.json()
+        projects = data["content"]["sections"]["projects"]
+        
+        # project1 has order=0, project2 has order=1
+        self.assertEqual(projects[0]["title"], "Web Application")
+        self.assertEqual(projects[1]["title"], "Mobile App")
+    
+    def test_generate_resume_includes_bullet_points(self):
+        """Resume projects include the resume_bullet_points."""
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        
+        data = resp.json()
+        projects = data["content"]["sections"]["projects"]
+        
+        # Check first project has bullet points
+        first_project_content = projects[0]["content"]
+        self.assertIn("Built RESTful API", first_project_content)
+    
+    def test_generate_resume_includes_skills(self):
+        """Resume includes skills from portfolio stats."""
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        
+        data = resp.json()
+        skills = data["content"]["sections"]["skills"]
+        
+        # Should have skills list (may be empty if no languages/frameworks)
+        self.assertIsInstance(skills, list)
+    
+    def test_generate_resume_names_resume_after_portfolio(self):
+        """Resume name includes the portfolio title."""
+        url = reverse("portfolio-generate-resume", args=[self.portfolio.id])
+        resp = self.client.post(url)
+        
+        data = resp.json()
+        self.assertIn("My Developer Portfolio", data["resume_name"])
+    
+    def test_generate_resume_empty_portfolio(self):
+        """Can generate resume from portfolio with no projects."""
+        empty_portfolio = Portfolio.objects.create(
+            user=self.user,
+            title="Empty Portfolio",
+            slug="empty-portfolio",
+            is_public=False,
+        )
+        
+        url = reverse("portfolio-generate-resume", args=[empty_portfolio.id])
+        resp = self.client.post(url)
+        
+        self.assertEqual(resp.status_code, 201)
+        data = resp.json()
+        projects = data["content"]["sections"]["projects"]
+        self.assertEqual(len(projects), 0)

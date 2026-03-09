@@ -24,6 +24,7 @@ from .views.portfolio_views import (
     PortfolioRemoveProjectView,
     PortfolioReorderProjectsView,
     PortfolioStatsView,
+    PortfolioGenerateResumeView,
 )
 from .views.resume_views import (
     ResumeTemplatesView, 
@@ -82,6 +83,7 @@ urlpatterns = [
     path("portfolio/<int:pk>/projects/add/", PortfolioAddProjectView.as_view(), name="portfolio-add-project"),
     path("portfolio/<int:pk>/projects/<int:project_id>/", PortfolioRemoveProjectView.as_view(), name="portfolio-remove-project"),
     path("portfolio/<int:pk>/projects/reorder/", PortfolioReorderProjectsView.as_view(), name="portfolio-reorder-projects"),
+    path("portfolio/<int:pk>/generate-resume/", PortfolioGenerateResumeView.as_view(), name="portfolio-generate-resume"),
 
     # Resume endpoints
     path("resume/templates/", ResumeTemplatesView.as_view(), name="resume-templates"),

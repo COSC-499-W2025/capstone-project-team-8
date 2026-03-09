@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import config from '@/config';
-import { getPortfolio, deletePortfolio, removeProjectFromPortfolio, updatePortfolio } from '@/utils/portfolioApi';
+import { getPortfolio, deletePortfolio, removeProjectFromPortfolio, updatePortfolio, generateResumeFromPortfolio } from '@/utils/portfolioApi';
 
 export default function PortfolioDetailPage() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function PortfolioDetailPage() {
   const [error, setError] = useState('');
   const [removingProjectId, setRemovingProjectId] = useState(null);
   const [regeneratingSummary, setRegeneratingSummary] = useState(false);
+  const [generatingResume, setGeneratingResume] = useState(false);
 
   const portfolioId = params.id;
 
@@ -100,12 +101,27 @@ export default function PortfolioDetailPage() {
     }
   };
 
+  const handleGenerateResume = async () => {
+    setGeneratingResume(true);
+    setError('');
+
+    try {
+      const data = await generateResumeFromPortfolio(portfolioId, token);
+      // Redirect to resume page with the new resume ID
+      router.push(`/resume?resume_id=${data.resume_id}`);
+    } catch (err) {
+      console.error('Error generating resume:', err);
+      setError(err.message || 'Failed to generate resume');
+      setGeneratingResume(false);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
-  const isOwner = user && portfolio && portfolio.user_id === user.id;
+  const isOwner = user && portfolio && (Number(portfolio.user_id) === Number(user.id) || (portfolio.user_username && user.username && portfolio.user_username === user.username));
   const profile = ownerProfile || {};
   const displayName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || portfolio?.user_username || 'User';
   const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
@@ -532,6 +548,41 @@ export default function PortfolioDetailPage() {
                         </p>
                       </div>
                     )}
+                  </div>
+                </div>
+              )}
+
+              {/* Generate Resume Card */}
+              {isOwner && (
+                <div className="bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg overflow-hidden border border-blue-500/30">
+                  <div className="px-4 py-3 border-b border-blue-500/20">
+                    <span className="text-[11px] uppercase tracking-widest text-blue-300 font-black">Quick Actions</span>
+                  </div>
+                  <div className="px-4 py-4">
+                    <p className="text-xs text-white/60 mb-3">Generate a resume populated with all your portfolio projects, languages, and skills.</p>
+                    <button
+                      onClick={handleGenerateResume}
+                      disabled={generatingResume}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {generatingResume ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                          <span>Generating...</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                            <polyline points="10 9 9 9 8 9"/>
+                          </svg>
+                          <span>Generate Resume</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               )}

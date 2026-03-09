@@ -183,3 +183,20 @@ export async function reorderPortfolioProjects(portfolioId, projectIds, token) {
   }, token);
   return data;
 }
+
+/**
+ * Generate a resume from a portfolio
+ * Creates a new resume populated with portfolio projects, skills, and user profile data.
+ * @param {number} portfolioId - Portfolio ID to generate resume from
+ * @param {string} token - Auth token
+ * @returns {Promise<{resume_id: number, resume_name: string, content: object, portfolio_id: number, portfolio_title: string}>}
+ */
+export async function generateResumeFromPortfolio(portfolioId, token) {
+  const data = await authenticatedFetch(`/api/portfolio/${portfolioId}/generate-resume/`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }, token);
+  return data;
+}
