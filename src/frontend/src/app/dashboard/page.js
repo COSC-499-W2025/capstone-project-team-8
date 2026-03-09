@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { getCurrentUser } from '@/utils/api';
 import Header from '@/components/Header';
+import Toast from '@/components/Toast';
 import config from '@/config';
 
 export default function DashboardPage() {
@@ -18,6 +19,7 @@ export default function DashboardPage() {
     languages: {},
     frameworks: {},
   });
+  const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
     if (authLoading) return;
@@ -117,6 +119,19 @@ export default function DashboardPage() {
     return 'bg-red-500/20 border-red-500/30';
   };
 
+  const handleViewPortfolio = () => {
+    if (user?.portfolio_url && user.portfolio_url.trim()) {
+      // Open portfolio in new tab
+      window.open(user.portfolio_url, '_blank', 'noopener,noreferrer');
+    } else {
+      // Show message that no portfolio link is available
+      setMessage({ 
+        type: 'error', 
+        text: 'No portfolio link found. Please add your portfolio URL in your profile settings.' 
+      });
+    }
+  };
+
   const avgScore = evaluations.length > 0
     ? evaluations.reduce((sum, e) => sum + e.overall_score, 0) / evaluations.length
     : null;
@@ -181,14 +196,12 @@ export default function DashboardPage() {
                   >
                     Edit Profile
                   </Link>
-                  <a
-                    href={user?.portfolio_url || '#'}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={handleViewPortfolio}
                     className="block w-full px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white font-medium text-center transition-colors text-sm"
                   >
                     View Portfolio
-                  </a>
+                  </button>
                 </div>
 
                 {/* Skills Breakdown */}
@@ -386,6 +399,14 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      
+      {message.text && (
+        <Toast 
+          message={message.text} 
+          type={message.type}
+          onClose={() => setMessage({ type: '', text: '' })}
+        />
+      )}
     </>
   );
 }
