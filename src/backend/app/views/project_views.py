@@ -279,100 +279,147 @@ class ProjectStatsView(APIView):
         return JsonResponse(resp)
 
 
+def _get_ranked_projects(user):
+    """
+    Get projects ranked by a composite highlight score that balances
+    quality, scale, effort, and breadth — so team projects aren't
+    automatically beaten by trivial solo projects.
+
+    Composite highlight_score (0–100):
+      Quality  (40%) — evaluation overall_score (0-100)
+      Scale    (25%) — log-scaled total lines of code
+      Effort   (20%) — log-scaled absolute lines the user changed
+      Breadth  (15%) — number of distinct languages + frameworks (capped at 10)
+    """
+    projects = Project.objects.filter(user=user).prefetch_related(
+        'files', 'contributions', 'languages', 'frameworks'
+    )
+
+    project_rows = []
+
+    for project in projects:
+        user_contributions = ProjectContribution.objects.filter(
+            project=project,
+            contributor__user=user
+        ).first()
+
+        total_project_lines = ProjectFile.objects.filter(
+            project=project,
+            file_type='code'
+        ).aggregate(total=Sum('line_count'))['total'] or 0
+
+        commit_percentage = 0.0
+        total_lines_changed = 0
+        commit_count = 0
+
+        if user_contributions:
+            commit_percentage = user_contributions.percent_of_commits or 0.0
+            total_lines_changed = user_contributions.lines_added + user_contributions.lines_deleted
+            commit_count = user_contributions.commit_count
+
+        # Get languages (top 5)
+        languages = list(
+            ProjectLanguage.objects.filter(project=project)
+            .select_related('language')
+            .order_by('-file_count')
+            .values_list('language__name', flat=True)[:5]
+        )
+
+        # Get frameworks (top 5)
+        frameworks = list(
+            ProjectFramework.objects.filter(project=project)
+            .select_related('framework')
+            .values_list('framework__name', flat=True)[:5]
+        )
+
+        # --- Compute sub-scores ---
+        # Quality: evaluation overall_score (0-100), default 0
+        eval_obj = ProjectEvaluation.objects.filter(project=project).first()
+        quality_score = eval_obj.overall_score if eval_obj else 0.0
+
+        # Scale: log-scaled total lines of code (log2 of lines, normalized 0-100)
+        # log2(10000) ≈ 13.3 → treat 10k+ lines as ~100
+        if total_project_lines > 0:
+            scale_score = min((math.log2(total_project_lines) / 13.3) * 100, 100)
+        else:
+            scale_score = 0.0
+
+        # Effort: log-scaled absolute lines changed by the user
+        if total_lines_changed > 0:
+            effort_score = min((math.log2(total_lines_changed) / 13.3) * 100, 100)
+        else:
+            effort_score = 0.0
+
+        # Breadth: number of languages + frameworks (cap at 10 → 100)
+        breadth_raw = len(languages) + len(frameworks)
+        breadth_score = min((breadth_raw / 10) * 100, 100)
+
+        # Weighted composite
+        highlight_score = (
+            quality_score  * 0.40 +
+            scale_score    * 0.25 +
+            effort_score   * 0.20 +
+            breadth_score  * 0.15
+        )
+
+        if total_project_lines > 0:
+            lines_changed_percentage = (total_lines_changed / total_project_lines) * 100
+        else:
+            lines_changed_percentage = 0.0
+
+        project_rows.append({
+            "id": project.id,
+            "name": project.name,
+            "project_tag": project.project_tag,
+            "project_root_path": project.project_root_path,
+            "classification_type": project.classification_type,
+            "classification_confidence": float(project.classification_confidence or 0.0),
+            "git_repository": bool(project.git_repository),
+            "highlight_score": round(highlight_score, 1),
+            "contribution_score": round(
+                (commit_percentage * 0.4) + (lines_changed_percentage * 0.6), 2
+            ),
+            "commit_percentage": round(commit_percentage, 2),
+            "lines_changed_percentage": round(lines_changed_percentage, 2),
+            "total_commits": commit_count,
+            "total_lines_changed": total_lines_changed,
+            "total_project_lines": total_project_lines,
+            "first_commit_date": int(project.first_commit_date.timestamp()) if project.first_commit_date else None,
+            "languages": languages,
+            "frameworks": frameworks,
+            "resume_bullet_points": project.resume_bullet_points or [],
+            "score_breakdown": {
+                "quality": round(quality_score, 1),
+                "scale": round(scale_score, 1),
+                "effort": round(effort_score, 1),
+                "breadth": round(breadth_score, 1),
+            },
+        })
+
+    project_rows.sort(key=lambda x: x['highlight_score'], reverse=True)
+    return project_rows
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class RankedProjectsView(APIView):
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
-        responses={200: OpenApiResponse(description="Projects ranked by contribution score")},
-        description="Return projects ranked by user's contribution score (commit_percentage * 0.4 + lines_changed_percentage * 0.6)",
+        responses={200: OpenApiResponse(description="Projects ranked by highlight score")},
+        description="Return projects ranked by composite highlight score (quality, scale, effort, breadth)",
         tags=["Projects"],
     )
     def get(self, request):
         """
-        Return projects ranked by user's contribution score.
-        
-        Contribution Score Formula:
-        - commit_percentage * 0.4 + lines_changed_percentage * 0.6
-        
-        Where:
-        - commit_percentage: User's commits / total project commits * 100
-        - lines_changed_percentage: User's lines changed / total project lines * 100
+        Return projects ranked by composite highlight score.
+
+        Highlight Score Formula (0–100):
+          Quality  (40%) — evaluation overall_score
+          Scale    (25%) — log₂-scaled total lines of code
+          Effort   (20%) — log₂-scaled absolute lines changed
+          Breadth  (15%) — distinct languages + frameworks (capped at 10)
         """
-        user = request.user
-        
-        # Get all projects for this user
-        projects = Project.objects.filter(user=user).prefetch_related('files', 'contributions')
-        
-        ranked_projects = []
-        
-        for project in projects:
-            # Find user's contribution to this project
-            # The user's contribution is via their linked Contributor profile
-            user_contributions = ProjectContribution.objects.filter(
-                project=project,
-                contributor__user=user
-            ).first()
-            
-            if not user_contributions:
-                # User has no Git contributions to this project
-                # Include it with score 0 if it's not a git repo, otherwise skip
-                if not project.git_repository:
-                    ranked_projects.append({
-                        "id": project.id,
-                        "name": project.name,
-                        "project_tag": project.project_tag,
-                        "classification_type": project.classification_type,
-                        "contribution_score": 0.0,
-                        "commit_percentage": 0.0,
-                        "lines_changed_percentage": 0.0,
-                        "total_commits": 0,
-                        "total_lines_changed": 0,
-                        "total_project_lines": 0,
-                        "resume_bullet_points": project.resume_bullet_points or []
-                    })
-                continue
-            
-            # Calculate total project lines from all files
-            total_project_lines = ProjectFile.objects.filter(
-                project=project,
-                file_type='code'
-            ).aggregate(total=Sum('line_count'))['total'] or 0
-            
-            # Calculate user's contribution metrics
-            commit_percentage = user_contributions.percent_of_commits or 0.0
-            total_lines_changed = user_contributions.lines_added + user_contributions.lines_deleted
-            
-            # Calculate lines changed percentage
-            if total_project_lines > 0:
-                lines_changed_percentage = (total_lines_changed / total_project_lines) * 100
-            else:
-                lines_changed_percentage = 0.0
-            
-            # Calculate contribution score
-            contribution_score = (commit_percentage * 0.4) + (lines_changed_percentage * 0.6)
-            
-            ranked_projects.append({
-                "id": project.id,
-                "name": project.name,
-                "project_tag": project.project_tag,
-                "project_root_path": project.project_root_path,
-                "classification_type": project.classification_type,
-                "classification_confidence": float(project.classification_confidence or 0.0),
-                "git_repository": bool(project.git_repository),
-                "contribution_score": round(contribution_score, 2),
-                "commit_percentage": round(commit_percentage, 2),
-                "lines_changed_percentage": round(lines_changed_percentage, 2),
-                "total_commits": user_contributions.commit_count,
-                "total_lines_changed": total_lines_changed,
-                "total_project_lines": total_project_lines,
-                "first_commit_date": int(project.first_commit_date.timestamp()) if project.first_commit_date else None,
-                "resume_bullet_points": project.resume_bullet_points or []
-            })
-        
-        # Sort by contribution score descending
-        ranked_projects.sort(key=lambda x: x['contribution_score'], reverse=True)
-        
+        ranked_projects = _get_ranked_projects(request.user)
         return JsonResponse({"projects": ranked_projects})
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -386,7 +433,7 @@ class TopProjectsSummaryView(APIView):
     )
     def get(self, request):
         """Return top 3 ranked projects with pre-generated AI summaries."""
-        projects = self._get_ranked_projects_with_tech(request.user)[:3]
+        projects = _get_ranked_projects(request.user)[:3]
         
         results = []
         for project_data in projects:
@@ -443,125 +490,6 @@ class TopProjectsSummaryView(APIView):
             })
         
         return JsonResponse({"top_projects": results}, status=200)
-    
-    def _get_ranked_projects_with_tech(self, user):
-        """
-        Get projects ranked by a composite highlight score that balances
-        quality, scale, effort, and breadth — so team projects aren't
-        automatically beaten by trivial solo projects.
-
-        Composite highlight_score (0–100):
-          Quality  (40%) — evaluation overall_score (0-100)
-          Scale    (25%) — log-scaled total lines of code
-          Effort   (20%) — log-scaled absolute lines the user changed
-          Breadth  (15%) — number of distinct languages + frameworks (capped at 10)
-        """
-        projects = Project.objects.filter(user=user).prefetch_related(
-            'files', 'contributions', 'languages', 'frameworks'
-        )
-
-        project_rows = []
-
-        for project in projects:
-            user_contributions = ProjectContribution.objects.filter(
-                project=project,
-                contributor__user=user
-            ).first()
-
-            total_project_lines = ProjectFile.objects.filter(
-                project=project,
-                file_type='code'
-            ).aggregate(total=Sum('line_count'))['total'] or 0
-
-            commit_percentage = 0.0
-            total_lines_changed = 0
-            commit_count = 0
-
-            if user_contributions:
-                commit_percentage = user_contributions.percent_of_commits or 0.0
-                total_lines_changed = user_contributions.lines_added + user_contributions.lines_deleted
-                commit_count = user_contributions.commit_count
-
-            # Get languages (top 5)
-            languages = list(
-                ProjectLanguage.objects.filter(project=project)
-                .select_related('language')
-                .order_by('-file_count')
-                .values_list('language__name', flat=True)[:5]
-            )
-
-            # Get frameworks (top 5)
-            frameworks = list(
-                ProjectFramework.objects.filter(project=project)
-                .select_related('framework')
-                .values_list('framework__name', flat=True)[:5]
-            )
-
-            # --- Compute sub-scores ---
-            # Quality: evaluation overall_score (0-100), default 0
-            eval_obj = ProjectEvaluation.objects.filter(project=project).first()
-            quality_score = eval_obj.overall_score if eval_obj else 0.0
-
-            # Scale: log-scaled total lines of code (log2 of lines, normalized 0-100)
-            # log2(10000) ≈ 13.3 → treat 10k+ lines as ~100
-            if total_project_lines > 0:
-                scale_score = min((math.log2(total_project_lines) / 13.3) * 100, 100)
-            else:
-                scale_score = 0.0
-
-            # Effort: log-scaled absolute lines changed by the user
-            if total_lines_changed > 0:
-                effort_score = min((math.log2(total_lines_changed) / 13.3) * 100, 100)
-            else:
-                effort_score = 0.0
-
-            # Breadth: number of languages + frameworks (cap at 10 → 100)
-            breadth_raw = len(languages) + len(frameworks)
-            breadth_score = min((breadth_raw / 10) * 100, 100)
-
-            # Weighted composite
-            highlight_score = (
-                quality_score  * 0.40 +
-                scale_score    * 0.25 +
-                effort_score   * 0.20 +
-                breadth_score  * 0.15
-            )
-
-            if total_project_lines > 0:
-                lines_changed_percentage = (total_lines_changed / total_project_lines) * 100
-            else:
-                lines_changed_percentage = 0.0
-
-            project_rows.append({
-                "id": project.id,
-                "name": project.name,
-                "project_tag": project.project_tag,
-                "project_root_path": project.project_root_path,
-                "classification_type": project.classification_type,
-                "classification_confidence": float(project.classification_confidence or 0.0),
-                "git_repository": bool(project.git_repository),
-                "highlight_score": round(highlight_score, 1),
-                "contribution_score": round(
-                    (commit_percentage * 0.4) + (lines_changed_percentage * 0.6), 2
-                ),
-                "commit_percentage": round(commit_percentage, 2),
-                "lines_changed_percentage": round(lines_changed_percentage, 2),
-                "total_commits": commit_count,
-                "total_lines_changed": total_lines_changed,
-                "total_project_lines": total_project_lines,
-                "first_commit_date": int(project.first_commit_date.timestamp()) if project.first_commit_date else None,
-                "languages": languages,
-                "frameworks": frameworks,
-                "score_breakdown": {
-                    "quality": round(quality_score, 1),
-                    "scale": round(scale_score, 1),
-                    "effort": round(effort_score, 1),
-                    "breadth": round(breadth_score, 1),
-                },
-            })
-
-        project_rows.sort(key=lambda x: x['highlight_score'], reverse=True)
-        return project_rows
     
     def _build_project_context(self, project_data: dict) -> str:
         """Build formatted context string for LLM."""
