@@ -293,7 +293,7 @@ export default function DashboardPage() {
                 <div className="bg-[var(--card-bg)] rounded-lg p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h2 className="text-2xl font-bold text-white">Top Projects</h2>
+                      <h2 className="text-2xl font-bold text-white">Top 3 Projects</h2>
                       <p className="text-white/50 text-sm mt-1">Your highest-ranked work by quality, scale, effort &amp; breadth</p>
                     </div>
                   </div>
