@@ -294,7 +294,7 @@ export default function DashboardPage() {
                   <div className="flex items-center justify-between mb-6">
                     <div>
                       <h2 className="text-2xl font-bold text-white">Top Projects</h2>
-                      <p className="text-white/50 text-sm mt-1">Your highest-ranked work by contribution score</p>
+                      <p className="text-white/50 text-sm mt-1">Your highest-ranked work by quality, scale, effort &amp; breadth</p>
                     </div>
                   </div>
                   <div className="space-y-6">
@@ -342,13 +342,36 @@ export default function DashboardPage() {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <span className="text-white/50 text-xs">Contribution</span>
-                                <p className="text-xl font-bold text-blue-400">{tp.contribution_score}%</p>
+                                <span className="text-white/50 text-xs">Highlight Score</span>
+                                <p className={`text-xl font-bold ${getGradeColor(tp.highlight_score || 0)}`}>{tp.highlight_score || 0}<span className="text-sm text-white/40">/100</span></p>
                               </div>
                             </div>
 
                             {/* Summary */}
                             <p className="text-white/70 text-sm mb-4 line-clamp-2">{tp.summary}</p>
+
+                            {/* Score Breakdown Pillars */}
+                            {tp.score_breakdown && (
+                              <div className="grid grid-cols-4 gap-3 mb-4">
+                                {[
+                                  { label: 'Quality', value: tp.score_breakdown.quality, icon: '★' },
+                                  { label: 'Scale', value: tp.score_breakdown.scale, icon: '◆' },
+                                  { label: 'Effort', value: tp.score_breakdown.effort, icon: '⚡' },
+                                  { label: 'Breadth', value: tp.score_breakdown.breadth, icon: '◎' },
+                                ].map((pillar) => (
+                                  <div key={pillar.label} className="text-center">
+                                    <div className="text-[10px] text-white/40 mb-1">{pillar.icon} {pillar.label}</div>
+                                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                      <div
+                                        className={`h-full rounded-full ${pillar.value >= 70 ? 'bg-green-500' : pillar.value >= 40 ? 'bg-blue-500' : 'bg-white/30'}`}
+                                        style={{ width: `${Math.min(pillar.value, 100)}%` }}
+                                      />
+                                    </div>
+                                    <div className="text-[10px] text-white/50 mt-0.5">{pillar.value}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
 
                             {/* Evolution Process Timeline */}
                             {steps.length > 0 && (
