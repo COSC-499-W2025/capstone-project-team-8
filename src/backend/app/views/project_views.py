@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 from app.models import (
     Project, ProjectFile, Contributor, ProjectContribution,
-    ProjectLanguage, ProjectFramework, ProgrammingLanguage, Framework
+    ProjectLanguage, ProjectFramework, ProgrammingLanguage, Framework, ProjectEvaluation,
 )
 
 
@@ -384,13 +384,35 @@ class TopProjectsSummaryView(APIView):
         tags=["Projects"],
     )
     def get(self, request):
-        """Return top 3 ranked projects with pre-generated AI summaries."""
+        """Return top 3 ranked projects with pre-generated AI summaries and evolution data."""
         projects = self._get_ranked_projects_with_tech(request.user)[:3]
         
         results = []
         for project_data in projects:
             # Fetch the actual Project model instance to access ai_summary and llm_consent
             project_obj = Project.objects.filter(id=project_data['id']).first()
+            
+            # Evaluation data for quality evolution
+            evaluation = None
+            if project_obj:
+                eval_obj = ProjectEvaluation.objects.filter(project=project_obj).first()
+                if eval_obj:
+                    evaluation = {
+                        "overall_score": round(eval_obj.overall_score, 1),
+                        "code_quality_score": round(eval_obj.code_quality_score, 1),
+                        "documentation_score": round(eval_obj.documentation_score, 1),
+                        "structure_score": round(eval_obj.structure_score, 1),
+                        "testing_score": round(eval_obj.testing_score, 1),
+                    }
+            
+            # File composition breakdown
+            file_composition = {"code": 0, "content": 0, "image": 0}
+            if project_obj:
+                file_composition = {
+                    "code": int(project_obj.code_files_count or 0),
+                    "content": int(project_obj.text_files_count or 0),
+                    "image": int(project_obj.image_files_count or 0),
+                }
             
             results.append({
                 "project_id": project_data['id'],
@@ -406,11 +428,15 @@ class TopProjectsSummaryView(APIView):
                 "total_commits": project_data['total_commits'],
                 "total_lines_changed": project_data['total_lines_changed'],
                 "total_project_lines": project_data['total_project_lines'],
+                "total_files": file_composition['code'] + file_composition['content'] + file_composition['image'],
+                "file_composition": file_composition,
                 "first_commit_date": project_data['first_commit_date'],
+                "created_at": int(project_obj.created_at.timestamp()) if project_obj and project_obj.created_at else None,
                 "languages": project_data['languages'],
                 "frameworks": project_data['frameworks'],
                 "summary": project_obj.ai_summary if project_obj and project_obj.ai_summary else "No summary available",
                 "llm_consent": project_obj.llm_consent if project_obj else False,
+                "evaluation": evaluation,
             })
         
         return JsonResponse({"top_projects": results}, status=200)
