@@ -382,4 +382,5 @@ Next week:
 - collect results from peer testing and revise user flow and UI
   
 Reflection:
+Our system is ready for peer testing. This peer testing should go much smoother than the last one since our frontend is fully connected to our backend. The troubles we had with the inital peer testing was that our system was setup with API calls from the start, so users had to call each individual API through CURL or our API docs which was very inconvenient. Now, we have a full user interface which they can work with.
 
