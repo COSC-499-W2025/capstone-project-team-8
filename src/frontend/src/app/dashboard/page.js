@@ -288,6 +288,19 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Upload New Project Section */}
+              <div className="rounded-lg p-6" style={{ background: 'rgba(79, 124, 247, 0.08)', border: '1px solid rgba(79, 124, 247, 0.15)' }}>
+                <h2 className="text-2xl font-bold text-white mb-2">Analyze a New Project</h2>
+                <p className="text-white/70 mb-4">Upload your project folder to extract skills, frameworks, and get AI-powered insights</p>
+                <Link
+                  href="/upload"
+                  className="inline-block px-6 py-3 text-white font-semibold rounded-lg transition-colors"
+                  style={{ background: '#4f7cf7' }}
+                >
+                  Upload Project
+                </Link>
+              </div>
+
               {/* Top Projects Spotlight */}
               {topProjects.length > 0 && (
                 <div className="bg-[var(--card-bg)] rounded-lg p-6">
@@ -500,19 +513,6 @@ export default function DashboardPage() {
                     </Link>
                   </div>
                 )}
-              </div>
-
-              {/* Upload New Project Section */}
-              <div className="rounded-lg p-6" style={{ background: 'rgba(79, 124, 247, 0.08)', border: '1px solid rgba(79, 124, 247, 0.15)' }}>
-                <h2 className="text-2xl font-bold text-white mb-2">Analyze a New Project</h2>
-                <p className="text-white/70 mb-4">Upload your portfolio to extract skills, frameworks, and get AI-powered insights</p>
-                <Link
-                  href="/upload"
-                  className="inline-block px-6 py-3 text-white font-semibold rounded-lg transition-colors"
-                  style={{ background: '#4f7cf7' }}
-                >
-                  Upload Portfolio
-                </Link>
               </div>
 
               {/* Recent Activity / Quick Links */}
