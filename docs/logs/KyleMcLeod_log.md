@@ -19,6 +19,7 @@
 - [T2 Week 4-5 (Jan 26-Feb 6)](#week-18--19-january-26---february-6)
 - [T2 Week 6–7–8 (Feb 9–27)](#week-20--21--22-february-9---27)
 - [T2 Week 9 (Mar 02-08)](#week-9-mar-02-08)
+- [T2 Week 10 (Mar 02-08)](#week-10-mar-09-15)
 
 
 ## Week 3 September 15-21
@@ -355,7 +356,18 @@ Next week:
 - continue to fix front and backend bugs
 - coordinate who will be next in our group to setip Azure account since our AI trial is expired
 - refactor cluttered code logic
+
+## Week 10 Mar 09-15
+(TODO IMG)
+
+This week:
+- resume saving and editing feature PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/334 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/329
+ reviewed jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/333
+What went well:
+
+What went wrong:
+
+Next week:
   
 Reflection:
-We are making steady progress on our prject and we will continue to make improvements for the last couple months. Our workflow as a team has improved a lot over the last few months. We are on schedule and should have a final project ready to present in time.
 
