@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
+import { isNewProject, getNewProjects } from '@/utils/newProjectsSession';
 import config from '@/config';
 
 export default function ProjectsPage() {
@@ -21,6 +22,7 @@ export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
+  const [newProjects, setNewProjects] = useState([]);
 
   const fetchProjects = useCallback(async (q = '') => {
     if (!token) return;
@@ -52,6 +54,20 @@ export default function ProjectsPage() {
     const timer = setTimeout(() => fetchProjects(searchQuery), 500);
     return () => clearTimeout(timer);
   }, [authLoading, isAuthenticated, router, fetchProjects, searchQuery]);
+
+  // Check sessionStorage for new projects
+  useEffect(() => {
+    const checkNewProjects = () => {
+      const stored = getNewProjects();
+      console.log('New projects from sessionStorage:', stored);
+      setNewProjects(stored);
+    };
+    
+    checkNewProjects();
+    // Also check whenever we come back to the page
+    window.addEventListener('focus', checkNewProjects);
+    return () => window.removeEventListener('focus', checkNewProjects);
+  }, []);
 
   // Fetch evaluations
   useEffect(() => {
@@ -354,8 +370,14 @@ export default function ProjectsPage() {
                     )}
                     {/* Grade Badge */}
                     {getEvalForProject(project.id) && (
-                      <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold border ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
+                      <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold border ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
                         {getGrade(getEvalForProject(project.id).overall_score)} · {getEvalForProject(project.id).overall_score.toFixed(0)}%
+                      </div>
+                    )}
+                    {/* New Badge */}
+                    {newProjects.includes(parseInt(project.id, 10)) && (
+                      <div className="absolute top-2 left-2 px-3 py-1 rounded text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white border border-green-400/50">
+                        ✨ New
                       </div>
                     )}
                     <button

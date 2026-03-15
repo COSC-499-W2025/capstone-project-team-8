@@ -173,6 +173,80 @@
   cursor: not-allowed;
 }
 
+/* ── Auto-Generate button ─────────────────────────────────────────────────── */
+
+.autoGenerateBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+  white-space: nowrap;
+}
+
+.autoGenerateBtn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.autoGenerateBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.autoGenerateOverlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.autoGenerateModal {
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.autoGenerateModal h2 {
+  color: #fff;
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.autoGenerateModal p {
+  color: #a1a1aa;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.autoGenerateSpinner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(245, 158, 11, 0.3);
+  border-top-color: #f59e0b;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-bottom: 12px;
+}
+
 .btnSpinner {
   display: inline-block;
   width: 14px;

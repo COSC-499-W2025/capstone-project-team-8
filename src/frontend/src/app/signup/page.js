@@ -17,19 +17,23 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isSigningUp, setIsSigningUp] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && isAuthenticated) {
+    if (!authLoading && isAuthenticated && !isSigningUp) {
       router.push('/dashboard');
       return;
     }
-    initializeButtons();
-  }, [authLoading, isAuthenticated, router]);
+    if (!authLoading) {
+      initializeButtons();
+    }
+  }, [authLoading, isAuthenticated, isSigningUp, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setIsSigningUp(true);
 
     try {
       if (!username || !email || !password || !confirmPassword) {
@@ -49,6 +53,7 @@ export default function SignupPage() {
       router.push('/onboarding');
     } catch (err) {
       setError(err.message || 'Signup failed');
+      setIsSigningUp(false);
     } finally {
       setLoading(false);
     }

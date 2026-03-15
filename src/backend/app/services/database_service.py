@@ -319,6 +319,12 @@ class ProjectDatabaseService:
         if bullet_points:
             project.resume_bullet_points = bullet_points
 
+        # Save resume_skills from classification (all project types)
+        classification = project_data.get('classification', {})
+        resume_skills = classification.get('resume_skills', [])
+        if resume_skills:
+            project.resume_skills = resume_skills
+
         # Infer and persist the user's key role in this project
         project.user_role = self._infer_role_for_user(user, project_data)
 

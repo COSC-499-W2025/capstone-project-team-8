@@ -18,6 +18,7 @@
 - [T2 Week 3 (Jan 19-23)](#week-17-january-19-23)
 - [T2 Week 4-5 (Jan 26-Feb 6)](#week-18--19-january-26---february-6)
 - [T2 Week 6–7–8 (Feb 9–27)](#week-20--21--22-february-9---27)
+- [T2 Week 9 (Mar 02-08)](#week-9-mar-02-08)
 
 
 ## Week 3 September 15-21
@@ -326,4 +327,35 @@ Next week:
 
 Reflection:
 The majority of our system can now be used through our user interface and we are close to having a working product. We will continue to fix bugs and refine the accuracy of our system and implement additional features for the last couple months.
+
+## Week 9 Mar 02-08
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/d18f0356-e37b-44a8-aaa6-935590b532da" />
+
+
+This week:
+- added information to the portfolio page PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/313
+- quick token expiry fix PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/318
+- search feature projects PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/320 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/319
+- review harpers PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315
+- review jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/312
+- reiew jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/316
+- review marins PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/322
+
+What went well:
+- spent time prepping for quiz 3
+- many small manageble PR's this week
+- our project is mostly usable as is
+
+What went wrong:
+- our video demo missed some portions of the rubric
+- some parts of our code is becoming messy, a refactor on our nextjs project could be useful
+- Azure AI trial expired
+
+Next week:
+- continue to fix front and backend bugs
+- coordinate who will be next in our group to setip Azure account since our AI trial is expired
+- refactor cluttered code logic
+  
+Reflection:
+We are making steady progress on our prject and we will continue to make improvements for the last couple months. Our workflow as a team has improved a lot over the last few months. We are on schedule and should have a final project ready to present in time.
 
