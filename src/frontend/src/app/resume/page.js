@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
@@ -340,6 +340,7 @@ function mergeResumeData(baseResume, savedResume) {
 
 export default function ResumeNewPage({ resumeId = null }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated, token, refreshAccessToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
@@ -351,6 +352,8 @@ export default function ResumeNewPage({ resumeId = null }) {
     resumeId ? Number.parseInt(resumeId, 10) : null
   );
 
+  // Track if we've done initial load (to avoid marking first load as unsaved changes)
+  const initialLoadRef = useRef(true);
   // Store skills data for auto-generate
   const [aggregatedSkills, setAggregatedSkills] = useState(null);
 
@@ -581,6 +584,10 @@ export default function ResumeNewPage({ resumeId = null }) {
         setMessage({ type: 'error', text: 'Failed to load resume data.' });
       } finally {
         setLoading(false);
+        // Mark initial load as complete after a short delay
+        setTimeout(() => {
+          initialLoadRef.current = false;
+        }, 100);
       }
     };
 

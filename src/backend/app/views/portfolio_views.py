@@ -24,7 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import logging
 
-from app.models import Portfolio, PortfolioProject, Project
+from app.models import Portfolio, PortfolioProject, Project, Resume
 from app.serializers import (
     PortfolioSerializer,
     PortfolioGenerateSerializer,
@@ -431,14 +431,23 @@ class PortfolioStatsView(APIView):
     
     Statistics are cached and updated when projects are added/removed.
     On first access (lazy loading), stats are calculated and cached.
+    Public portfolios can be accessed without authentication.
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, pk):
         try:
-            portfolio = Portfolio.objects.get(pk=pk, user=request.user)
+            portfolio = Portfolio.objects.get(pk=pk)
         except Portfolio.DoesNotExist:
             return JsonResponse({"error": "Portfolio not found"}, status=404)
+        
+        # Public portfolios: anyone can access
+        # Private portfolios: require authentication (401), non-owners get 404
+        if not portfolio.is_public:
+            if not request.user.is_authenticated:
+                return JsonResponse({"error": "Authentication required"}, status=401)
+            if portfolio.user != request.user:
+                return JsonResponse({"error": "Portfolio not found"}, status=404)
         
         # Lazy initialization: calculate stats if never computed
         if portfolio.stats_updated_at is None:
@@ -461,3 +470,156 @@ class PortfolioStatsView(APIView):
             "date_range_end": portfolio.date_range_end.isoformat() if portfolio.date_range_end else None,
             "stats_updated_at": portfolio.stats_updated_at.isoformat() if portfolio.stats_updated_at else None,
         })
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PortfolioGenerateResumeView(APIView):
+    """
+    Generate a resume from portfolio data.
+    POST /portfolio/{id}/generate-resume/
+    
+    Creates a new Resume object populated with:
+    - User profile data (name, email, education)
+    - Portfolio projects (ordered by PortfolioProject.order)
+    - Skills extracted from portfolio languages/frameworks
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            portfolio = Portfolio.objects.prefetch_related(
+                'portfolio_projects__project__languages',
+                'portfolio_projects__project__frameworks'
+            ).get(pk=pk, user=request.user)
+        except Portfolio.DoesNotExist:
+            return JsonResponse({"error": "Portfolio not found"}, status=404)
+        
+        user = request.user
+        
+        # Ensure portfolio stats are up-to-date
+        if portfolio.stats_updated_at is None:
+            portfolio.update_cached_stats()
+            portfolio.refresh_from_db()
+        
+        # Build user profile info
+        first_name = user.first_name or ''
+        last_name = user.last_name or ''
+        full_name = f"{first_name} {last_name}".strip() or user.username
+        
+        city = getattr(user, 'education_city', '') or getattr(user, 'city', '') or ''
+        state = getattr(user, 'education_state', '') or getattr(user, 'state', '') or ''
+        location = f"{city}, {state}" if city and state else city or state or ''
+        
+        # Build education from user profile
+        education = []
+        university = getattr(user, 'university', '')
+        degree_major = getattr(user, 'degree_major', '')
+        expected_graduation = getattr(user, 'expected_graduation', None)
+        
+        if university or degree_major:
+            grad_str = ''
+            if expected_graduation:
+                grad_str = f"Graduating {expected_graduation.year}" if hasattr(expected_graduation, 'year') else f"Graduating {expected_graduation}"
+            education.append({
+                'id': 1,
+                'title': university or 'University',
+                'degree_type': '',
+                'company': degree_major or '',
+                'duration': grad_str,
+                'content': '',
+            })
+        
+        # Build projects from portfolio (ordered by PortfolioProject.order)
+        resume_projects = []
+        portfolio_projects = portfolio.portfolio_projects.select_related('project').order_by('order', '-added_at')
+        
+        for idx, pp in enumerate(portfolio_projects):
+            project = pp.project
+            
+            # Get frameworks/technologies for the project
+            frameworks = list(project.frameworks.values_list('name', flat=True)[:5])
+            languages = list(project.languages.values_list('name', flat=True)[:3])
+            tech_list = frameworks if frameworks else languages
+            tech_str = ', '.join(tech_list) if tech_list else ''
+            
+            # Get date range for duration
+            duration = ''
+            if project.first_commit_date:
+                start_date = project.first_commit_date.strftime('%b %Y')
+                end_date = project.created_at.strftime('%b %Y') if project.created_at else 'Present'
+                if start_date != end_date:
+                    duration = f"{start_date} - {end_date}"
+                else:
+                    duration = start_date
+            elif project.created_at:
+                duration = project.created_at.strftime('%b %Y')
+            
+            # Use existing resume_bullet_points or generate from description
+            bullet_points = project.resume_bullet_points or []
+            if not bullet_points and project.description:
+                bullet_points = [project.description[:200]]
+            
+            content = '\n'.join([f"• {bp}" for bp in bullet_points[:5]])
+            
+            resume_projects.append({
+                'id': idx + 1,
+                'title': project.name,
+                'company': tech_str,
+                'duration': duration,
+                'content': content,
+            })
+        
+        # Build skills from portfolio stats
+        skills = []
+        skill_id = 1
+        
+        # Add languages first
+        for lang_stat in portfolio.languages_stats or []:
+            skills.append({
+                'id': skill_id,
+                'title': lang_stat.get('language', ''),
+            })
+            skill_id += 1
+        
+        # Add frameworks
+        for fw_stat in portfolio.frameworks_stats or []:
+            skills.append({
+                'id': skill_id,
+                'title': fw_stat.get('framework', ''),
+            })
+            skill_id += 1
+        
+        # Build resume content
+        resume_content = {
+            'name': full_name,
+            'email': user.email or '',
+            'phone': getattr(user, 'phone', '') or '',
+            'github_url': f"https://github.com/{user.github_username}" if getattr(user, 'github_username', '') else '',
+            'portfolio_url': getattr(user, 'portfolio_url', '') or '',
+            'linkedin_url': getattr(user, 'linkedin_url', '') or '',
+            'location': location,
+            'sections': {
+                'summary': '',
+                'education': education,
+                'experience': [],  # User has no experience fields in model
+                'projects': resume_projects,
+                'skills': skills,
+                'certifications': [],
+            },
+        }
+        
+        # Save the resume
+        resume_name = f"{portfolio.title} Resume"
+        resume = Resume.objects.create(
+            user=user,
+            name=resume_name,
+            content=resume_content,
+        )
+        
+        return JsonResponse({
+            'resume_id': resume.id,
+            'resume_name': resume.name,
+            'content': resume_content,
+            'portfolio_id': portfolio.id,
+            'portfolio_title': portfolio.title,
+        }, status=201)

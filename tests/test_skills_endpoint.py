@@ -210,3 +210,122 @@ class SkillsEndpointTests(TestCase):
         self.assertIn('Python', language_names)
         self.assertNotIn('Ruby', language_names)
         self.assertEqual(len(data['languages']), 1)
+
+    # ------------------------------------------------------------------ #
+    #  resume_skills tests                                                 #
+    # ------------------------------------------------------------------ #
+
+    def test_resume_skills_present_in_response(self):
+        """Test that endpoint response includes a resume_skills key"""
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        data = response.json()
+        self.assertIn('resume_skills', data)
+
+    def test_resume_skills_empty_for_user_with_no_projects(self):
+        """resume_skills should be an empty list when user has no projects"""
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self.url)
+        data = response.json()
+        self.assertEqual(data['resume_skills'], [])
+
+    def test_resume_skills_returned_from_projects(self):
+        """Test that resume_skills stored on projects are surfaced by the endpoint"""
+        self.client.force_authenticate(user=self.user)
+
+        Project.objects.create(
+            user=self.user,
+            name='Writing Project',
+            classification_type='writing',
+            resume_skills=['Creative Writing', 'Technical Writing']
+        )
+        Project.objects.create(
+            user=self.user,
+            name='Art Project',
+            classification_type='art',
+            resume_skills=['Photography', 'Photo Editing']
+        )
+
+        response = self.client.get(self.url)
+        data = response.json()
+
+        skill_names = [s['name'] for s in data['resume_skills']]
+        self.assertIn('Creative Writing', skill_names)
+        self.assertIn('Technical Writing', skill_names)
+        self.assertIn('Photography', skill_names)
+        self.assertIn('Photo Editing', skill_names)
+
+    def test_resume_skills_include_project_counts(self):
+        """Each resume skill entry must carry the number of projects that have it"""
+        self.client.force_authenticate(user=self.user)
+
+        for i in range(3):
+            Project.objects.create(
+                user=self.user,
+                name=f'Project {i}',
+                classification_type='writing',
+                resume_skills=['Technical Writing', 'Documentation']
+            )
+        Project.objects.create(
+            user=self.user,
+            name='Solo Project',
+            classification_type='writing',
+            resume_skills=['Technical Writing']
+        )
+
+        response = self.client.get(self.url)
+        data = response.json()
+
+        tw = next(s for s in data['resume_skills'] if s['name'] == 'Technical Writing')
+        doc = next(s for s in data['resume_skills'] if s['name'] == 'Documentation')
+
+        self.assertEqual(tw['project_count'], 4)
+        self.assertEqual(doc['project_count'], 3)
+
+    def test_resume_skills_sorted_by_project_count(self):
+        """resume_skills must be sorted most-used first"""
+        self.client.force_authenticate(user=self.user)
+
+        for _ in range(3):
+            Project.objects.create(
+                user=self.user, name='P', classification_type='writing',
+                resume_skills=['Technical Writing']
+            )
+        for _ in range(2):
+            Project.objects.create(
+                user=self.user, name='P', classification_type='writing',
+                resume_skills=['Documentation']
+            )
+        Project.objects.create(
+            user=self.user, name='P', classification_type='art',
+            resume_skills=['Photography']
+        )
+
+        response = self.client.get(self.url)
+        skills = response.json()['resume_skills']
+
+        counts = [s['project_count'] for s in skills]
+        self.assertEqual(counts, sorted(counts, reverse=True))
+        self.assertEqual(skills[0]['name'], 'Technical Writing')
+
+    def test_resume_skills_scoped_to_authenticated_user(self):
+        """resume_skills from another user's projects must not appear"""
+        self.client.force_authenticate(user=self.user)
+
+        other = User.objects.create_user(
+            username='other2', email='other2@example.com', password='pass'
+        )
+        Project.objects.create(
+            user=self.user, name='Mine', classification_type='writing',
+            resume_skills=['Technical Writing']
+        )
+        Project.objects.create(
+            user=other, name='Theirs', classification_type='writing',
+            resume_skills=['Copywriting']
+        )
+
+        response = self.client.get(self.url)
+        skill_names = [s['name'] for s in response.json()['resume_skills']]
+
+        self.assertIn('Technical Writing', skill_names)
+        self.assertNotIn('Copywriting', skill_names)

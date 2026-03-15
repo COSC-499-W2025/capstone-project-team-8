@@ -7,6 +7,8 @@ import { useAuth } from '@/context/AuthContext';
 import { uploadFolder } from '@/utils/api';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
+import LoadingAnimation from '@/components/LoadingAnimation';
+import { addNewProject, addNewProjects, clearNewProjects } from '@/utils/newProjectsSession';
 import config from '@/config';
 
 export default function UploadPage() {
@@ -110,7 +112,59 @@ export default function UploadPage() {
     setMessage({ type: '', text: '' });
 
     try {
-      await uploadFolder(selectedFile, scanConsent, llmConsent, token, selectedProject);
+      // Clear previous "new" tags when uploading new files
+      clearNewProjects();
+      
+      // Fetch projects BEFORE upload to compare
+      let projectsBeforeUpload = [];
+      try {
+        const beforeResponse = await fetch(`${config.API_URL}/api/projects/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (beforeResponse.ok) {
+          const beforeData = await beforeResponse.json();
+          projectsBeforeUpload = (beforeData.projects || []).map(p => p.id);
+          console.log('Projects before upload:', projectsBeforeUpload);
+        }
+      } catch (err) {
+        console.error('Error fetching projects before upload:', err);
+      }
+      
+      // Perform the upload
+      const response = await uploadFolder(selectedFile, scanConsent, llmConsent, token, selectedProject);
+      console.log('Upload response:', response);
+      
+      // Wait a moment for backend to process
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Fetch projects AFTER upload to identify new ones
+      let newProjectIds = [];
+      try {
+        const afterResponse = await fetch(`${config.API_URL}/api/projects/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (afterResponse.ok) {
+          const afterData = await afterResponse.json();
+          const projectsAfterUpload = (afterData.projects || []).map(p => p.id);
+          console.log('Projects after upload:', projectsAfterUpload);
+          
+          // Find projects that exist after but not before
+          newProjectIds = projectsAfterUpload.filter(id => !projectsBeforeUpload.includes(id));
+          
+          // Also include the selected project if updating existing
+          if (selectedProject && !newProjectIds.includes(selectedProject)) {
+            newProjectIds.push(selectedProject);
+          }
+          
+          console.log('New/updated project IDs:', newProjectIds);
+          
+          if (newProjectIds.length > 0) {
+            addNewProjects(newProjectIds);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching projects after upload:', err);
+      }
       
       let successMessage = 'Portfolio uploaded and analysis started!';
       if (selectedProject) {
@@ -121,10 +175,10 @@ export default function UploadPage() {
       setMessage({ type: 'success', text: successMessage });
       setSelectedFile(null);
       
-      // Redirect to results page after a short delay
+      // Redirect to projects page after a short delay
       setTimeout(() => {
-        router.push('/results');
-      }, 2000);
+        router.push('/projects');
+      }, 1500);
     } catch (err) {
       setMessage({ type: 'error', text: err.message || 'Failed to upload portfolio' });
     } finally {
@@ -142,6 +196,23 @@ export default function UploadPage() {
   return (
     <>
       <Header />
+      
+      {/* Loading State Overlay */}
+      {uploading && (
+        <div className="fixed inset-0 flex flex-col items-center justify-center z-50 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[var(--card-bg)] border border-white/20 rounded-lg p-12 max-w-md w-full mx-4 text-center shadow-2xl">
+            <h2 className="text-2xl font-semibold text-white mb-2">Analyzing Your Portfolio</h2>
+            <p className="text-white/60 mb-8 text-sm">Extracting skills, frameworks, and technologies...</p>
+            
+            <div className="mb-8">
+              <LoadingAnimation />
+            </div>
+            
+            <p className="text-white/40 text-xs">This may take a few moments</p>
+          </div>
+        </div>
+      )}
+
       <div className="min-h-screen flex flex-col items-center justify-center p-8">
         <input
           ref={fileInputRef}

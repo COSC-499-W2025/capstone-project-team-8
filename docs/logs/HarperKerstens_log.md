@@ -16,6 +16,7 @@
 - [January 19-25](#january-19-25)
 - [January 26-February 7](#january-26-february-7)
 - [February 8-March 1](#february-8-march-1)
+- [March 2-8](#march-2-8)
 
 ## September 15-21
 
@@ -378,3 +379,33 @@ Going forward the goal is to continue to build off the resume builder Me and Kyl
 
 ### Reflection:
 This week was productive and stress-free, which is always a positive outcome. Despite a tight presentation timeline due to limited meeting availability early in the reading week, our team was able to rally together and deliver a polished product. The focus on fixing bugs before the presentation, while time-consuming, paid off by showcasing a more stable and professional system. Looking ahead, I'm excited about leveraging all the analytics infrastructure we've built to create more meaningful resume functionality. The foundation is solid—now it's about transforming that data into a genuinely useful tool for users. I'm confident that continued polish and bug fixes will result in a compelling final product.
+
+
+## March 2-8
+
+<img width="1084" height="633" alt="March2-8th" src="https://github.com/user-attachments/assets/95aa969e-40c8-44e1-b0b7-ef70e836d50a" />
+
+- Implemented new tag for recently uploaded projects
+- Improved upload flow with redirect following upload
+- Implemented loading animation for uploading a project to reflect system state
+
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| [#315](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/315)  | N/A |
+
+### What went well
+This week development was very smooth, Although there were no massive implementations this week, the small features I worked on went well and were implemented without any major issues. The loading animation was a nice touch to help reflect the system state to the user and it was implemented without any problems.
+
+### What didn't go well
+The biggest delay in my development this week was trying to have the new tag on projects work as expected. Initially it would randomly assign and wouldn't reflect any new projects the user had uploaded. After some debugging I was able to figure out the issue and get it working properly but it took more time than I expected.        
+
+
+### What's next
+Next week I want to continue working on the UI creating a more interactive experience for the user. Currently things are functional but there is a lot of room for improvement in the design and interactivity of the product. I want to work on making the user feel more in the loop with what the system is doing and giving them more control over their experience.
+
+
+### Reflection:
+This week was a good example of how even small features can have unexpected complications. The loading animation and project tag features were relatively simple in concept but I ran into some issues during implementation that caused delays. However, I'm glad I was able to work through those issues and get everything implemented as intended. Moving forward, I want to continue improving the user experience and making the product more polished overall.
