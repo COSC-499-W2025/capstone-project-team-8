@@ -7,6 +7,7 @@ import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import { listResumes, deleteResume } from '@/utils/resumeApi';
 import styles from './resumes.module.css';
+import Link from 'next/link';
 
 function parseBullets(content) {
   if (!content) return [];
@@ -147,10 +148,6 @@ export default function ResumesListPage() {
     loadResumes();
   }, [authLoading, isAuthenticated, token, router, refreshAccessToken]);
 
-  const handleNewResume = () => {
-    router.push('/resume');
-  };
-
   const handleDeleteResumeClick = (event, resume) => {
     event.stopPropagation();
     setResumePendingDelete(resume);
@@ -216,13 +213,19 @@ export default function ResumesListPage() {
             <h1>My Resumes</h1>
             <p className={styles.subtitle}>Create and manage your saved resumes</p>
           </div>
-          <button className={styles.btnNew} onClick={handleNewResume}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Create New Resume
-          </button>
+          <Link
+              href="/resume"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+              style={{ background: '#4f7cf7', color: 'white' }}
+              onMouseEnter={(e) => { e.target.style.background = '#3d6ce5'; }}
+              onMouseLeave={(e) => { e.target.style.background = '#4f7cf7'; }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Create New Resume
+            </Link>
         </div>
 
         {resumes.length === 0 ? (
@@ -238,13 +241,19 @@ export default function ResumesListPage() {
             </div>
             <h2>No Resumes Yet</h2>
             <p>Create your first resume to save tailored versions you can revisit, edit, and export later.</p>
-            <button className={styles.btnCreate} onClick={handleNewResume}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <Link
+              href="/resume"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold transition-all"
+              style={{ background: '#4f7cf7', color: 'white' }}
+              onMouseEnter={(e) => { e.target.style.background = '#3d6ce5'; }}
+              onMouseLeave={(e) => { e.target.style.background = '#4f7cf7'; }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
-              Create Your First Resume
-            </button>
+              Create New Resume
+            </Link>
           </div>
         ) : (
           <div className={styles.resumesList}>
