@@ -14,8 +14,8 @@ export default function DashboardPage() {
   const { isAuthenticated, token, user, setCurrentUser, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
-  const [evaluations, setEvaluations] = useState([]);
   const [topProjects, setTopProjects] = useState([]);
+  const [rankedProjects, setRankedProjects] = useState([]);
   const [skills, setSkills] = useState({
     languages: {},
     frameworks: {},
@@ -74,17 +74,17 @@ export default function DashboardPage() {
           });
         }
 
-        // Fetch evaluations
+        // Fetch ranked projects for avg score
         try {
-          const evalResponse = await fetch(`${config.API_URL}/api/evaluations/`, {
+          const rankedResponse = await fetch(`${config.API_URL}/api/projects/ranked/`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
-          if (evalResponse.ok) {
-            const evalData = await evalResponse.json();
-            setEvaluations(evalData.evaluations || []);
+          if (rankedResponse.ok) {
+            const rankedData = await rankedResponse.json();
+            setRankedProjects(rankedData.projects || []);
           }
         } catch (err) {
-          console.log('Evaluations not available:', err);
+          console.log('Ranked projects not available:', err);
         }
 
         // Fetch top 3 ranked projects
@@ -146,12 +146,13 @@ export default function DashboardPage() {
     }
   };
 
-  const avgScore = evaluations.length > 0
-    ? evaluations.reduce((sum, e) => sum + e.overall_score, 0) / evaluations.length
+  const avgScore = rankedProjects.length > 0
+    ? rankedProjects.reduce((sum, p) => sum + (p.highlight_score || 0), 0) / rankedProjects.length
     : null;
 
-  const getEvalForProject = (projectId) => {
-    return evaluations.find(e => e.project_id === projectId);
+  const getScoreForProject = (projectId) => {
+    const rp = rankedProjects.find(p => p.id === projectId);
+    return rp ? rp.highlight_score : null;
   };
   if (loading) {
     return (
@@ -276,14 +277,14 @@ export default function DashboardPage() {
                   <p className="text-3xl font-bold text-white">{Object.keys(skills.frameworks).length}</p>
                 </div>
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
-                  <p className="text-white/60 text-sm mb-1">Avg Quality Score</p>
+                  <p className="text-white/60 text-sm mb-1">Avg Project Score</p>
                   {avgScore !== null ? (
                     <div className="flex items-baseline gap-2">
                       <p className={`text-3xl font-bold ${getGradeColor(avgScore)}`}>{getGrade(avgScore)}</p>
-                      <p className="text-white/60 text-sm">{avgScore.toFixed(1)}%</p>
+                      <p className="text-white/60 text-sm">{avgScore.toFixed(1)}/100</p>
                     </div>
                   ) : (
-                    <p className="text-white/40 text-sm mt-1">No evaluations yet</p>
+                    <p className="text-white/40 text-sm mt-1">No projects yet</p>
                   )}
                 </div>
               </div>
@@ -388,9 +389,9 @@ export default function DashboardPage() {
                             <span className="text-4xl">📁</span>
                           )}
                           {/* Grade Badge */}
-                          {getEvalForProject(project.id) && (
-                            <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold border ${getGradeBg(getEvalForProject(project.id).overall_score)} ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
-                              {getGrade(getEvalForProject(project.id).overall_score)} · {getEvalForProject(project.id).overall_score.toFixed(0)}%
+                          {getScoreForProject(project.id) !== null && (
+                            <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold border ${getGradeBg(getScoreForProject(project.id))} ${getGradeColor(getScoreForProject(project.id))}`}>
+                              {getGrade(getScoreForProject(project.id))} · {getScoreForProject(project.id).toFixed(0)}
                             </div>
                           )}
                         </div>
