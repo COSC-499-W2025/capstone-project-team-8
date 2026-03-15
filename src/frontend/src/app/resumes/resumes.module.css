@@ -111,6 +111,11 @@
   box-shadow: 0 8px 25px rgba(79, 124, 247, 0.15);
 }
 
+.resumeCard:focus-visible {
+  outline: 2px solid #4f7cf7;
+  outline-offset: 2px;
+}
+
 .resumeCard h3 {
   margin: 0 0 0.5rem 0;
   color: white;
@@ -249,6 +254,9 @@
 
 .metaRow {
   margin: 0 0 1rem 0;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .themeBadge {
@@ -265,6 +273,19 @@
   text-transform: capitalize;
 }
 
+.projectBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e4e4e7;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
 .actions {
   display: flex;
   gap: 10px;
@@ -275,11 +296,99 @@
   padding: 10px;
   background: rgba(79, 124, 247, 0.14);
   color: white;
+  border: none;
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.95rem;
   display: inline-flex;
   justify-content: center;
+  align-items: center;
+}
+
+.deleteChip {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+  cursor: pointer;
+}
+
+.deleteChip:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.24);
+}
+
+.deleteChip:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 28rem;
+  background: var(--card-bg, #18181b);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #27272a;
+}
+
+.modalTitle {
+  margin: 0 0 1rem 0;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.modalText {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modalCancelButton,
+.modalDeleteButton {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s ease, opacity 0.2s ease;
+  border: none;
+}
+
+.modalCancelButton {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.modalCancelButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modalDeleteButton {
+  background: #4f7cf7;
+  color: white;
+}
+
+.modalDeleteButton:hover:not(:disabled) {
+  background: #3d6ce5;
+}
+
+.modalDeleteButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .loading {

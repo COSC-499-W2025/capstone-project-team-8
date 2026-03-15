@@ -182,6 +182,21 @@ class ResumeDetailView(APIView):
         resume = get_object_or_404(Resume, pk=pk, user=request.user)
         return Response(_serialize_resume(resume))
 
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(description="Resume deleted successfully"),
+            404: ErrorResponseSerializer,
+        },
+        description="Delete a specific resume by ID",
+        tags=["Resume"],
+    )
+    def delete(self, request, pk):
+        """Delete a resume by ID."""
+        resume = get_object_or_404(Resume, pk=pk, user=request.user)
+        deleted_id = resume.id
+        resume.delete()
+        return Response({"ok": True, "deleted_id": deleted_id})
+
 
 @method_decorator(csrf_exempt, name="dispatch")
 class ResumeGenerateView(APIView):

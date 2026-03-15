@@ -160,6 +160,29 @@ export const getResume = async (token, resumeId) => {
 };
 
 /**
+ * Delete a saved resume.
+ */
+export const deleteResume = async (token, resumeId) => {
+  const response = await fetch(`${config.API_URL}/api/resume/${resumeId}/`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete resume: ${response.status}`);
+  }
+
+  if (response.status === 204) {
+    return { ok: true };
+  }
+
+  return response.json();
+};
+
+/**
  * Update an existing resume
  */
 export const updateResume = async (token, resumeId, name, content, theme = 'classic') => {

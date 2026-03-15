@@ -116,6 +116,30 @@ class ResumeDetailEndpointTests(TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 404)
 
+    def test_delete_resume_requires_authentication(self):
+        """DELETE /api/resume/{id}/ requires auth."""
+        url = reverse("resume-detail", kwargs={"pk": self.resume.id})
+        resp = self.client.delete(url)
+        self.assertIn(resp.status_code, (401, 403))
+
+    def test_delete_resume_removes_owned_resume(self):
+        """Authenticated user can delete their resume."""
+        self.client.force_authenticate(user=self.user)
+        url = reverse("resume-detail", kwargs={"pk": self.resume.id})
+        resp = self.client.delete(url)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertTrue(data["ok"])
+        self.assertEqual(data["deleted_id"], self.resume.id)
+        self.assertFalse(Resume.objects.filter(pk=self.resume.id).exists())
+
+    def test_delete_resume_404_for_other_users_resume(self):
+        """User cannot delete another user's resume."""
+        self.client.force_authenticate(user=self.other_user)
+        url = reverse("resume-detail", kwargs={"pk": self.resume.id})
+        resp = self.client.delete(url)
+        self.assertEqual(resp.status_code, 404)
+
 
 class ResumeGenerateEndpointTests(TestCase):
     """Tests for POST /api/resume/generate/ endpoint."""

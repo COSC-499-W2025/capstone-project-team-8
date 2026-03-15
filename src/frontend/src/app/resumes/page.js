@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
-import { listResumes } from '@/utils/resumeApi';
+import { listResumes, deleteResume } from '@/utils/resumeApi';
 import styles from './resumes.module.css';
 
 function parseBullets(content) {
@@ -97,10 +97,19 @@ function ResumeCardPreview({ resume }) {
   );
 }
 
+function handleCardKeyDown(event, onActivate) {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    onActivate();
+  }
+}
+
 export default function ResumesListPage() {
   const router = useRouter();
   const { isAuthenticated, token, loading: authLoading, refreshAccessToken } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState(null);
+  const [resumePendingDelete, setResumePendingDelete] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [resumes, setResumes] = useState([]);
 
@@ -140,6 +149,45 @@ export default function ResumesListPage() {
 
   const handleNewResume = () => {
     router.push('/resume');
+  };
+
+  const handleDeleteResumeClick = (event, resume) => {
+    event.stopPropagation();
+    setResumePendingDelete(resume);
+  };
+
+  const handleConfirmDeleteResume = async () => {
+    if (!resumePendingDelete) {
+      return;
+    }
+
+    const resume = resumePendingDelete;
+    setDeletingId(resume.id);
+    setMessage({ type: '', text: '' });
+
+    try {
+      let activeToken = token;
+      try {
+        await deleteResume(activeToken, resume.id);
+      } catch (err) {
+        if (err.message?.includes('401')) {
+          activeToken = await refreshAccessToken();
+          if (!activeToken) throw new Error('Session expired. Please log in again.');
+          await deleteResume(activeToken, resume.id);
+        } else {
+          throw err;
+        }
+      }
+
+      setResumes((currentResumes) => currentResumes.filter((currentResume) => currentResume.id !== resume.id));
+      setResumePendingDelete(null);
+      setMessage({ type: 'success', text: 'Resume deleted.' });
+    } catch (err) {
+      console.error('Delete resume error:', err);
+      setMessage({ type: 'error', text: err.message || 'Failed to delete resume.' });
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   if (loading) {
@@ -201,11 +249,13 @@ export default function ResumesListPage() {
         ) : (
           <div className={styles.resumesList}>
             {resumes.map((resume) => (
-              <button
+              <div
                 key={resume.id}
                 className={styles.resumeCard}
                 onClick={() => router.push(`/resume/${resume.id}`)}
-                type="button"
+                onKeyDown={(event) => handleCardKeyDown(event, () => router.push(`/resume/${resume.id}`))}
+                role="button"
+                tabIndex={0}
               >
                 <ResumeCardPreview resume={resume} />
                 <h3>{resume.name}</h3>
@@ -214,20 +264,63 @@ export default function ResumesListPage() {
                 </p>
                 <div className={styles.metaRow}>
                   <span className={styles.themeBadge}>{resume.theme || 'classic'}</span>
+                  <span className={styles.projectBadge}>
+                    {resume.content?.sections?.projects?.length || 0} projects
+                  </span>
                 </div>
                 <div className={styles.actions}>
                   <span className={styles.actionChip}>
                     Edit
                   </span>
-                  <span className={styles.actionChip}>
-                    {resume.content?.sections?.projects?.length || 0} projects
-                  </span>
+                  <button
+                    className={`${styles.actionChip} ${styles.deleteChip}`}
+                    onClick={(event) => handleDeleteResumeClick(event, resume)}
+                    type="button"
+                    disabled={deletingId === resume.id}
+                  >
+                    {deletingId === resume.id ? 'Deleting...' : 'Delete'}
+                  </button>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
       </div>
+
+      {resumePendingDelete && (
+        <div className={styles.modalOverlay} onClick={() => setResumePendingDelete(null)}>
+          <div
+            className={styles.modalContent}
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="resume-delete-title"
+          >
+            <h2 id="resume-delete-title" className={styles.modalTitle}>Delete Resume</h2>
+            <p className={styles.modalText}>
+              Are you sure you want to delete "{resumePendingDelete.name}"? This action cannot be undone.
+            </p>
+
+            <div className={styles.modalActions}>
+              <button
+                onClick={() => setResumePendingDelete(null)}
+                className={styles.modalCancelButton}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDeleteResume}
+                disabled={deletingId === resumePendingDelete.id}
+                className={styles.modalDeleteButton}
+                type="button"
+              >
+                {deletingId === resumePendingDelete.id ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
