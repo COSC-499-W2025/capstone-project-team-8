@@ -396,31 +396,6 @@ export default function DashboardPage() {
                               </div>
                             )}
 
-                            {/* Quality Breakdown Bars */}
-                            {evalData && (
-                              <div className="grid grid-cols-4 gap-3">
-                                {[
-                                  { label: 'Code Quality', score: evalData.code_quality_score },
-                                  { label: 'Documentation', score: evalData.documentation_score },
-                                  { label: 'Structure', score: evalData.structure_score },
-                                  { label: 'Testing', score: evalData.testing_score },
-                                ].map((cat) => (
-                                  <div key={cat.label}>
-                                    <div className="flex justify-between mb-1">
-                                      <span className="text-white/50 text-[10px]">{cat.label}</span>
-                                      <span className={`text-[10px] font-bold ${getGradeColor(cat.score)}`}>{cat.score}%</span>
-                                    </div>
-                                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                      <div
-                                        className={`h-full rounded-full transition-all ${cat.score >= 90 ? 'bg-green-500' : cat.score >= 80 ? 'bg-blue-500' : cat.score >= 70 ? 'bg-yellow-500' : cat.score >= 60 ? 'bg-orange-500' : 'bg-red-500'}`}
-                                        style={{ width: `${Math.min(cat.score, 100)}%` }}
-                                      />
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
                             {/* File composition bar */}
                             {totalFiles > 0 && !evalData && (
                               <div>
