@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
@@ -19,39 +19,41 @@ export default function ProjectsPage() {
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
   const [evaluations, setEvaluations] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('newest');
   const [newProjects, setNewProjects] = useState([]);
 
+  const fetchProjects = useCallback(async (q = '') => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      const url = new URL(`${config.API_URL}/api/projects/`);
+      if (q) url.searchParams.set('q', q);
+      const response = await fetch(url.toString(), {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Failed to fetch projects');
+      const data = await response.json();
+      setProjects(data.projects || []);
+    } catch (err) {
+      console.error('Error fetching projects:', err);
+      setError('Failed to load projects');
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // Debounce search — wait after user stops typing before hitting the API
   useEffect(() => {
     if (authLoading) return;
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
-
-    const fetchProjects = async () => {
-      try {
-        const response = await fetch(`${config.API_URL}/api/projects/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch projects');
-        }
-
-        const data = await response.json();
-        setProjects(data.projects || []);
-      } catch (err) {
-        console.error('Error fetching projects:', err);
-        setError('Failed to load projects');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProjects();
-  }, [authLoading, isAuthenticated, token, router]);
+    const timer = setTimeout(() => fetchProjects(searchQuery), 500);
+    return () => clearTimeout(timer);
+  }, [authLoading, isAuthenticated, router, fetchProjects, searchQuery]);
 
   // Check sessionStorage for new projects
   useEffect(() => {
@@ -113,6 +115,32 @@ export default function ProjectsPage() {
   const getEvalForProject = (projectId) => {
     return evaluations.find(e => e.project_id === projectId);
   };
+
+  // Collect unique classification types from loaded projects for the dropdown
+  const classificationTypes = useMemo(() => {
+    const types = [...new Set(projects.map(p => p.classification_type).filter(Boolean))];
+    return types.sort();
+  }, [projects]);
+
+  // Client-side type filter + sort (search is handled server-side via ?q=)
+  const filteredProjects = useMemo(() => {
+    let result = projects;
+    if (typeFilter !== 'all') {
+      result = result.filter(p => p.classification_type === typeFilter);
+    }
+    if (sortBy === 'newest') return [...result].sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+    if (sortBy === 'oldest') return [...result].sort((a, b) => (a.created_at || 0) - (b.created_at || 0));
+    if (sortBy === 'name') return [...result].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    if (sortBy === 'files') return [...result].sort((a, b) => (b.total_files || 0) - (a.total_files || 0));
+    if (sortBy === 'grade') {
+      return [...result].sort((a, b) => {
+        const ea = getEvalForProject(a.id);
+        const eb = getEvalForProject(b.id);
+        return (eb?.overall_score || 0) - (ea?.overall_score || 0);
+      });
+    }
+    return result;
+  }, [projects, typeFilter, sortBy, evaluations]);
 
   const formatDate = (timestamp) => {
     if (!timestamp) return 'N/A';
@@ -234,10 +262,66 @@ export default function ProjectsPage() {
       <Header />
       <div className="min-h-screen p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Previous Projects</h1>
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-white mb-1">Previous Projects</h1>
             <p className="text-white/70">View and manage all your uploaded projects</p>
           </div>
+
+          {/* Search + Filter bar */}
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            {/* Search input */}
+            <div className="relative flex-1">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 rounded-lg bg-[var(--card-bg)] border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-white/30 transition-colors"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                </button>
+              )}
+            </div>
+
+            {/* Type filter */}
+            <select
+              value={typeFilter}
+              onChange={e => setTypeFilter(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-white/10 text-sm focus:outline-none focus:border-white/30 transition-colors"
+              style={{ backgroundColor: '#1a1a2e', color: '#ffffff' }}
+            >
+              <option value="all" style={{ backgroundColor: '#1a1a2e', color: '#ffffff' }}>All Types</option>
+              {classificationTypes.map(t => (
+                <option key={t} value={t} style={{ backgroundColor: '#1a1a2e', color: '#ffffff' }}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+              ))}
+            </select>
+
+            {/* Sort */}
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-white/10 text-sm focus:outline-none focus:border-white/30 transition-colors"
+              style={{ backgroundColor: '#1a1a2e', color: '#ffffff' }}
+            >
+              <option value="newest" style={{ backgroundColor: '#1a1a2e', color: '#ffffff' }}>Newest First</option>
+              <option value="oldest" style={{ backgroundColor: '#1a1a2e', color: '#ffffff' }}>Oldest First</option>
+              <option value="name" style={{ backgroundColor: '#1a1a2e', color: '#ffffff' }}>Name A–Z</option>
+              <option value="files" style={{ backgroundColor: '#1a1a2e', color: '#ffffff' }}>Most Files</option>
+              <option value="grade" style={{ backgroundColor: '#1a1a2e', color: '#ffffff' }}>Highest Grade</option>
+            </select>
+          </div>
+
+          {/* Result count */}
+          {!loading && projects.length > 0 && (
+            <p className="text-white/40 text-xs mb-4">
+              {filteredProjects.length === projects.length
+                ? `${projects.length} project${projects.length !== 1 ? 's' : ''}`
+                : `${filteredProjects.length} of ${projects.length} projects`}
+            </p>
+          )}
 
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500 rounded-lg">
@@ -245,7 +329,7 @@ export default function ProjectsPage() {
             </div>
           )}
 
-          {projects.length === 0 ? (
+          {projects.length === 0 && !loading ? (
             <div className="bg-[var(--card-bg)] rounded-lg p-12 text-center">
               <div className="text-6xl mb-4">📁</div>
               <h2 className="text-2xl font-semibold text-white mb-2">No Projects Yet</h2>
@@ -258,9 +342,15 @@ export default function ProjectsPage() {
                 Upload Project
               </Link>
             </div>
+          ) : filteredProjects.length === 0 && !loading ? (
+            <div className="bg-[var(--card-bg)] rounded-lg p-10 text-center">
+              <svg className="mx-auto mb-3 text-white/20" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <p className="text-white/60 text-sm">No projects match your search</p>
+              <button onClick={() => { setSearchQuery(''); setTypeFilter('all'); }} className="mt-3 text-blue-400 text-xs hover:underline">Clear filters</button>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {projects.map((project) => (
+              {filteredProjects.map((project) => (
                 <div
                   key={project.id}
                   className="bg-[var(--card-bg)] rounded-lg overflow-hidden hover:bg-white/5 transition-colors"
