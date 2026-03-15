@@ -310,25 +310,10 @@ export default function DashboardPage() {
                       <p className="text-white/50 text-sm mt-1">Your highest-ranked work by quality, scale, effort &amp; breadth</p>
                     </div>
                   </div>
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {topProjects.map((tp, idx) => {
-                      const evalData = tp.evaluation;
                       const fc = tp.file_composition || { code: 0, content: 0, image: 0 };
                       const totalFiles = fc.code + fc.content + fc.image;
-                      const startDate = tp.first_commit_date
-                        ? new Date(tp.first_commit_date * 1000)
-                        : null;
-                      const endDate = tp.created_at
-                        ? new Date(tp.created_at * 1000)
-                        : null;
-
-                      // Evolution steps based on available data
-                      const steps = [];
-                      if (startDate) steps.push({ label: 'Started', detail: startDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }), done: true });
-                      if (tp.total_commits > 0) steps.push({ label: `${tp.total_commits} Commits`, detail: `${tp.total_lines_changed.toLocaleString()} lines changed`, done: true });
-                      if (totalFiles > 0) steps.push({ label: `${totalFiles} Files`, detail: `${fc.code} code · ${fc.content} docs · ${fc.image} assets`, done: true });
-                      if (evalData) steps.push({ label: `Score: ${evalData.overall_score}%`, detail: getGrade(evalData.overall_score) + ' Grade', done: true });
-                      if (endDate) steps.push({ label: 'Uploaded', detail: endDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }), done: true });
 
                       return (
                         <Link key={tp.project_id} href={`/projects/${tp.project_id}`} className="block">
@@ -339,7 +324,7 @@ export default function DashboardPage() {
                             onMouseLeave={(e) => e.currentTarget.style.borderColor = '#27272a'}
                           >
                             {/* Header row */}
-                            <div className="flex items-start justify-between mb-4">
+                            <div className="flex items-start justify-between mb-3">
                               <div className="flex items-center gap-3">
                                 <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-bold text-sm">#{idx + 1}</span>
                                 <div>
@@ -355,79 +340,20 @@ export default function DashboardPage() {
                                 </div>
                               </div>
                               <div className="text-right">
-                                <span className="text-white/50 text-xs">Highlight Score</span>
+                                <span className="text-white/50 text-xs">Project Score</span>
                                 <p className={`text-xl font-bold ${getGradeColor(tp.highlight_score || 0)}`}>{tp.highlight_score || 0}<span className="text-sm text-white/40">/100</span></p>
                               </div>
                             </div>
 
                             {/* Summary */}
-                            <p className="text-white/70 text-sm mb-4 line-clamp-2">{tp.summary}</p>
+                            <p className="text-white/70 text-sm mb-3 line-clamp-2">{tp.summary}</p>
 
-                            {/* Score Breakdown Pillars */}
-                            {tp.score_breakdown && (
-                              <div className="grid grid-cols-4 gap-3 mb-4">
-                                {[
-                                  { label: 'Quality', value: tp.score_breakdown.quality, icon: '★' },
-                                  { label: 'Scale', value: tp.score_breakdown.scale, icon: '◆' },
-                                  { label: 'Effort', value: tp.score_breakdown.effort, icon: '⚡' },
-                                  { label: 'Breadth', value: tp.score_breakdown.breadth, icon: '◎' },
-                                ].map((pillar) => (
-                                  <div key={pillar.label} className="text-center">
-                                    <div className="text-[10px] text-white/40 mb-1">{pillar.icon} {pillar.label}</div>
-                                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                      <div
-                                        className={`h-full rounded-full ${pillar.value >= 70 ? 'bg-green-500' : pillar.value >= 40 ? 'bg-blue-500' : 'bg-white/30'}`}
-                                        style={{ width: `${Math.min(pillar.value, 100)}%` }}
-                                      />
-                                    </div>
-                                    <div className="text-[10px] text-white/50 mt-0.5">{pillar.value}</div>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Evolution Process Timeline */}
-                            {steps.length > 0 && (
-                              <div className="mb-4">
-                                <p className="text-white/40 text-xs uppercase tracking-wider mb-3">Development Journey</p>
-                                <div className="flex items-start gap-0">
-                                  {steps.map((step, sIdx) => (
-                                    <div key={sIdx} className="flex items-start flex-1 min-w-0">
-                                      <div className="flex flex-col items-center">
-                                        <div className="w-3 h-3 rounded-full bg-blue-500 ring-2 ring-blue-500/30 flex-shrink-0" />
-                                        {sIdx < steps.length - 1 && (
-                                          <div className="w-full h-0.5 bg-blue-500/30" />
-                                        )}
-                                      </div>
-                                      <div className="ml-2 min-w-0">
-                                        <p className="text-white text-xs font-medium truncate">{step.label}</p>
-                                        <p className="text-white/40 text-[10px] truncate">{step.detail}</p>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* File composition bar */}
-                            {totalFiles > 0 && !evalData && (
-                              <div>
-                                <div className="flex justify-between mb-1">
-                                  <span className="text-white/40 text-xs">File Composition</span>
-                                  <span className="text-white/40 text-xs">{totalFiles} files</span>
-                                </div>
-                                <div className="h-2 bg-white/10 rounded-full overflow-hidden flex">
-                                  {fc.code > 0 && <div className="h-full bg-blue-500" style={{ width: `${(fc.code / totalFiles) * 100}%` }} title={`${fc.code} code files`} />}
-                                  {fc.content > 0 && <div className="h-full bg-green-500" style={{ width: `${(fc.content / totalFiles) * 100}%` }} title={`${fc.content} content files`} />}
-                                  {fc.image > 0 && <div className="h-full bg-purple-500" style={{ width: `${(fc.image / totalFiles) * 100}%` }} title={`${fc.image} image files`} />}
-                                </div>
-                                <div className="flex gap-3 mt-1">
-                                  {fc.code > 0 && <span className="text-[10px] text-blue-400">● Code ({fc.code})</span>}
-                                  {fc.content > 0 && <span className="text-[10px] text-green-400">● Docs ({fc.content})</span>}
-                                  {fc.image > 0 && <span className="text-[10px] text-purple-400">● Assets ({fc.image})</span>}
-                                </div>
-                              </div>
-                            )}
+                            {/* Quick stats row */}
+                            <div className="flex items-center gap-4 text-[11px] text-white/40">
+                              {tp.total_commits > 0 && <span>{tp.total_commits} commits</span>}
+                              {totalFiles > 0 && <span>{totalFiles} files</span>}
+                              {tp.total_lines_changed > 0 && <span>{tp.total_lines_changed.toLocaleString()} lines changed</span>}
+                            </div>
                           </div>
                         </Link>
                       );
