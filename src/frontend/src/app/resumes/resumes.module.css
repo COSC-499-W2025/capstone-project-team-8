@@ -15,12 +15,19 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
 }
 
 .header h1 {
-  margin: 0;
+  margin: 0 0 0.5rem 0;
   color: white;
-  font-size: 2.5rem;
+  font-size: 1.875rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .btnNew,
@@ -33,14 +40,15 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s;
-  font-size: 1rem;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .btnNew:hover,
 .btnCreate:hover {
-  background: #3b6ce4;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(79, 124, 247, 0.3);
+  background: #3d6ce5;
 }
 
 .emptyState {
@@ -51,14 +59,33 @@
   text-align: center;
 }
 
+.emptyIcon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79, 124, 247, 0.1);
+}
+
+.emptyState h2 {
+  margin: 0 0 0.5rem 0;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
 .emptyState p {
-  margin-bottom: 1rem;
-  color: #a1a1aa;
-  font-size: 1.1rem;
+  margin: 0 auto 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  max-width: 32rem;
 }
 
 .btnCreate {
-  margin-top: 1rem;
+  margin-top: 0;
 }
 
 .resumesList {
@@ -73,6 +100,9 @@
   border-radius: 12px;
   padding: 20px;
   transition: all 0.3s;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
 }
 
 .resumeCard:hover {
@@ -81,10 +111,139 @@
   box-shadow: 0 8px 25px rgba(79, 124, 247, 0.15);
 }
 
+.resumeCard:focus-visible {
+  outline: 2px solid #4f7cf7;
+  outline-offset: 2px;
+}
+
 .resumeCard h3 {
   margin: 0 0 0.5rem 0;
   color: white;
   font-size: 1.2rem;
+}
+
+.previewShell {
+  aspect-ratio: 8.5 / 11;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+.previewPaper {
+  height: 100%;
+  background: #fff;
+  color: #111827;
+  border-radius: 6px;
+  padding: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+}
+
+.previewPaper[data-theme='moderncv'] {
+  border-top: 5px solid #2563eb;
+}
+
+.previewPaper[data-theme='sb2nov'] {
+  border-top: 5px solid #0f766e;
+}
+
+.previewPaper[data-theme='engineeringclassic'] {
+  border-top: 5px solid #7c3aed;
+}
+
+.previewName {
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.2rem;
+}
+
+.previewContact {
+  font-size: 0.42rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.previewBlock {
+  margin-bottom: 0.45rem;
+}
+
+.previewHeading {
+  font-size: 0.43rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding-bottom: 0.12rem;
+  border-bottom: 1px solid #d1d5db;
+  margin-bottom: 0.25rem;
+}
+
+.previewSummary {
+  font-size: 0.42rem;
+  line-height: 1.35;
+  color: #374151;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.previewEntry {
+  margin-bottom: 0.28rem;
+}
+
+.previewEntryTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.previewEntryTitle {
+  font-size: 0.45rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.previewEntryDate {
+  font-size: 0.36rem;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.previewEntrySubtitle {
+  font-size: 0.38rem;
+  color: #4b5563;
+  margin-bottom: 0.08rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.previewBullet {
+  font-size: 0.35rem;
+  line-height: 1.3;
+  color: #374151;
+  margin-bottom: 0.05rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.previewSkills {
+  font-size: 0.38rem;
+  line-height: 1.35;
+  color: #374151;
 }
 
 .date {
@@ -93,26 +252,143 @@
   font-size: 0.9rem;
 }
 
+.metaRow {
+  margin: 0 0 1rem 0;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.themeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(79, 124, 247, 0.14);
+  border: 1px solid rgba(79, 124, 247, 0.35);
+  color: #7fb0ff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+  text-transform: capitalize;
+}
+
+.projectBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e4e4e7;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
 .actions {
   display: flex;
   gap: 10px;
 }
 
-.actions button {
+.actionChip {
   flex: 1;
   padding: 10px;
-  background: #4f7cf7;
+  background: rgba(79, 124, 247, 0.14);
   color: white;
   border: none;
   border-radius: 6px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
   font-size: 0.95rem;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.actions button:hover {
-  background: #3b6ce4;
+.deleteChip {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+  cursor: pointer;
+}
+
+.deleteChip:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.24);
+}
+
+.deleteChip:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 28rem;
+  background: var(--card-bg, #18181b);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid #27272a;
+}
+
+.modalTitle {
+  margin: 0 0 1rem 0;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.modalText {
+  margin: 0 0 1.5rem 0;
+  color: rgba(255, 255, 255, 0.75);
+  line-height: 1.5;
+}
+
+.modalActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modalCancelButton,
+.modalDeleteButton {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.2s ease, opacity 0.2s ease;
+  border: none;
+}
+
+.modalCancelButton {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.modalCancelButton:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modalDeleteButton {
+  background: #4f7cf7;
+  color: white;
+}
+
+.modalDeleteButton:hover:not(:disabled) {
+  background: #3d6ce5;
+}
+
+.modalDeleteButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .loading {

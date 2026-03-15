@@ -20,6 +20,66 @@ from app.services.resume_builder.latex_generator import JakesResumeGenerator
 from app.services.resume_builder.rendercv_generator import generate_pdf as rendercv_generate_pdf, generate_yaml_string
 
 
+def _serialize_resume(resume):
+    return {
+        "id": resume.id,
+        "name": resume.name,
+        "content": resume.content,
+        "theme": resume.theme,
+        "rendercv_yaml": resume.rendercv_yaml,
+        "created_at": resume.created_at,
+        "updated_at": resume.updated_at,
+    }
+
+
+def _build_resume_payload(request, resume=None):
+    if "content" in request.data:
+        content = request.data.get("content") or {}
+    elif resume is not None:
+        content = resume.content or {}
+    else:
+        content = {}
+
+    if "theme" in request.data:
+        theme = request.data.get("theme") or "classic"
+    elif resume is not None and resume.theme:
+        theme = resume.theme
+    else:
+        theme = "classic"
+
+    if "name" in request.data:
+        name = (request.data.get("name") or "").strip()
+    elif resume is not None:
+        name = resume.name
+    else:
+        name = ""
+
+    if not isinstance(content, dict):
+        raise ValueError("content must be an object")
+
+    rendercv_yaml = generate_yaml_string(content, theme)
+    return {
+        "name": name,
+        "content": content,
+        "theme": theme,
+        "rendercv_yaml": rendercv_yaml,
+    }
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ResumeListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={200: ResumeSerializer(many=True)},
+        description="List all saved resumes for the authenticated user",
+        tags=["Resume"],
+    )
+    def get(self, request):
+        resumes = Resume.objects.filter(user=request.user).order_by("-updated_at")
+        return Response([_serialize_resume(resume) for resume in resumes])
+
+
 @method_decorator(csrf_exempt, name="dispatch")
 class ResumeTemplatesView(APIView):
     permission_classes = [IsAuthenticated]
@@ -120,13 +180,22 @@ class ResumeDetailView(APIView):
     def get(self, request, pk):
         """Get a resume by ID."""
         resume = get_object_or_404(Resume, pk=pk, user=request.user)
-        return Response({
-            "id": resume.id,
-            "name": resume.name,
-            "content": resume.content,
-            "created_at": resume.created_at,
-            "updated_at": resume.updated_at,
-        })
+        return Response(_serialize_resume(resume))
+
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(description="Resume deleted successfully"),
+            404: ErrorResponseSerializer,
+        },
+        description="Delete a specific resume by ID",
+        tags=["Resume"],
+    )
+    def delete(self, request, pk):
+        """Delete a resume by ID."""
+        resume = get_object_or_404(Resume, pk=pk, user=request.user)
+        deleted_id = resume.id
+        resume.delete()
+        return Response({"ok": True, "deleted_id": deleted_id})
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -148,26 +217,24 @@ class ResumeGenerateView(APIView):
     )
     def post(self, request):
         """Generate a new resume."""
-        name = request.data.get("name")
-        if not name:
+        name = (request.data.get("name") or "").strip()
+        content = request.data.get("content") or {}
+        if not name and not content:
             return Response(
-                {"error": "name is required"},
+                {"error": "name or content is required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        content = request.data.get("content", {})
-        resume = Resume.objects.create(
-            user=request.user,
-            name=name,
-            content=content
-        )
+        try:
+            payload = _build_resume_payload(request)
+        except ValueError as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not payload["name"]:
+            payload["name"] = payload["content"].get("name") or f"Resume {request.user.resumes.count() + 1}"
+
+        resume = Resume.objects.create(user=request.user, **payload)
         return Response(
-            {
-                "id": resume.id,
-                "name": resume.name,
-                "content": resume.content,
-                "created_at": resume.created_at,
-                "updated_at": resume.updated_at,
-            },
+            _serialize_resume(resume),
             status=status.HTTP_201_CREATED
         )
 
@@ -192,21 +259,19 @@ class ResumeEditView(APIView):
     def post(self, request, pk):
         """Edit an existing resume."""
         resume = get_object_or_404(Resume, pk=pk, user=request.user)
-        
-        if "name" in request.data:
-            resume.name = request.data["name"]
-        if "content" in request.data:
-            resume.content = request.data["content"]
-        
+
+        try:
+            payload = _build_resume_payload(request, resume=resume)
+        except ValueError as exc:
+            return Response({"error": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        resume.name = payload["name"]
+        resume.content = payload["content"]
+        resume.theme = payload["theme"]
+        resume.rendercv_yaml = payload["rendercv_yaml"]
         resume.save()
-        
-        return Response({
-            "id": resume.id,
-            "name": resume.name,
-            "content": resume.content,
-            "created_at": resume.created_at,
-            "updated_at": resume.updated_at,
-        })
+
+        return Response(_serialize_resume(resume))
 
 
 @method_decorator(csrf_exempt, name="dispatch")

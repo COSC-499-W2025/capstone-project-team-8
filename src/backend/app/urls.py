@@ -30,6 +30,7 @@ from .views.resume_views import (
     ResumeTemplatesView, 
     ResumePreviewView, 
     GenerateLatexResumeView,
+    ResumeListView,
     ResumeGenerateView,
     ResumeDetailView,
     ResumeEditView,
@@ -86,6 +87,7 @@ urlpatterns = [
     path("portfolio/<int:pk>/generate-resume/", PortfolioGenerateResumeView.as_view(), name="portfolio-generate-resume"),
 
     # Resume endpoints
+    path("resume/", ResumeListView.as_view(), name="resume-list"),
     path("resume/templates/", ResumeTemplatesView.as_view(), name="resume-templates"),
     path("resume/preview/", ResumePreviewView.as_view(), name="resume-preview"),
     path("resume/generate/latex/", GenerateLatexResumeView.as_view(), name="resume-generate-latex"),
