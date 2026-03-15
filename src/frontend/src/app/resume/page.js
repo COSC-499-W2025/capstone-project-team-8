@@ -1117,21 +1117,6 @@ export default function ResumeNewPage({ resumeId = null }) {
               </button>
             </div>
             <div className={styles.toolbarRight}>
-              <button
-                className={styles.toolbarBtn}
-                onClick={() => router.push('/resumes')}
-                type="button"
-              >
-                My Resumes
-              </button>
-              <button
-                className={styles.toolbarBtn}
-                onClick={handleSaveResume}
-                disabled={saving}
-                type="button"
-              >
-                {saving ? 'Saving…' : currentResumeId ? 'Save Changes' : 'Save Resume'}
-              </button>
               <label className={styles.themeLabel}>Theme:</label>
               <select
                 className={styles.themeSelect}
@@ -1150,6 +1135,20 @@ export default function ResumeNewPage({ resumeId = null }) {
                 title="Download RenderCV YAML"
               >
                 ↓ YAML
+              </button>
+              <button
+                className={`${styles.saveBtn} ${saving ? styles.saving : ''}`}
+                onClick={handleSaveResume}
+                disabled={saving}
+                type="button"
+              >
+                {saving ? (
+                  <>
+                    <span className={styles.btnSpinner} /> Saving…
+                  </>
+                ) : (
+                  currentResumeId ? 'Save Changes' : 'Save Resume'
+                )}
               </button>
               <button
                 className={`${styles.generateBtn} ${generating ? styles.generating : ''}`}
