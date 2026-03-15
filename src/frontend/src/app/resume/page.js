@@ -6,9 +6,15 @@ import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import { getCurrentUser } from '@/utils/api';
-import { getProjects, getSkills } from '@/utils/resumeApi';
-import { generateRenderCVPdf, downloadRenderCVYaml } from '@/utils/resumeApi';
-import { saveDraft, getDraft, getCurrentDraft, clearCurrentDraft } from '@/utils/draftStorage';
+import {
+  getProjects,
+  getSkills,
+  generateRenderCVPdf,
+  downloadRenderCVYaml,
+  generateResume,
+  updateResume,
+  getResume,
+} from '@/utils/resumeApi';
 import { getProjectDateRange } from '@/utils/resumeCleanup';
 import { autoGenerateResume } from '@/utils/autoGenerateResume';
 import ProjectsPanel from '@/components/resume/ProjectsPanel';
@@ -312,14 +318,38 @@ function ResumePreview({ resumeData }) {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
-export default function ResumeNewPage() {
+function mergeResumeData(baseResume, savedResume) {
+  const savedContent = savedResume?.content || {};
+  const savedSections = savedContent.sections || {};
+
+  return {
+    ...baseResume,
+    ...savedContent,
+    sections: {
+      ...baseResume.sections,
+      ...savedSections,
+      education: savedSections.education || baseResume.sections.education,
+      experience: savedSections.experience || baseResume.sections.experience,
+      projects: savedSections.projects || baseResume.sections.projects,
+      skills: savedSections.skills || baseResume.sections.skills,
+      certifications: savedSections.certifications || baseResume.sections.certifications,
+      summary: savedSections.summary ?? baseResume.sections.summary,
+    },
+  };
+}
+
+export default function ResumeNewPage({ resumeId = null }) {
   const router = useRouter();
   const { isAuthenticated, token, refreshAccessToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [autoGenerating, setAutoGenerating] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [theme, setTheme] = useState('classic');
+  const [currentResumeId, setCurrentResumeId] = useState(
+    resumeId ? Number.parseInt(resumeId, 10) : null
+  );
 
   // Store skills data for auto-generate
   const [aggregatedSkills, setAggregatedSkills] = useState(null);
@@ -509,10 +539,28 @@ export default function ResumeNewPage() {
           },
         };
 
-        // Restore draft if available
-        const draft = getCurrentDraft();
+        if (resumeId) {
+          const savedResume = await getResume(token, resumeId);
+          const mergedResume = mergeResumeData(initial, savedResume);
+          const initialHistory = [mergedResume];
+          setResumeData(mergedResume);
+          setHistory(initialHistory);
+          setHistoryIndex(0);
+          setCurrentResumeId(savedResume.id);
+          setTheme(savedResume.theme || 'classic');
+          return;
+        }
+
+        const draftKey = 'resumeBuilderCurrentDraft';
+        const draftsKey = 'resumeBuilderDrafts';
+        const currentDraftId = typeof window !== 'undefined'
+          ? window.localStorage.getItem(draftKey)
+          : null;
+        const allDrafts = typeof window !== 'undefined'
+          ? JSON.parse(window.localStorage.getItem(draftsKey) || '{}')
+          : {};
+        const draft = currentDraftId ? allDrafts[currentDraftId]?.content : null;
         if (draft && draft.sections) {
-          // Merge any new skills the user doesn't already have saved in their draft
           const draftSkillTitles = new Set((draft.sections.skills || []).map((s) => s.title));
           const newSkills = allSkills.filter((s) => !draftSkillTitles.has(s.title));
           const mergedDraft = newSkills.length
@@ -537,14 +585,23 @@ export default function ResumeNewPage() {
     };
 
     init();
-  }, [isAuthenticated, token, router]);
+  }, [isAuthenticated, token, router, resumeId]);
 
   // Auto-save draft
   useEffect(() => {
-    if (!loading && resumeData.name) {
-      saveDraft('current', resumeData);
+    if (!loading && !currentResumeId && resumeData.name && typeof window !== 'undefined') {
+      const drafts = JSON.parse(window.localStorage.getItem('resumeBuilderDrafts') || '{}');
+      const draftId = window.localStorage.getItem('resumeBuilderCurrentDraft') || Date.now().toString();
+      drafts[draftId] = {
+        id: Number.parseInt(draftId, 10),
+        name: 'current',
+        content: resumeData,
+        savedAt: new Date().toISOString(),
+      };
+      window.localStorage.setItem('resumeBuilderDrafts', JSON.stringify(drafts));
+      window.localStorage.setItem('resumeBuilderCurrentDraft', draftId);
     }
-  }, [resumeData, loading]);
+  }, [resumeData, loading, currentResumeId]);
 
   // ── section helpers ──────────────────────────────────────────────────────
 
@@ -913,6 +970,52 @@ export default function ResumeNewPage() {
     }
   };
 
+  const handleSaveResume = async () => {
+    setSaving(true);
+    setMessage({ type: '', text: '' });
+
+    const resumeName = (resumeData.name || '').trim() || 'Untitled Resume';
+
+    try {
+      let activeToken = token;
+      let savedResume;
+
+      try {
+        savedResume = currentResumeId
+          ? await updateResume(activeToken, currentResumeId, resumeName, resumeData, theme)
+          : await generateResume(activeToken, resumeName, resumeData, theme);
+      } catch (err) {
+        if (err.message?.includes('401')) {
+          activeToken = await refreshAccessToken();
+          if (!activeToken) throw new Error('Session expired. Please log in again.');
+          savedResume = currentResumeId
+            ? await updateResume(activeToken, currentResumeId, resumeName, resumeData, theme)
+            : await generateResume(activeToken, resumeName, resumeData, theme);
+        } else {
+          throw err;
+        }
+      }
+
+      setCurrentResumeId(savedResume.id);
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('resumeBuilderCurrentDraft');
+      }
+      setMessage({
+        type: 'success',
+        text: currentResumeId ? 'Resume updated.' : 'Resume saved.',
+      });
+
+      if (!currentResumeId) {
+        router.replace(`/resume/${savedResume.id}`);
+      }
+    } catch (err) {
+      console.error('Save resume error:', err);
+      setMessage({ type: 'error', text: err.message || 'Failed to save resume.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // ── render ───────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -1014,6 +1117,21 @@ export default function ResumeNewPage() {
               </button>
             </div>
             <div className={styles.toolbarRight}>
+              <button
+                className={styles.toolbarBtn}
+                onClick={() => router.push('/resumes')}
+                type="button"
+              >
+                My Resumes
+              </button>
+              <button
+                className={styles.toolbarBtn}
+                onClick={handleSaveResume}
+                disabled={saving}
+                type="button"
+              >
+                {saving ? 'Saving…' : currentResumeId ? 'Save Changes' : 'Save Resume'}
+              </button>
               <label className={styles.themeLabel}>Theme:</label>
               <select
                 className={styles.themeSelect}

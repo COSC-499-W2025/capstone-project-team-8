@@ -39,6 +39,25 @@ export const getResumeTemplates = async (token) => {
 };
 
 /**
+ * Fetch all saved resumes for the authenticated user.
+ */
+export const listResumes = async (token) => {
+  const response = await fetch(`${config.API_URL}/api/resume/`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch resumes: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+/**
  * Get resume preview with template and context data
  */
 export const getResumePreview = async (token, templateId = null) => {
@@ -100,7 +119,7 @@ export const generateLatexResume = async (token) => {
 /**
  * Generate a new resume
  */
-export const generateResume = async (token, name, content) => {
+export const generateResume = async (token, name, content, theme = 'classic') => {
   const response = await fetch(`${config.API_URL}/api/resume/generate/`, {
     method: 'POST',
     headers: {
@@ -110,6 +129,7 @@ export const generateResume = async (token, name, content) => {
     body: JSON.stringify({
       name,
       content,
+      theme,
     }),
   });
 
@@ -142,7 +162,7 @@ export const getResume = async (token, resumeId) => {
 /**
  * Update an existing resume
  */
-export const updateResume = async (token, resumeId, name, content) => {
+export const updateResume = async (token, resumeId, name, content, theme = 'classic') => {
   const response = await fetch(`${config.API_URL}/api/resume/${resumeId}/edit/`, {
     method: 'POST',
     headers: {
@@ -152,6 +172,7 @@ export const updateResume = async (token, resumeId, name, content) => {
     body: JSON.stringify({
       name,
       content,
+      theme,
     }),
   });
 

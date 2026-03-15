@@ -73,6 +73,9 @@
   border-radius: 12px;
   padding: 20px;
   transition: all 0.3s;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
 }
 
 .resumeCard:hover {
@@ -93,26 +96,27 @@
   font-size: 0.9rem;
 }
 
+.meta {
+  margin: 0 0 1rem 0;
+  color: #d4d4d8;
+  font-size: 0.92rem;
+}
+
 .actions {
   display: flex;
   gap: 10px;
 }
 
-.actions button {
+.actionChip {
   flex: 1;
   padding: 10px;
-  background: #4f7cf7;
+  background: rgba(79, 124, 247, 0.14);
   color: white;
-  border: none;
   border-radius: 6px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
   font-size: 0.95rem;
-}
-
-.actions button:hover {
-  background: #3b6ce4;
+  display: inline-flex;
+  justify-content: center;
 }
 
 .loading {

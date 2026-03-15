@@ -78,7 +78,9 @@ class ResumeDetailEndpointTests(TestCase):
         self.resume = Resume.objects.create(
             user=self.user,
             name="Test Resume",
-            content={"summary": "Test summary", "skills": ["Python", "Django"]}
+            content={"summary": "Test summary", "skills": ["Python", "Django"]},
+            theme="moderncv",
+            rendercv_yaml="cv:\n  name: Test Resume\n"
         )
 
     def test_get_resume_requires_authentication(self):
@@ -97,6 +99,8 @@ class ResumeDetailEndpointTests(TestCase):
         self.assertEqual(data["id"], self.resume.id)
         self.assertEqual(data["name"], "Test Resume")
         self.assertEqual(data["content"]["summary"], "Test summary")
+        self.assertEqual(data["theme"], "moderncv")
+        self.assertEqual(data["rendercv_yaml"], "cv:\n  name: Test Resume\n")
 
     def test_get_resume_404_for_nonexistent(self):
         """GET returns 404 for nonexistent resume."""
@@ -134,23 +138,86 @@ class ResumeGenerateEndpointTests(TestCase):
         """Authenticated user can generate a new resume."""
         self.client.force_authenticate(user=self.user)
         url = reverse("resume-generate")
-        payload = {"name": "My Generated Resume"}
+        payload = {
+            "name": "My Generated Resume",
+            "theme": "moderncv",
+            "content": {
+                "name": "My Generated Resume",
+                "sections": {
+                    "summary": "Built from backend persistence tests",
+                    "education": [],
+                    "experience": [],
+                    "projects": [],
+                    "skills": [],
+                    "certifications": [],
+                },
+            },
+        }
         resp = self.client.post(url, payload, format="json")
         self.assertEqual(resp.status_code, 201)
         data = resp.json()
         self.assertIn("id", data)
         self.assertEqual(data["name"], "My Generated Resume")
+        self.assertEqual(data["theme"], "moderncv")
+        self.assertIn("cv:", data["rendercv_yaml"])
         # Verify it's saved in database
         resume = Resume.objects.get(id=data["id"])
         self.assertEqual(resume.user, self.user)
+        self.assertEqual(resume.theme, "moderncv")
+        self.assertIn("cv:", resume.rendercv_yaml)
 
-    def test_generate_resume_requires_name(self):
-        """Name field is required."""
+    def test_generate_resume_requires_name_or_content(self):
+        """At least one of name or content is required."""
         self.client.force_authenticate(user=self.user)
         url = reverse("resume-generate")
         payload = {}
         resp = self.client.post(url, payload, format="json")
         self.assertEqual(resp.status_code, 400)
+
+
+class ResumeListEndpointTests(TestCase):
+    """Tests for GET /api/resume/ endpoint."""
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            username="list_user",
+            email="list@example.com",
+            password="pass12345"
+        )
+        self.other_user = User.objects.create_user(
+            username="hidden_user",
+            email="hidden@example.com",
+            password="pass12345"
+        )
+        Resume.objects.create(
+            user=self.user,
+            name="Newest Resume",
+            content={"name": "Newest Resume", "sections": {}},
+            theme="sb2nov",
+            rendercv_yaml="cv:\n  name: Newest Resume\n",
+        )
+        Resume.objects.create(
+            user=self.other_user,
+            name="Other Resume",
+            content={"name": "Other Resume", "sections": {}},
+        )
+
+    def test_list_resumes_requires_authentication(self):
+        url = reverse("resume-list")
+        resp = self.client.get(url)
+        self.assertIn(resp.status_code, (401, 403))
+
+    def test_list_resumes_returns_only_current_users_resumes(self):
+        self.client.force_authenticate(user=self.user)
+        url = reverse("resume-list")
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["name"], "Newest Resume")
+        self.assertEqual(data[0]["theme"], "sb2nov")
+        self.assertIn("rendercv_yaml", data[0])
 
 
 class ResumeEditEndpointTests(TestCase):
@@ -171,7 +238,9 @@ class ResumeEditEndpointTests(TestCase):
         self.resume = Resume.objects.create(
             user=self.user,
             name="Original Name",
-            content={"summary": "Original summary"}
+            content={"summary": "Original summary"},
+            theme="classic",
+            rendercv_yaml="cv:\n  name: Original Name\n"
         )
 
     def test_edit_resume_requires_authentication(self):
@@ -197,13 +266,41 @@ class ResumeEditEndpointTests(TestCase):
         """Authenticated user can update resume content."""
         self.client.force_authenticate(user=self.user)
         url = reverse("resume-edit", kwargs={"pk": self.resume.id})
-        payload = {"content": {"summary": "Updated summary", "skills": ["Python"]}}
+        payload = {
+            "theme": "engineeringclassic",
+            "content": {
+                "name": "Original Name",
+                "sections": {
+                    "summary": "Updated summary",
+                    "education": [],
+                    "experience": [],
+                    "projects": [],
+                    "skills": [{"id": 1, "title": "Python"}],
+                    "certifications": [],
+                },
+            },
+        }
         resp = self.client.post(url, payload, format="json")
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
-        self.assertEqual(data["content"]["summary"], "Updated summary")
+        self.assertEqual(data["content"]["sections"]["summary"], "Updated summary")
+        self.assertEqual(data["theme"], "engineeringclassic")
+        self.assertIn("cv:", data["rendercv_yaml"])
         self.resume.refresh_from_db()
-        self.assertEqual(self.resume.content["summary"], "Updated summary")
+        self.assertEqual(self.resume.content["sections"]["summary"], "Updated summary")
+        self.assertEqual(self.resume.theme, "engineeringclassic")
+        self.assertIn("cv:", self.resume.rendercv_yaml)
+
+    def test_edit_resume_preserves_existing_content_when_only_name_changes(self):
+        """Partial edits should not clear saved resume content."""
+        self.client.force_authenticate(user=self.user)
+        url = reverse("resume-edit", kwargs={"pk": self.resume.id})
+        resp = self.client.post(url, {"name": "Renamed Resume"}, format="json")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["name"], "Renamed Resume")
+        self.assertEqual(data["content"]["summary"], "Original summary")
+        self.assertEqual(data["theme"], "classic")
 
     def test_edit_resume_404_for_nonexistent(self):
         """POST returns 404 for nonexistent resume."""
