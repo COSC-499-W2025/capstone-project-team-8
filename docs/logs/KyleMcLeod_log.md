@@ -362,12 +362,23 @@ Next week:
 
 This week:
 - resume saving and editing feature PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/334 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/329
- reviewed jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/333
+- reviewed jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/333
+- prepped for peer testing #2
+  
 What went well:
+- system has a lot of features done and is ready for peer testing 2
+- many bugs are getting resolved each week
+- I successfully implemeted reasume saving and editing
 
 What went wrong:
+- some migration issues
+- couple merge conflicts but was resolved quickly
+- azure AI still not setup since our trial ran out
 
 Next week:
+- peer testing
+- work on polishing UI
+- collect results from peer testing and revise user flow and UI
   
 Reflection:
 
