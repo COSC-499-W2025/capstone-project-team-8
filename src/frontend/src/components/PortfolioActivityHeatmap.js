@@ -70,44 +70,55 @@ export default function PortfolioActivityHeatmap({ portfolioId, token }) {
       return {};
     }
 
-    const startDate = new Date(heatmapData.date_range.start);
-    const endDate = new Date(heatmapData.date_range.end);
-
     // Create activity lookup
     const activityMap = {};
     heatmapData.activity_data.forEach((entry) => {
       activityMap[entry.date] = entry;
     });
 
+    // Determine which years have activity
+    const years = new Set();
+    heatmapData.activity_data.forEach((entry) => {
+      const year = new Date(entry.date).getFullYear();
+      years.add(year);
+    });
+
     // Group by year
     const yearData = {};
-    let currentDate = new Date(startDate);
 
-    // Find the Monday before or on the start date
-    currentDate.setDate(currentDate.getDate() - currentDate.getDay());
-
-    while (currentDate <= endDate) {
-      const year = currentDate.getFullYear();
-
-      if (!yearData[year]) {
+    // For each year with activity, generate the full year's calendar
+    Array.from(years)
+      .sort()
+      .forEach((year) => {
         yearData[year] = [];
-      }
 
-      // Create week
-      const week = [];
-      for (let i = 0; i < 7; i++) {
-        const dateStr = currentDate.toISOString().split('T')[0];
-        const activity = activityMap[dateStr];
-        week.push({
-          date: new Date(currentDate),
-          dateStr,
-          activity: activity || { count: 0, projects: [] },
-        });
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
+        // Start from Jan 1 of that year
+        let currentDate = new Date(year, 0, 1); // January 1st
+        const endDate = new Date(year, 11, 31); // December 31st
 
-      yearData[year].push(week);
-    }
+        // Find the Monday before or on Jan 1
+        const firstDate = new Date(currentDate);
+        firstDate.setDate(firstDate.getDate() - firstDate.getDay());
+
+        currentDate = firstDate;
+
+        // Generate all weeks for the year
+        while (currentDate <= endDate) {
+          const week = [];
+          for (let i = 0; i < 7; i++) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const activity = activityMap[dateStr];
+            week.push({
+              date: new Date(currentDate),
+              dateStr,
+              activity: activity || { count: 0, projects: [] },
+              isCurrentMonth: currentDate.getFullYear() === year && currentDate.getMonth() === (currentDate.getMonth()),
+            });
+            currentDate.setDate(currentDate.getDate() + 1);
+          }
+          yearData[year].push(week);
+        }
+      });
 
     return yearData;
   };
