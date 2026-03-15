@@ -157,6 +157,14 @@ class ProjectDetailView(APIView):
         total_lines_changed = 0
         if user_contribution:
             total_lines_changed = user_contribution.lines_added + user_contribution.lines_deleted
+        else:
+            # Fallback: use all contributors' lines (user likely unmatched)
+            all_contribs = ProjectContribution.objects.filter(project=p)
+            if all_contribs.exists():
+                total_lines_changed = sum(c.lines_added + c.lines_deleted for c in all_contribs)
+            else:
+                # No git contributors (folder upload) — use total code lines
+                total_lines_changed = total_project_lines
 
         eval_obj = ProjectEvaluation.objects.filter(project=p).first()
         quality_score = eval_obj.overall_score if eval_obj else 0.0
@@ -367,6 +375,17 @@ def _get_ranked_projects(user):
             commit_percentage = user_contributions.percent_of_commits or 0.0
             total_lines_changed = user_contributions.lines_added + user_contributions.lines_deleted
             commit_count = user_contributions.commit_count
+        else:
+            # Fallback: use all contributors' lines (user likely unmatched)
+            all_contribs = ProjectContribution.objects.filter(project=project)
+            if all_contribs.exists():
+                total_lines_changed = sum(c.lines_added + c.lines_deleted for c in all_contribs)
+                commit_count = sum(c.commit_count for c in all_contribs)
+                commit_percentage = 100.0
+            else:
+                # No git contributors (folder upload) — use total code lines
+                total_lines_changed = total_project_lines
+                commit_percentage = 100.0
 
         # Get languages (top 5)
         languages = list(
