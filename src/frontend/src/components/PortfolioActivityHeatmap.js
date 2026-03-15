@@ -219,105 +219,116 @@ export default function PortfolioActivityHeatmap({ portfolioId, token }) {
                   ))}
                 </div>
 
-                {/* Day labels */}
-                <div className="flex gap-1 mb-2">
-                  <div className="w-10"></div>
-                  <div className="flex gap-1">
-                    {dayLabels.map((day) => (
-                      <div
-                        key={day}
-                        className="w-3 h-3 text-xs text-slate-500 flex items-center justify-center"
-                      >
-                        {day.charAt(0)}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                {/* Heatmap grid for current year - 7 rows (one per day of week) */}
+                <div className="space-y-2">
+                  {/* Split into 2 row sections */}
+                  {[0, 1].map((sectionIdx) => {
+                    const startWeek = sectionIdx * 26;
+                    const endWeek = startWeek + 26;
+                    const sectionWeeks = weeks.slice(startWeek, endWeek);
 
-                {/* Heatmap grid for current year */}
-                <div className="space-y-1">
-                  {weeks.map((week, weekIdx) => (
-                    <div key={weekIdx} className="flex gap-1">
-                      {/* Month label */}
-                      <div className="w-10 text-xs text-slate-500 flex items-start pt-1">
-                        {weekIdx === 0 || week[0].date.getDate() <= 7 ? (
-                          <span>
-                            {week[0].date.toLocaleDateString('en-US', {
-                              month: 'short',
-                            })}
-                          </span>
-                        ) : null}
-                      </div>
+                    if (sectionWeeks.length === 0) return null;
 
-                      {/* Day cells */}
-                      <div className="flex gap-1">
-                        {week.map((day) => (
-                          <div
-                            key={day.dateStr}
-                            className="relative group"
-                            onMouseEnter={() => {
-                              setHoveredDate(day.dateStr);
-                              setHoveredData(day.activity);
-                            }}
-                            onMouseLeave={() => {
-                              setHoveredDate(null);
-                              setHoveredData(null);
-                            }}
-                          >
-                            <div
-                              className={`w-3 h-3 rounded-sm cursor-pointer transition-all duration-200 ${getActivityColor(
-                                day.activity.count
-                              )} hover:ring-2 hover:ring-blue-400`}
-                              title={`${day.dateStr}: ${day.activity.count} activities`}
-                            />
+                    return (
+                      <div key={sectionIdx} className="space-y-1">
+                        {/* Section label */}
+                        <div className="text-xs text-slate-500 font-medium mb-2">
+                          {sectionIdx === 0
+                            ? `Jan - Jun`
+                            : `Jul - Dec`}
+                        </div>
 
-                            {/* Tooltip */}
-                            {hoveredDate === day.dateStr && hoveredData && (
-                              <div className="absolute z-10 bg-slate-950 border border-slate-600 rounded-lg p-3 text-sm text-white whitespace-nowrap -top-32 -left-8 pointer-events-none">
-                                <div className="font-semibold">
-                                  {day.dateStr}
-                                </div>
-                                <div className="text-slate-300">
-                                  Activity:{' '}
-                                  <span className="text-blue-400 font-bold">
-                                    {hoveredData.count}
-                                  </span>
-                                </div>
-                                <div className="text-slate-400 text-xs">
-                                  Intensity:{' '}
-                                  {getActivityIntensity(hoveredData.count)}
-                                </div>
-                                {hoveredData.projects &&
-                                  hoveredData.projects.length > 0 && (
-                                    <div className="mt-2 border-t border-slate-600 pt-2">
-                                      <div className="text-slate-400 text-xs mb-1">
-                                        Project Breakdown:
-                                      </div>
-                                      {hoveredData.projects
-                                        .slice(0, 3)
-                                        .map((project, idx) => (
-                                          <div
-                                            key={idx}
-                                            className="text-slate-300 text-xs"
-                                          >
-                                            • {project.name}: {project.count}
+                        {/* 7 rows - one for each day of the week */}
+                        {dayLabels.map((dayLabel, dayIdx) => (
+                          <div key={dayIdx} className="flex items-center gap-2">
+                            {/* Day label */}
+                            <div className="w-10 text-xs text-slate-500 font-medium">
+                              {dayLabel}
+                            </div>
+
+                            {/* Weeks for this day */}
+                            <div className="flex gap-0.5">
+                              {sectionWeeks.map((week, weekIdx) => {
+                                const day = week[dayIdx];
+                                return (
+                                  <div
+                                    key={weekIdx}
+                                    className="relative group"
+                                    onMouseEnter={() => {
+                                      setHoveredDate(day.dateStr);
+                                      setHoveredData(day.activity);
+                                    }}
+                                    onMouseLeave={() => {
+                                      setHoveredDate(null);
+                                      setHoveredData(null);
+                                    }}
+                                  >
+                                    <div
+                                      className={`w-4 h-4 rounded-sm cursor-pointer transition-all duration-200 ${getActivityColor(
+                                        day.activity.count
+                                      )} hover:ring-2 hover:ring-blue-400`}
+                                      title={`${day.dateStr}: ${day.activity.count} activities`}
+                                    />
+
+                                    {/* Tooltip */}
+                                    {hoveredDate === day.dateStr &&
+                                      hoveredData && (
+                                        <div className="absolute z-10 bg-slate-950 border border-slate-600 rounded-lg p-3 text-sm text-white whitespace-nowrap -top-32 -left-8 pointer-events-none">
+                                          <div className="font-semibold">
+                                            {day.dateStr}
                                           </div>
-                                        ))}
-                                      {hoveredData.projects.length > 3 && (
-                                        <div className="text-slate-400 text-xs mt-1">
-                                          +{hoveredData.projects.length - 3}{' '}
-                                          more
+                                          <div className="text-slate-300">
+                                            Activity:{' '}
+                                            <span className="text-blue-400 font-bold">
+                                              {hoveredData.count}
+                                            </span>
+                                          </div>
+                                          <div className="text-slate-400 text-xs">
+                                            Intensity:{' '}
+                                            {getActivityIntensity(
+                                              hoveredData.count
+                                            )}
+                                          </div>
+                                          {hoveredData.projects &&
+                                            hoveredData.projects.length >
+                                              0 && (
+                                              <div className="mt-2 border-t border-slate-600 pt-2">
+                                                <div className="text-slate-400 text-xs mb-1">
+                                                  Project Breakdown:
+                                                </div>
+                                                {hoveredData.projects
+                                                  .slice(0, 3)
+                                                  .map((project, idx) => (
+                                                    <div
+                                                      key={idx}
+                                                      className="text-slate-300 text-xs"
+                                                    >
+                                                      • {project.name}:{' '}
+                                                      {project.count}
+                                                    </div>
+                                                  ))}
+                                                {hoveredData.projects
+                                                  .length > 3 && (
+                                                  <div className="text-slate-400 text-xs mt-1">
+                                                    +
+                                                    {hoveredData.projects
+                                                      .length - 3}{' '}
+                                                    more
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
                                         </div>
                                       )}
-                                    </div>
-                                  )}
-                              </div>
-                            )}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </>
             );
