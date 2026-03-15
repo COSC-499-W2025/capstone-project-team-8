@@ -146,6 +146,50 @@ class ProjectDetailView(APIView):
                 "percent_of_commits": float(c.percent_of_commits or 0.0)
             })
 
+        # Compute highlight score (same formula as _get_ranked_projects)
+        user_contribution = ProjectContribution.objects.filter(
+            project=p, contributor__user=request.user
+        ).first()
+        total_project_lines = ProjectFile.objects.filter(
+            project=p, file_type='code'
+        ).aggregate(total=Sum('line_count'))['total'] or 0
+
+        total_lines_changed = 0
+        if user_contribution:
+            total_lines_changed = user_contribution.lines_added + user_contribution.lines_deleted
+
+        eval_obj = ProjectEvaluation.objects.filter(project=p).first()
+        quality_score = eval_obj.overall_score if eval_obj else 0.0
+
+        if total_project_lines > 0:
+            scale_score = min((math.log2(total_project_lines) / 13.3) * 100, 100)
+        else:
+            scale_score = 0.0
+
+        if total_lines_changed > 0:
+            effort_score = min((math.log2(total_lines_changed) / 13.3) * 100, 100)
+        else:
+            effort_score = 0.0
+
+        langs = list(
+            ProjectLanguage.objects.filter(project=p)
+            .select_related('language')
+            .values_list('language__name', flat=True)[:5]
+        )
+        fws = list(
+            ProjectFramework.objects.filter(project=p)
+            .select_related('framework')
+            .values_list('framework__name', flat=True)[:5]
+        )
+        breadth_score = min(((len(langs) + len(fws)) / 10) * 100, 100)
+
+        highlight_score = (
+            quality_score * 0.40 +
+            scale_score * 0.25 +
+            effort_score * 0.20 +
+            breadth_score * 0.15
+        )
+
         resp = {
             "id": p.id,
             "name": p.name,
@@ -161,6 +205,13 @@ class ProjectDetailView(APIView):
             "created_at": int(p.created_at.timestamp()) if p.created_at else None,
             "resume_bullet_points": p.resume_bullet_points or [],
             "user_role": p.user_role or 'other',
+            "highlight_score": round(highlight_score, 1),
+            "score_breakdown": {
+                "quality": round(quality_score, 1),
+                "scale": round(scale_score, 1),
+                "effort": round(effort_score, 1),
+                "breadth": round(breadth_score, 1),
+            },
         }
         return JsonResponse(resp)
 
