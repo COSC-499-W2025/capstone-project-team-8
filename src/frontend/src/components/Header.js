@@ -33,9 +33,9 @@ export default function Header() {
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard' },
     { href: '/upload', label: 'Upload' },
-    { href: '/resume', label: 'Build Resume' },
+    { href: '/resumes', label: 'Resume' },
     { href: '/portfolios', label: 'Portfolios' },
-    { href: '/projects', label: 'Previous Projects' },
+    { href: '/projects', label: 'Projects' },
   ];
 
   const isActive = (href) => pathname === href || pathname.startsWith(href + '/');
@@ -129,11 +129,11 @@ export default function Header() {
                     Upload
                   </Link>
                   <Link
-                    href="/resume"
+                    href="/resumes"
                     onClick={() => setIsDropdownOpen(false)}
                     className="block px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors md:hidden"
                   >
-                    Build Resume
+                    Resume
                   </Link>
                   <Link
                     href="/portfolios"
@@ -147,7 +147,7 @@ export default function Header() {
                     onClick={() => setIsDropdownOpen(false)}
                     className="block px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors md:hidden"
                   >
-                    Previous Projects
+                    Projects
                   </Link>
                 </div>
 
