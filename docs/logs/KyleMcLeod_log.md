@@ -358,7 +358,8 @@ Next week:
 - refactor cluttered code logic
 
 ## Week 10 Mar 09-15
-(TODO IMG)
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/5c8e2b6a-ebcc-4549-9919-56727b7451cf" />
+
 
 This week:
 - resume saving and editing feature PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/334 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/329
