@@ -336,3 +336,26 @@ I originally planned to get most of the work done by Saturday, but something cam
 
 ### What's next
 Next week, I plan on adding some more features to our frontend and checking the flow to ensure it is smooth and no bugs occur.
+
+## Week 1 T3
+### March 9th - March 13th:
+<img width="1075" height="629" alt="image" src="https://github.com/user-attachments/assets/efce0aa2-e450-4ccd-a467-a6bfe1882f71" /></br>
+
+### PRs Completed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/333 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/331 |
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/334 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/329 |
+
+### What went well
+Was able to get started earlier than usual on the project, giving me more time to make any changes requested and fix anything that came up over the weekend. 
+
+### What didn't go well
+I overlooked that the quality evaluations were still in the project id page which would cause confusion to users because there qere 2 different scores so more changes needed to be made to fix that. 
+
+### What's next
+Next week we'll do our peer testing and update our web app based on the feedback we get from our peers tomorrow.
