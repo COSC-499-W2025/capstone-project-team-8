@@ -1,18 +1,13 @@
 import unittest
-from unittest.mock import patch, MagicMock
 from app.services.llm.factory import LLMFactory
 from django.test import TestCase, tag
 
 @tag('llm')
-@patch('app.services.llm.factory.LLMFactory.get_provider')
 class TestLLM(TestCase):
     """Simple tests for LLM client"""
 
-    def test_basic_completion(self, mock_get_provider):
+    def test_basic_completion(self):
         """Test that LLM returns a response"""
-        mock_provider = MagicMock()
-        mock_provider.analyze.return_value = "Hello"
-        mock_get_provider.return_value = mock_provider
         
         prompt = "Say 'Hello' in one word."
         response = LLMFactory.get_provider().analyze(prompt)
@@ -24,9 +19,6 @@ class TestLLM(TestCase):
 
     def test_code_analysis(self, mock_get_provider):
         """Test LLM code analysis with default system message"""
-        mock_provider = MagicMock()
-        mock_provider.analyze.return_value = "This module adds numbers."
-        mock_get_provider.return_value = mock_provider
         
         code = "def add(a, b): return a + b"
         prompt = f"Analyze this function: {code}"
@@ -39,9 +31,6 @@ class TestLLM(TestCase):
 
     def test_resume_bullet_generation(self, mock_get_provider):
         """Test generating resume bullet points from code"""
-        mock_provider = MagicMock()
-        mock_provider.analyze.return_value = "- Auth code\n- JWT support"
-        mock_get_provider.return_value = mock_provider
         
         code_example = """
 def authenticate_user(username, password):
