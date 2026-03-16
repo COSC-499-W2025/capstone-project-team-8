@@ -1,34 +1,48 @@
 import unittest
-from app.services.llm import ai_analyze
+from unittest.mock import patch, MagicMock
+from app.services.llm.factory import LLMFactory
 from django.test import TestCase, tag
 
 @tag('llm')
-class TestAzureLLM(TestCase):
-    """Simple tests for Azure OpenAI client"""
+@patch('app.services.llm.factory.LLMFactory.get_provider')
+class TestLLM(TestCase):
+    """Simple tests for LLM client"""
 
-    def test_basic_completion(self):
+    def test_basic_completion(self, mock_get_provider):
         """Test that LLM returns a response"""
+        mock_provider = MagicMock()
+        mock_provider.analyze.return_value = "Hello"
+        mock_get_provider.return_value = mock_provider
+        
         prompt = "Say 'Hello' in one word."
-        response = ai_analyze(prompt)
+        response = LLMFactory.get_provider().analyze(prompt)
         
         self.assertIsNotNone(response)
         self.assertIsInstance(response, str)
         self.assertGreater(len(response), 0)
         print(f"\nLLM Response: {response}")
 
-    def test_code_analysis(self):
+    def test_code_analysis(self, mock_get_provider):
         """Test LLM code analysis with default system message"""
+        mock_provider = MagicMock()
+        mock_provider.analyze.return_value = "This module adds numbers."
+        mock_get_provider.return_value = mock_provider
+        
         code = "def add(a, b): return a + b"
         prompt = f"Analyze this function: {code}"
         
-        response = ai_analyze(prompt)
+        response = LLMFactory.get_provider().analyze(prompt)
         
         self.assertIsNotNone(response)
         self.assertIsInstance(response, str)
         print(f"\nCode Analysis: {response[:200]}...")
 
-    def test_resume_bullet_generation(self):
+    def test_resume_bullet_generation(self, mock_get_provider):
         """Test generating resume bullet points from code"""
+        mock_provider = MagicMock()
+        mock_provider.analyze.return_value = "- Auth code\n- JWT support"
+        mock_get_provider.return_value = mock_provider
+        
         code_example = """
 def authenticate_user(username, password):
     hashed = bcrypt.hash(password)
@@ -47,7 +61,7 @@ def authenticate_user(username, password):
 
 Do NOT include any introductions, explanations, or other text. ONLY the bullet points."""
         
-        response = ai_analyze(prompt, system_message=system_msg)
+        response = LLMFactory.get_provider().analyze(prompt, system_message=system_msg)
         
         self.assertIsNotNone(response)
         self.assertIsInstance(response, str)

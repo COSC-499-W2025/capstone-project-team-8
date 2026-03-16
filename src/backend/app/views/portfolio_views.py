@@ -42,7 +42,7 @@ def generate_portfolio_summary(portfolio, projects):
     Returns (summary_text, success_bool).
     """
     try:
-        from app.services.llm import ai_analyze
+        from app.services.llm import LLMFactory
     except ImportError:
         logger.warning("LLM service not available for portfolio summary generation")
         return "", False
@@ -89,7 +89,7 @@ Return ONLY the summary text, no headers or formatting."""
     system_message = """You are an expert career coach and technical writer who creates compelling portfolio summaries for software developers. Your summaries are concise, impactful, and tailored to the target audience. Focus on skills, achievements, and the value the developer brings."""
 
     try:
-        summary = ai_analyze(prompt, system_message=system_message)
+        summary = LLMFactory.get_provider().analyze(prompt, system_message=system_message)
         return summary.strip(), True
     except Exception as e:
         logger.error(f"Error generating portfolio summary: {e}")
