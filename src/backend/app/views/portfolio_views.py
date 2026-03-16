@@ -4,9 +4,9 @@ Portfolio API views for creating, managing, and showcasing user portfolios.
 Endpoints:
 - GET    /portfolio/           - List user's portfolios
 - POST   /portfolio/generate   - Create new portfolio with optional AI summary
-- GET    /portfolio/{id}/      - Retrieve portfolio details
+- GET    /portfolio/{slug}/    - Retrieve portfolio details
 - POST   /portfolio/{id}/edit  - Update portfolio and optionally regenerate summary
-- DELETE /portfolio/{id}/      - Delete portfolio
+- DELETE /portfolio/id/{id}/   - Delete portfolio
 
 Project curation:
 - POST   /portfolio/{id}/projects/add       - Add project to portfolio
@@ -16,7 +16,6 @@ Project curation:
 
 from django.http import JsonResponse
 from django.utils import timezone
-from django.utils.text import slugify
 from django.db import transaction
 from django.db.models import Count, F, Q
 from django.db.models.functions import TruncDate, Cast
@@ -28,6 +27,8 @@ from django.utils.decorators import method_decorator
 from datetime import datetime, timedelta
 from collections import defaultdict
 import logging
+import secrets
+import string
 
 from app.models import Portfolio, PortfolioProject, Project, Resume, ProjectFile, ProjectContribution
 from app.serializers import (
@@ -39,6 +40,27 @@ from app.serializers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def generate_random_portfolio_slug(length=10):
+    """Generate an opaque, URL-safe slug for public sharing."""
+    alphabet = string.ascii_lowercase + string.digits
+    token = ''.join(secrets.choice(alphabet) for _ in range(length))
+    return f"pf-{token}"
+
+
+def generate_unique_portfolio_slug(max_attempts=10):
+    """Generate a globally unique slug with retry protection against rare collisions."""
+    for _ in range(max_attempts):
+        slug = generate_random_portfolio_slug()
+        if not Portfolio.objects.filter(slug=slug).exists():
+            return slug
+
+    # Fallback: longer token if collisions keep occurring.
+    while True:
+        slug = generate_random_portfolio_slug(length=14)
+        if not Portfolio.objects.filter(slug=slug).exists():
+            return slug
 
 
 def generate_portfolio_summary(portfolio, projects):
@@ -137,15 +159,8 @@ class PortfolioGenerateView(APIView):
         
         data = serializer.validated_data
         
-        # Auto-generate slug if not provided
-        slug = data.get('slug') or slugify(data['title'])
-        
-        # Ensure unique slug
-        base_slug = slug
-        counter = 1
-        while Portfolio.objects.filter(slug=slug).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
+        # Always generate pseudorandom share slug (input slug is ignored for immutability/privacy).
+        slug = generate_unique_portfolio_slug()
         
         with transaction.atomic():
             # Create portfolio
@@ -192,18 +207,22 @@ class PortfolioGenerateView(APIView):
 class PortfolioDetailView(APIView):
     """
     Retrieve portfolio details.
-    GET /portfolio/{id}/
+    GET /portfolio/{slug}/
     Public portfolios can be accessed without authentication.
     """
     permission_classes = [AllowAny]
     serializer_class = PortfolioSerializer
 
-    def get_portfolio(self, pk, user=None):
+    def get_portfolio(self, *, slug=None, pk=None, user=None):
         """Get portfolio, respecting visibility rules.
         Returns (portfolio, status) where status is 'ok', 'private', or 'not_found'.
         """
+        if slug is None and pk is None:
+            return None, 'not_found'
+
         try:
-            portfolio = Portfolio.objects.prefetch_related('portfolio_projects__project').get(pk=pk)
+            query = {'slug': slug} if slug is not None else {'pk': pk}
+            portfolio = Portfolio.objects.prefetch_related('portfolio_projects__project').get(**query)
             # Allow access if public or if user is owner
             if portfolio.is_public or (user and user.is_authenticated and portfolio.user == user):
                 return portfolio, 'ok'
@@ -211,8 +230,8 @@ class PortfolioDetailView(APIView):
         except Portfolio.DoesNotExist:
             return None, 'not_found'
 
-    def get(self, request, pk):
-        portfolio, status = self.get_portfolio(pk, request.user)
+    def get(self, request, slug=None, pk=None):
+        portfolio, status = self.get_portfolio(slug=slug, pk=pk, user=request.user)
         if status == 'not_found':
             return JsonResponse({"error": "Portfolio not found"}, status=404)
         if status == 'private':
@@ -226,7 +245,10 @@ class PortfolioDetailView(APIView):
         serializer = PortfolioSerializer(portfolio, context={'request': request})
         return JsonResponse(serializer.data)
 
-    def delete(self, request, pk):
+    def delete(self, request, slug=None, pk=None):
+        if pk is None:
+            return JsonResponse({"error": "Delete is only available on ID routes"}, status=405)
+
         if not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         
@@ -254,6 +276,9 @@ class PortfolioEditView(APIView):
             portfolio = Portfolio.objects.prefetch_related('portfolio_projects__project').get(pk=pk, user=request.user)
         except Portfolio.DoesNotExist:
             return JsonResponse({"error": "Portfolio not found"}, status=404)
+
+        if 'slug' in request.data:
+            return JsonResponse({"error": "Portfolio slug is immutable after creation"}, status=400)
         
         serializer = PortfolioEditSerializer(data=request.data)
         if not serializer.is_valid():
@@ -432,7 +457,7 @@ class PortfolioReorderProjectsView(APIView):
 class PortfolioStatsView(APIView):
     """
     Get portfolio statistics including lines of code per language.
-    GET /portfolio/{id}/stats/
+    GET /portfolio/{slug}/stats/
     
     Statistics are cached and updated when projects are added/removed.
     On first access (lazy loading), stats are calculated and cached.
@@ -440,9 +465,13 @@ class PortfolioStatsView(APIView):
     """
     permission_classes = [AllowAny]
 
-    def get(self, request, pk):
+    def get(self, request, slug=None, pk=None):
+        if slug is None and pk is None:
+            return JsonResponse({"error": "Portfolio not found"}, status=404)
+
         try:
-            portfolio = Portfolio.objects.get(pk=pk)
+            query = {'slug': slug} if slug is not None else {'pk': pk}
+            portfolio = Portfolio.objects.get(**query)
         except Portfolio.DoesNotExist:
             return JsonResponse({"error": "Portfolio not found"}, status=404)
         
