@@ -433,15 +433,14 @@ This week was a good example of how even small features can have unexpected comp
 | [#335](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/335)  | [#327](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/327) |
 
 ### What went well
-
-    This week I was able to successfully implement the heatmap feature for the portfolios. This was a feature I was excited to work on and it was satisfying to see it come together. The research into AI model hosting also went well and we were able to find a new solution that should work better for our needs.
+ This week I was able to successfully implement the heatmap feature for the portfolios. This was a feature I was excited to work on and it was satisfying to see it come together. The research into AI model hosting also went well and we were able to find a new solution that should work better for our needs.
 
 ### What didn't go well
-    The heatmap implementation took longer than expected as I ran into some issues with the data visualization library I was using. It took some time to figure out how to properly format the data and get the heatmap to display correctly. However, once I got it working it was smooth sailing from there.        
+The heatmap implementation took longer than expected as I ran into some issues with the data visualization library I was using. It took some time to figure out how to properly format the data and get the heatmap to display correctly. However, once I got it working it was smooth sailing from there.        
 
 
 ### What's next
-    Next week I want to continue working on improving the heatmap feature and making it more interactive for the user. I also want to start working on integrating the new AI model hosting solution into our system and testing it out with our existing features.
+ Next week I want to continue working on improving the heatmap feature and making it more interactive for the user. I also want to start working on integrating the new AI model hosting solution into our system and testing it out with our existing features.
 
 ### Reflection:
-    This week was a mix of challenges and successes. The heatmap feature was a rewarding implementation, but it came with its share of hurdles that required patience and problem-solving to overcome. The positive outcome of finding a new AI hosting solution was a bright spot that will hopefully enhance our system's capabilities moving forward. I'm looking forward to refining the heatmap and integrating the new hosting solution in the coming weeks.
+This week was a mix of challenges and successes. The heatmap feature was a rewarding implementation, but it came with its share of hurdles that required patience and problem-solving to overcome. The positive outcome of finding a new AI hosting solution was a bright spot that will hopefully enhance our system's capabilities moving forward. I'm looking forward to refining the heatmap and integrating the new hosting solution in the coming weeks.
