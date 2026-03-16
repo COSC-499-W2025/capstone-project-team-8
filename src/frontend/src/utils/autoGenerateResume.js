@@ -87,6 +87,15 @@ export function selectTopSkills(projects, aggregatedSkills, max = MAX_SKILLS) {
   const freq = {};
   const preferredName = {};
 
+  const shouldReplacePreferredName = (existing, candidate) => {
+    if (!existing) return true;
+    if (candidate.length > existing.length) return true;
+
+    const existingHasUpper = /[A-Z]/.test(existing);
+    const candidateHasUpper = /[A-Z]/.test(candidate);
+    return candidateHasUpper && !existingHasUpper;
+  };
+
   const trackSkill = (skillLike, count = 1) => {
     const rawName = typeof skillLike === 'string' ? skillLike : skillLike?.name;
     if (!rawName) return;
@@ -98,7 +107,7 @@ export function selectTopSkills(projects, aggregatedSkills, max = MAX_SKILLS) {
     freq[key] = (freq[key] || 0) + count;
 
     // Keep the most descriptive (usually title-cased) variant for display.
-    if (!preferredName[key] || normalized.length > preferredName[key].length) {
+    if (shouldReplacePreferredName(preferredName[key], normalized)) {
       preferredName[key] = normalized;
     }
   };
@@ -122,7 +131,7 @@ export function selectTopSkills(projects, aggregatedSkills, max = MAX_SKILLS) {
         const key = normalized.toLowerCase();
         const count = typeof s?.project_count === 'number' ? s.project_count : 1;
         freq[key] = Math.max(freq[key] || 0, count);
-        if (!preferredName[key] || normalized.length > preferredName[key].length) {
+        if (shouldReplacePreferredName(preferredName[key], normalized)) {
           preferredName[key] = normalized;
         }
       });
