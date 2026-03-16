@@ -416,12 +416,14 @@ This week was a good example of how even small features can have unexpected comp
 ## March 9-15
 
 
+
 - Implemented heatmap for portfolios
 - Implemented heatmap UI for portfolios
 - Researched AI model hosting services due to issues with our previous hosting
 - Collaborated with team to decide on new hosting solutions
 - Reviewed team members code and provided feedback
-
+- Created Heuristics Evaluation Sheet
+- Created Heuristics Evaluation Feedback Form
 
 
 ### Completed PRs
