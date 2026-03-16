@@ -365,6 +365,7 @@ This week:
 - resume saving and editing feature PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/334 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/329
 - onboarding refactor PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/337
 - reviewed jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/333
+- reviewed charlies PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/338
 - prepped for peer testing #2
   
 What went well:
