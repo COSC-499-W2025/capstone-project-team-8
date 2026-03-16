@@ -17,6 +17,8 @@
 - [January 26-February 7](#january-26-february-7)
 - [February 8-March 1](#february-8-march-1)
 - [March 2-8](#march-2-8)
+- [March 9-15](#march-9-15)
+
 
 ## September 15-21
 
@@ -409,3 +411,35 @@ Next week I want to continue working on the UI creating a more interactive exper
 
 ### Reflection:
 This week was a good example of how even small features can have unexpected complications. The loading animation and project tag features were relatively simple in concept but I ran into some issues during implementation that caused delays. However, I'm glad I was able to work through those issues and get everything implemented as intended. Moving forward, I want to continue improving the user experience and making the product more polished overall.
+
+
+## March 9-15
+
+<img width="1084" height="633" alt="March2-8th" src="https://github.com/user-attachments/assets/95aa969e-40c8-44e1-b0b7-ef70e836d50a" />
+
+- Implemented heatmap for portfolios
+- Implemented heatmap UI for portfolios
+- Researched AI model hosting services due to issues with our previous hosting
+- Collaborated with team to decide on new hosting solutions
+- Reviewed team members code and provided feedback
+- Created Heuristics Evaluation Sheet
+- Created Heuristics Evaluation Feedback Form
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| [#335](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/335)  | [#327](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/327) |
+
+### What went well
+ This week I was able to successfully implement the heatmap feature for the portfolios. This was a feature I was excited to work on and it was satisfying to see it come together. The research into AI model hosting also went well and we were able to find a new solution that should work better for our needs.
+
+### What didn't go well
+The heatmap implementation took longer than expected as I ran into some issues with the data visualization library I was using. It took some time to figure out how to properly format the data and get the heatmap to display correctly. However, once I got it working it was smooth sailing from there.        
+
+
+### What's next
+ Next week I want to continue working on improving the heatmap feature and making it more interactive for the user. I also want to start working on integrating the new AI model hosting solution into our system and testing it out with our existing features.
+
+### Reflection:
+This week was a mix of challenges and successes. The heatmap feature was a rewarding implementation, but it came with its share of hurdles that required patience and problem-solving to overcome. The positive outcome of finding a new AI hosting solution was a bright spot that will hopefully enhance our system's capabilities moving forward. I'm looking forward to refining the heatmap and integrating the new hosting solution in the coming weeks.

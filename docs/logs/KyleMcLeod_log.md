@@ -19,6 +19,7 @@
 - [T2 Week 4-5 (Jan 26-Feb 6)](#week-18--19-january-26---february-6)
 - [T2 Week 6–7–8 (Feb 9–27)](#week-20--21--22-february-9---27)
 - [T2 Week 9 (Mar 02-08)](#week-9-mar-02-08)
+- [T2 Week 10 (Mar 02-08)](#week-10-mar-09-15)
 
 
 ## Week 3 September 15-21
@@ -355,7 +356,33 @@ Next week:
 - continue to fix front and backend bugs
 - coordinate who will be next in our group to setip Azure account since our AI trial is expired
 - refactor cluttered code logic
+
+## Week 10 Mar 09-15
+<img width="624" height="358" alt="image" src="https://github.com/user-attachments/assets/5c8e2b6a-ebcc-4549-9919-56727b7451cf" />
+
+
+This week:
+- resume saving and editing feature PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/334 ISSUE: https://github.com/COSC-499-W2025/capstone-project-team-8/issues/329
+- onboarding refactor PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/337
+- reviewed jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/333
+- reviewed charlies PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/338
+- prepped for peer testing #2
+  
+What went well:
+- system has a lot of features done and is ready for peer testing 2
+- many bugs are getting resolved each week
+- I successfully implemeted reasume saving and editing
+
+What went wrong:
+- some migration issues
+- couple merge conflicts but was resolved quickly
+- azure AI still not setup since our trial ran out
+
+Next week:
+- peer testing
+- work on polishing UI
+- collect results from peer testing and revise user flow and UI
   
 Reflection:
-We are making steady progress on our prject and we will continue to make improvements for the last couple months. Our workflow as a team has improved a lot over the last few months. We are on schedule and should have a final project ready to present in time.
+Our system is ready for peer testing. This peer testing should go much smoother than the last one since our frontend is fully connected to our backend. The troubles we had with the inital peer testing was that our system was setup with API calls from the start, so users had to call each individual API through CURL or our API docs which was very inconvenient. Now, we have a full user interface which they can work with.
 
