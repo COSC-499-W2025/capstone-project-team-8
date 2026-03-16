@@ -110,6 +110,8 @@ class PortfolioSerializer(serializers.ModelSerializer):
 class PortfolioGenerateSerializer(serializers.Serializer):
     """Serializer for generating a new portfolio with AI summary."""
     title = serializers.CharField(max_length=255)
+    # Backward compatibility: accepted but ignored by server, which now always generates
+    # a pseudorandom immutable slug.
     slug = serializers.SlugField(max_length=100, required=False)
     description = serializers.CharField(required=False, allow_blank=True, default='')
     project_ids = serializers.ListField(
@@ -127,7 +129,7 @@ class PortfolioGenerateSerializer(serializers.Serializer):
     generate_summary = serializers.BooleanField(default=True, required=False)
     
     def validate_slug(self, value):
-        # Just slugify; uniqueness is handled by the view with auto-increment
+        # Retained for backward compatibility; server ignores submitted slug.
         return slugify(value) if value else None
     
     def validate_project_ids(self, value):

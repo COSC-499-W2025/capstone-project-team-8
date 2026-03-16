@@ -1,6 +1,7 @@
 # T8BG Team Log
 
 ## Weekly Logs
+- [Milestone 3 Week 10](#milestone-3-week-10)
 - [Milestone 2 Week 9](#milestone-2-week-9)
 - [Milestone 2 Week 6-8](#milestone-2-week-6-8)
 - [Milestone 2 Week 4-5](#milestone-2-week-4-5)
@@ -28,6 +29,47 @@
 |matin0014|Matin Raoufi|
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
+
+## Milestone 3 Week 10
+
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+|Improve Resume Auto generation|[@matin0014](https://github.com/matin0014)|[#341](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/341)|[#328](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/328)|
+| Showcase top 3 projects | [@jordany78](https://github.com/jordany78) | [#333](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/333) | [#331](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/331) |
+|  Slug url for portfolio | [@cschwebi](https://github.com/cschwebi) | [#338](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/338) | [#326](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/326) |
+| Refactor onboarding UI | [@kylekmcleod](https://github.com/kylekmcleod) | [#337](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/337) | N/A |
+| Portfolio Heatmap | [@harperkerstens](https://github.com/harperkerstens) | [#335](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/335) | [#327](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/327) |
+| Resume saving and editing | [@kylekmcleod](https://github.com/kylekmcleod) | [#334](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/334) | [#329](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/329) |
+
+### Our Goals this week:
+Our goal this week was to keep working towards Milestone 3 requirements. A primary focus was improving the user experience alongside adding more ways to work with the information we gained in our analysis we implemented in previous milestones. We also wanted to start planning for our final presentation and how we want to showcase our project.
+
+### Reflection
+Overall we are happy with our progress this week, we were able to implement a lot of features that we wanted to and we feel good about the direction we are going in. We are looking forward to our final presentation and showcasing all the work we have done so far. We also want to continue improving our project and adding more features as well as polishing existing ones.
+
+
+### What went well:
+This week developement was very smooth overall, we were able to implement a lot of features and make good progress towards Milestone 3. We also had good collaboration and teamwork which made development easier and more enjoyable. We are happy with the direction we are going in and are looking forward to our final presentation.
+
+
+### What didn't go well:
+There were some slight delays in development due to some unexpected bugs and issues that came up, but we were able to work through them and get back on track. We also had some challenges in planning for the final presentation, but we are confident that we will be able to put together a great presentation to showcase our project. Overall, we are happy with our progress and are looking forward to continuing to improve our project.
+
+
+### Test Report
+
+<img width="919" height="144" alt="image" src="https://github.com/user-attachments/assets/0ff4344b-9477-4273-ba6a-397622497bf0" />
+(errors are caused by our expired OpenAI key)
+
+### Plan for next week:
+Going foreward our primary experience is to prepare for our final presentation and showcase all the work we have done so far. We also want to continue improving our project and adding more features as well as polishing existing ones. We want to make sure we are meeting all the requirements for Milestone 3 and are looking forward to showcasing our project in the best way possible.
+
+
+
+### Burn up chart
+
+<img width="1801" height="949" alt="image" src="https://github.com/user-attachments/assets/b1883309-4739-4269-b3d3-10045fa74846" />
 
 ## Milestone 2 Week 9
 
