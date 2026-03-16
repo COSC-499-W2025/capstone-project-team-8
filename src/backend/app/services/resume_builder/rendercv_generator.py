@@ -242,12 +242,15 @@ def generate_pdf(resume_data: dict, theme: str = "classic") -> bytes:
             with open(yaml_path, "w", encoding="utf-8") as f:
                 yaml.dump(yaml_dict, f, allow_unicode=True,
                           default_flow_style=False, sort_keys=False)
+            env = os.environ.copy()
+            env["PYTHONIOENCODING"] = "utf-8"
             return subprocess.run(
                 ["rendercv", "render", "resume.yaml"],
                 cwd=tmpdir,
                 capture_output=True,
                 text=True,
                 timeout=120,
+                env=env,
             )
 
         result = _run(rendercv_dict)
