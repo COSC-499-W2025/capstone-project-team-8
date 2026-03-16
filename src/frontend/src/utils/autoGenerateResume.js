@@ -137,6 +137,45 @@ export function selectTopSkills(projects, aggregatedSkills, max = MAX_SKILLS) {
     }));
 }
 
+const deriveFallbackBullets = (project, maxBullets) => {
+  const techList = [
+    ...(project.languages || []).map((l) => l.name).filter(Boolean),
+    ...(project.frameworks || []).map((f) => f.name).filter(Boolean),
+    ...(project.resume_skills || []).map((s) => (typeof s === 'string' ? s : s?.name)).filter(Boolean),
+  ];
+
+  const uniqueTech = [...new Set(techList)].slice(0, 5);
+  const bullets = [];
+
+  if (uniqueTech.length > 0) {
+    bullets.push(`Built and delivered features using ${uniqueTech.join(', ')}`);
+  }
+
+  if (project.classification_type) {
+    bullets.push(`Developed a ${project.classification_type.toLowerCase()} project from concept to implementation`);
+  }
+
+  bullets.push('Collaborated on implementation, debugging, and iterative improvements');
+  return bullets.slice(0, Math.max(1, maxBullets));
+};
+
+const buildAutoSummary = (topProjects, skills) => {
+  if (!topProjects?.length) {
+    return 'Motivated software developer with hands-on experience building practical projects and continuously learning new technologies.';
+  }
+
+  const projectCount = topProjects.length;
+  const topSkills = (skills || []).slice(0, 4).map((s) => s.title).filter(Boolean);
+  const domains = [...new Set((topProjects || []).map((p) => p.classification_type).filter(Boolean))]
+    .slice(0, 3)
+    .join(', ');
+
+  const skillsText = topSkills.length ? ` with experience in ${topSkills.join(', ')}` : '';
+  const domainText = domains ? ` across ${domains}` : '';
+
+  return `Project-focused developer with ${projectCount} showcased projects${skillsText}${domainText}. Proven ability to ship maintainable solutions and communicate impact clearly.`;
+};
+
 /**
  * Build project section entries from selected projects.
  *
@@ -146,7 +185,10 @@ export function selectTopSkills(projects, aggregatedSkills, max = MAX_SKILLS) {
  */
 export function buildProjectEntries(topProjects, maxBullets = MAX_BULLETS_PER_PROJECT) {
   return (topProjects || []).map((p, idx) => {
-    const bullets = (p.resume_bullet_points || []).slice(0, maxBullets);
+    const selectedBullets = (p.resume_bullet_points || []).slice(0, maxBullets);
+    const bullets = selectedBullets.length > 0
+      ? selectedBullets
+      : deriveFallbackBullets(p, maxBullets);
     const content = bullets.map((b) => `• ${b}`).join('\n');
 
     // Build a date range string
@@ -171,7 +213,7 @@ export function buildProjectEntries(topProjects, maxBullets = MAX_BULLETS_PER_PR
     ].join(', ');
 
     return {
-      id: Date.now() + idx,
+      id: p.id ? `auto-project-${p.id}` : `auto-project-${idx}`,
       title: p.name || 'Untitled Project',
       company: techs,
       duration,
@@ -209,6 +251,9 @@ export function autoGenerateResume({
   // Carry forward personal info & education from the current state
   const base = currentResumeData || {};
   const existingSections = base.sections || {};
+  const summary = existingSections.summary?.trim()
+    ? existingSections.summary
+    : buildAutoSummary(topProjects, skills);
 
   return {
     name: base.name || '',
@@ -219,7 +264,7 @@ export function autoGenerateResume({
     linkedin_url: base.linkedin_url || '',
     location: base.location || '',
     sections: {
-      summary: existingSections.summary || '',
+      summary,
       education: existingSections.education || [],
       experience: existingSections.experience || [],
       projects: projectEntries,
