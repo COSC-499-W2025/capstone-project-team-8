@@ -415,7 +415,7 @@ This week was a good example of how even small features can have unexpected comp
 
 ## March 9-15
 
- ![alttext](docs\logs\data\harper\March9th-15th.PNG) 
+ ![alttext](docs/logs/data/harper/March9th-15th.PNG) 
 
 
 - Implemented heatmap for portfolios
