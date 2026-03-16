@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
+import PortfolioActivityHeatmap from '@/components/PortfolioActivityHeatmap';
 import config from '@/config';
 import { getPortfolio, getPortfolioById, deletePortfolio, removeProjectFromPortfolio, updatePortfolio, generateResumeFromPortfolio, getPortfolioStats } from '@/utils/portfolioApi';
 
@@ -378,6 +379,9 @@ export default function PortfolioDetailPage() {
                   </div>
                 </div>
               )}
+
+              {/* ---- ACTIVITY HEATMAP SECTION ---- */}
+              <PortfolioActivityHeatmap portfolioId={portfolioId} token={token} />
 
               {/* ---- PROJECTS / EXPERIENCE SECTION ---- */}
               <div className="bg-[var(--card-bg)] rounded-lg overflow-hidden border border-white/5">

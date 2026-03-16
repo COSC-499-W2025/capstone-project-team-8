@@ -17,15 +17,20 @@ Project curation:
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Count, F, Q
+from django.db.models.functions import TruncDate, Cast
+from django.db.models import DateTimeField
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from datetime import datetime, timedelta
+from collections import defaultdict
 import logging
 import secrets
 import string
 
-from app.models import Portfolio, PortfolioProject, Project, Resume
+from app.models import Portfolio, PortfolioProject, Project, Resume, ProjectFile, ProjectContribution
 from app.serializers import (
     PortfolioSerializer,
     PortfolioGenerateSerializer,
@@ -652,3 +657,150 @@ class PortfolioGenerateResumeView(APIView):
             'portfolio_id': portfolio.id,
             'portfolio_title': portfolio.title,
         }, status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PortfolioActivityHeatmapView(APIView):
+    """
+    Get activity heatmap data for all projects in a portfolio.
+    GET /portfolio/{id}/activity-heatmap/
+    
+    Returns daily activity counts aggregated from:
+    - File uploads (ProjectFile.created_at)
+    - Project creation dates
+    
+    Response format:
+    {
+        "portfolio_id": int,
+        "total_activity": int,
+        "date_range": {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"},
+        "activity_data": [
+            {"date": "YYYY-MM-DD", "count": int, "projects": [{"id": int, "name": str, "count": int}]},
+            ...
+        ],
+        "max_activity": int,
+        "min_activity": int
+    }
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        try:
+            portfolio = Portfolio.objects.get(pk=pk)
+        except Portfolio.DoesNotExist:
+            return JsonResponse({"error": "Portfolio not found"}, status=404)
+        
+        # Check permissions
+        if not portfolio.is_public:
+            if not request.user.is_authenticated:
+                return JsonResponse({"error": "Authentication required"}, status=401)
+            if portfolio.user != request.user:
+                return JsonResponse({"error": "Portfolio not found"}, status=404)
+        
+        # Get all projects in the portfolio
+        portfolio_projects = portfolio.portfolio_projects.select_related('project').prefetch_related('project__files')
+        
+        if not portfolio_projects.exists():
+            return JsonResponse({
+                "portfolio_id": portfolio.id,
+                "total_activity": 0,
+                "date_range": {"start": None, "end": None},
+                "activity_data": [],
+                "max_activity": 0,
+                "min_activity": 0,
+            })
+        
+        # Aggregate activity by date
+        activity_by_date = defaultdict(lambda: {"count": 0, "projects": defaultdict(int)})
+        
+        all_dates = []
+        
+        # Collect file activity (ProjectFile.created_at)
+        project_ids = [pp.project_id for pp in portfolio_projects]
+        file_activity = ProjectFile.objects.filter(
+            project_id__in=project_ids
+        ).values('project_id', 'project__name').annotate(
+            date=TruncDate('created_at')
+        ).values('date', 'project_id', 'project__name').annotate(
+            count=Count('id')
+        )
+        
+        for entry in file_activity:
+            date_str = entry['date'].isoformat() if entry['date'] else None
+            if date_str:
+                activity_by_date[date_str]["count"] += entry['count']
+                activity_by_date[date_str]["projects"][entry['project__name']] += entry['count']
+                all_dates.append(entry['date'])
+        
+        # Collect project creation activity (Project.created_at)
+        project_activity = Project.objects.filter(
+            id__in=project_ids
+        ).values('id', 'name', 'created_at').annotate(
+            date=TruncDate('created_at')
+        ).values('date', 'id', 'name')
+        
+        for entry in project_activity:
+            date_str = entry['date'].isoformat() if entry['date'] else None
+            if date_str:
+                activity_by_date[date_str]["count"] += 1
+                activity_by_date[date_str]["projects"][entry['name']] += 1
+                all_dates.append(entry['date'])
+        
+        # Determine date range
+        if all_dates:
+            min_date = min(all_dates)
+            max_date = max(all_dates)
+        else:
+            min_date = None
+            max_date = None
+        
+        # Fill in gaps with zero activity
+        if min_date and max_date:
+            current_date = min_date
+            while current_date <= max_date:
+                date_str = current_date.isoformat()
+                if date_str not in activity_by_date:
+                    activity_by_date[date_str] = {"count": 0, "projects": {}}
+                current_date += timedelta(days=1)
+        
+        # Convert to list format
+        activity_data = []
+        total_activity = 0
+        max_activity = 0
+        min_activity = float('inf')
+        
+        for date_str in sorted(activity_by_date.keys()):
+            entry = activity_by_date[date_str]
+            count = entry["count"]
+            
+            # Build projects list
+            projects_list = [
+                {"name": name, "count": count}
+                for name, count in sorted(entry["projects"].items(), key=lambda x: x[1], reverse=True)
+            ]
+            
+            activity_data.append({
+                "date": date_str,
+                "count": count,
+                "projects": projects_list,
+            })
+            
+            total_activity += count
+            max_activity = max(max_activity, count)
+            if count > 0:
+                min_activity = min(min_activity, count)
+        
+        if min_activity == float('inf'):
+            min_activity = 0
+        
+        return JsonResponse({
+            "portfolio_id": portfolio.id,
+            "total_activity": total_activity,
+            "date_range": {
+                "start": min_date.isoformat() if min_date else None,
+                "end": max_date.isoformat() if max_date else None,
+            },
+            "activity_data": activity_data,
+            "max_activity": max_activity,
+            "min_activity": min_activity,
+        })

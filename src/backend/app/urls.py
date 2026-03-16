@@ -14,7 +14,6 @@ from .views.project_views import (
 )
 from .views.skill_views import SkillsView
 from .views.user_views import UserMeView, PublicUserView, PasswordChangeView, ProfileImageUploadView
-from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView
 from .views.portfolio_views import (
     PortfolioListView,
     PortfolioGenerateView,
@@ -25,6 +24,7 @@ from .views.portfolio_views import (
     PortfolioReorderProjectsView,
     PortfolioStatsView,
     PortfolioGenerateResumeView,
+    PortfolioActivityHeatmapView,
 )
 from .views.resume_views import (
     ResumeTemplatesView, 
@@ -83,6 +83,7 @@ urlpatterns = [
     path("portfolio/<int:pk>/edit/", PortfolioEditView.as_view(), name="portfolio-edit"),
     path("portfolio/<slug:slug>/stats/", PortfolioStatsView.as_view(), name="portfolio-stats"),
     path("portfolio/id/<int:pk>/stats/", PortfolioStatsView.as_view(), name="portfolio-stats-by-id"),
+    path("portfolio/<int:pk>/activity-heatmap/", PortfolioActivityHeatmapView.as_view(), name="portfolio-activity-heatmap"),
     path("portfolio/<int:pk>/projects/add/", PortfolioAddProjectView.as_view(), name="portfolio-add-project"),
     path("portfolio/<int:pk>/projects/<int:project_id>/", PortfolioRemoveProjectView.as_view(), name="portfolio-remove-project"),
     path("portfolio/<int:pk>/projects/reorder/", PortfolioReorderProjectsView.as_view(), name="portfolio-reorder-projects"),
