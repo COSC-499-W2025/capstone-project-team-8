@@ -1,0 +1,40 @@
+[project]
+name = "capstone-backend"
+version = "0.0.0"
+requires-python = ">=3.10"
+readme = "README.md"
+
+dependencies = [
+  "django",
+  "djangorestframework",
+  "djangorestframework-simplejwt",
+  "django-cors-headers",
+  "mysqlclient",
+  "python-decouple",
+  "python-dotenv",
+  "GitPython",
+  "requests",
+  "PyMuPDF>=1.23.0",
+  "openai",
+  "drf-spectacular",
+  "django-cors-headers",
+  "Pillow",
+  "rendercv[full]",
+  "pyyaml",
+]
+
+[dependency-groups]
+dev = [
+  "pytest",
+  "pytest-django",
+  "ruff",
+  "ty",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "src.settings"
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --tb=short"
+testpaths = "tests"

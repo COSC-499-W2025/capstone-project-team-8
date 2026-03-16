@@ -32,24 +32,25 @@ cd src/backend
 
 ### 2. Create Virtual Environment
 
+If you want to use a virtual environment, `uv` will automatically create it for you when you sync dependencies.
 ```bash
-python -m venv venv
+uv venv
 ```
 
 ### 3. Activate Virtual Environment
 
 ```bash
 # Windows
-venv\Scripts\activate
+.venv\Scripts\activate
 
 # Mac/Linux
-source venv/bin/activate
+source .venv/bin/activate
 ```
 
 ### 4. Install Dependencies
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 ### 5. Configure Environment
@@ -116,10 +117,10 @@ DB_PORT=3306
 
 ```bash
 # Run all tests
-python manage.py test ../../tests
+uv run python manage.py test ../../tests
 
 # Run specific test file
-python manage.py test ../../tests.test_models
+uv run python manage.py test ../../tests.test_models
 ```
 
 ## Working with the Backend
@@ -150,7 +151,8 @@ python manage.py startapp your_app_name
 ```text
 backend/
 ├── manage.py              # Django management script
-├── requirements.txt       # Python dependencies
+├── pyproject.toml         # Python dependencies and config
+├── uv.lock                # Locked dependency versions
 ├── .env                   # Environment variables (not in git)
 ├── .env.example           # Environment template
 ├── Dockerfile             # Docker configuration

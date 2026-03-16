@@ -74,11 +74,9 @@ If you still have issues, check your `.env` files, database connection, and Dock
 ## Testing
 - **Run all unit tests (unittest discover):**
 	```powershell
-	docker-compose exec backend python -m unittest discover -s /app/tests -p "test_*.py" -v
-	```
-- **Run a specific test file:**
-	```powershell
-	docker-compose exec backend python manage.py test tests.test_project_summary
+	2. Run `docker-compose exec backend uv run python manage.py test` to run all tests
+	- Optionally you can add `tests.[FILE]` if you only want to test one file (eg. `tests.test_project_summary`)
+	- Full example `docker-compose exec backend uv run python manage.py test tests.test_project_summary`
 	```
 
 ## MySQL Shell (optional)

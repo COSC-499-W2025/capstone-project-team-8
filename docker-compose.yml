@@ -21,6 +21,20 @@ services:
 
   backend:
     build: ./src/backend
+    develop:
+      # Create a `watch` configuration to update the app
+      watch:
+        # Sync the working directory with the `/app` directory in the container
+        - action: sync
+          path: ./src/backend
+          target: /app
+          # Exclude the project virtual environment
+          ignore:
+            - .venv/
+
+        # Rebuild the image on changes to the `pyproject.toml`
+        - action: rebuild
+          path: ./pyproject.toml
     container_name: capstone_backend
     restart: unless-stopped
     ports:
@@ -28,6 +42,7 @@ services:
     volumes:
       - ./src/backend:/app
       - ./tests:/app/tests
+      - /app/.venv
     environment:
       - DB_NAME=capstone_db
       - DB_USER=capstone_user
