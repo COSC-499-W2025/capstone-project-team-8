@@ -71,6 +71,18 @@ class ResumeModelTests(TestCase):
         
         self.assertEqual(resume.content, {})
 
+    def test_resume_theme_and_yaml_have_defaults(self):
+        """Test that saved RenderCV fields default correctly."""
+        from app.models import Resume
+
+        resume = Resume.objects.create(
+            user=self.user,
+            name="RenderCV Defaults"
+        )
+
+        self.assertEqual(resume.theme, "classic")
+        self.assertEqual(resume.rendercv_yaml, "")
+
     def test_resume_can_store_json_content(self):
         """Test that resume can store JSON content."""
         from app.models import Resume
