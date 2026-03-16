@@ -16,6 +16,15 @@
 const MAX_PROJECTS = 4;
 const MAX_SKILLS = 15;
 const MAX_BULLETS_PER_PROJECT = 5;
+const MS_PER_YEAR = 1000 * 60 * 60 * 24 * 365;
+
+const normalizeTimestamp = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+
+  const parsed = typeof value === 'number' ? new Date(value * 1000) : new Date(value);
+  const time = parsed.getTime();
+  return Number.isNaN(time) ? null : time;
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -30,17 +39,23 @@ export function scoreProject(project) {
   const bulletCount = (project.resume_bullet_points || []).length;
   const languageCount = (project.languages || []).length;
   const frameworkCount = (project.frameworks || []).length;
+  const resumeSkillCount = (project.resume_skills || []).length;
   const skillCount = languageCount + frameworkCount;
 
   // Recency: projects with a more-recent created_at get a small bonus (0-10 pts)
   let recencyBonus = 0;
-  if (project.created_at) {
-    const ageMs = Date.now() - new Date(project.created_at).getTime();
-    const ageYears = ageMs / (1000 * 60 * 60 * 24 * 365);
+  const latestActivity = Math.max(
+    normalizeTimestamp(project.last_updated) || 0,
+    normalizeTimestamp(project.created_at) || 0,
+    normalizeTimestamp(project.first_commit_date) || 0,
+  );
+  if (latestActivity > 0) {
+    const ageMs = Date.now() - latestActivity;
+    const ageYears = ageMs / MS_PER_YEAR;
     recencyBonus = Math.max(0, 10 - ageYears * 2);
   }
 
-  return bulletCount * 3 + skillCount * 2 + recencyBonus;
+  return bulletCount * 3 + (skillCount + resumeSkillCount) * 2 + recencyBonus;
 }
 
 /**
@@ -70,22 +85,47 @@ export function selectTopProjects(projects, max = MAX_PROJECTS) {
  */
 export function selectTopSkills(projects, aggregatedSkills, max = MAX_SKILLS) {
   const freq = {};
+  const preferredName = {};
+
+  const trackSkill = (skillLike, count = 1) => {
+    const rawName = typeof skillLike === 'string' ? skillLike : skillLike?.name;
+    if (!rawName) return;
+
+    const normalized = rawName.trim();
+    if (!normalized) return;
+
+    const key = normalized.toLowerCase();
+    freq[key] = (freq[key] || 0) + count;
+
+    // Keep the most descriptive (usually title-cased) variant for display.
+    if (!preferredName[key] || normalized.length > preferredName[key].length) {
+      preferredName[key] = normalized;
+    }
+  };
 
   // Count from per-project data
   (projects || []).forEach((p) => {
-    [...(p.languages || []), ...(p.frameworks || [])].forEach((s) => {
-      const key = s.name.toLowerCase();
-      freq[key] = (freq[key] || 0) + 1;
-    });
+    [...(p.languages || []), ...(p.frameworks || []), ...(p.resume_skills || [])]
+      .forEach((s) => trackSkill(s));
   });
 
   // Merge aggregated skills endpoint data (which includes project_count)
   if (aggregatedSkills) {
-    [...(aggregatedSkills.languages || []), ...(aggregatedSkills.frameworks || [])].forEach((s) => {
-      const key = s.name.toLowerCase();
-      // keep the higher number between our count and the endpoint's project_count
-      freq[key] = Math.max(freq[key] || 0, s.project_count || 0);
-    });
+    [...(aggregatedSkills.languages || []), ...(aggregatedSkills.frameworks || []), ...(aggregatedSkills.resume_skills || [])]
+      .forEach((s) => {
+        const rawName = typeof s === 'string' ? s : s?.name;
+        if (!rawName) return;
+
+        const normalized = rawName.trim();
+        if (!normalized) return;
+
+        const key = normalized.toLowerCase();
+        const count = typeof s?.project_count === 'number' ? s.project_count : 1;
+        freq[key] = Math.max(freq[key] || 0, count);
+        if (!preferredName[key] || normalized.length > preferredName[key].length) {
+          preferredName[key] = normalized;
+        }
+      });
   }
 
   return Object.entries(freq)
@@ -93,7 +133,7 @@ export function selectTopSkills(projects, aggregatedSkills, max = MAX_SKILLS) {
     .slice(0, max)
     .map(([name], idx) => ({
       id: `auto-skill-${idx}`,
-      title: name.charAt(0).toUpperCase() + name.slice(1), // capitalize
+      title: preferredName[name] || name,
     }));
 }
 
