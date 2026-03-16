@@ -415,8 +415,7 @@ This week was a good example of how even small features can have unexpected comp
 
 ## March 9-15
 
- ![alttext](docs/logs/data/harper/March9th-15th.png) 
-
+<img width="1084" height="633" alt="March2-8th" src="https://github.com/user-attachments/assets/95aa969e-40c8-44e1-b0b7-ef70e836d50a" />
 
 - Implemented heatmap for portfolios
 - Implemented heatmap UI for portfolios
