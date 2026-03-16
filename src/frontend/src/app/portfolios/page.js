@@ -156,7 +156,7 @@ export default function PortfoliosPage() {
                   <div className="p-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
-                        <Link href={`/portfolios/${portfolio.id}`}>
+                        <Link href={`/portfolios/${portfolio.slug}`}>
                           <h3 className="text-lg font-semibold text-white truncate hover:text-blue-400 transition-colors">
                             {portfolio.title}
                           </h3>
@@ -209,13 +209,13 @@ export default function PortfoliosPage() {
                     {/* Actions */}
                     <div className="flex items-center gap-2 pt-4 border-t border-white/10">
                       <Link
-                        href={`/portfolios/${portfolio.id}`}
+                        href={`/portfolios/${portfolio.slug}`}
                         className="flex-1 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium text-center transition-colors"
                       >
                         View
                       </Link>
                       <Link
-                        href={`/portfolios/${portfolio.id}/edit`}
+                        href={`/portfolios/${portfolio.slug}/edit`}
                         className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium transition-colors"
                       >
                         Edit
