@@ -115,7 +115,7 @@ export default function NewPortfolioPage() {
       };
 
       const data = await createPortfolio(portfolioData, token);
-      router.push(`/portfolios/${data.portfolio.id}`);
+      router.push(`/portfolios/${data.portfolio.slug}`);
     } catch (err) {
       console.error('Error creating portfolio:', err);
       setError(err.message || 'Failed to create portfolio');
