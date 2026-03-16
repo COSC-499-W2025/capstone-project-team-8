@@ -17,7 +17,7 @@ class TestLLM(TestCase):
         self.assertGreater(len(response), 0)
         print(f"\nLLM Response: {response}")
 
-    def test_code_analysis(self, mock_get_provider):
+    def test_code_analysis(self):
         """Test LLM code analysis with default system message"""
         
         code = "def add(a, b): return a + b"
@@ -29,7 +29,7 @@ class TestLLM(TestCase):
         self.assertIsInstance(response, str)
         print(f"\nCode Analysis: {response[:200]}...")
 
-    def test_resume_bullet_generation(self, mock_get_provider):
+    def test_resume_bullet_generation(self):
         """Test generating resume bullet points from code"""
         
         code_example = """
