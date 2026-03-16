@@ -77,9 +77,11 @@ urlpatterns = [
     # Portfolio endpoints
     path("portfolio/", PortfolioListView.as_view(), name="portfolio-list"),
     path("portfolio/generate/", PortfolioGenerateView.as_view(), name="portfolio-generate"),
-    path("portfolio/<int:pk>/", PortfolioDetailView.as_view(), name="portfolio-detail"),
+    path("portfolio/<slug:slug>/", PortfolioDetailView.as_view(), name="portfolio-detail"),
+    path("portfolio/id/<int:pk>/", PortfolioDetailView.as_view(), name="portfolio-detail-by-id"),
     path("portfolio/<int:pk>/edit/", PortfolioEditView.as_view(), name="portfolio-edit"),
-    path("portfolio/<int:pk>/stats/", PortfolioStatsView.as_view(), name="portfolio-stats"),
+    path("portfolio/<slug:slug>/stats/", PortfolioStatsView.as_view(), name="portfolio-stats"),
+    path("portfolio/id/<int:pk>/stats/", PortfolioStatsView.as_view(), name="portfolio-stats-by-id"),
     path("portfolio/<int:pk>/projects/add/", PortfolioAddProjectView.as_view(), name="portfolio-add-project"),
     path("portfolio/<int:pk>/projects/<int:project_id>/", PortfolioRemoveProjectView.as_view(), name="portfolio-remove-project"),
     path("portfolio/<int:pk>/projects/reorder/", PortfolioReorderProjectsView.as_view(), name="portfolio-reorder-projects"),
