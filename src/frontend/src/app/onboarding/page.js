@@ -38,6 +38,18 @@ export default function OnboardingPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const isValidLinkedInUrl = (value) => {
+    if (!value) return true;
+    const normalized = value.trim().toLowerCase();
+    return (
+      normalized.startsWith('https://www.linkedin.com/in/') ||
+      normalized.startsWith('linkedin.com/in/')
+    );
+  };
+
+  const linkedinUrlInvalid =
+    form.linkedin_url.trim() !== '' && !isValidLinkedInUrl(form.linkedin_url);
+
   const handleSkip = () => {
     router.push('/dashboard');
   };
@@ -57,6 +69,13 @@ export default function OnboardingPage() {
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
+
+    if (!isValidLinkedInUrl(form.linkedin_url)) {
+      setError('Must be a valid LinkedIn URL');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Filter out empty strings
       const profileData = {};
@@ -88,7 +107,14 @@ export default function OnboardingPage() {
     }
 
     if (step === 2) {
-      return <OnlinePresenceStep form={form} update={update} inputStyle={inputStyle} />;
+      return (
+        <OnlinePresenceStep
+          form={form}
+          update={update}
+          inputStyle={inputStyle}
+          linkedinUrlInvalid={linkedinUrlInvalid}
+        />
+      );
     }
 
     return <EducationStep form={form} update={update} inputStyle={inputStyle} />;
