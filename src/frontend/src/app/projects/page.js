@@ -370,7 +370,7 @@ export default function ProjectsPage() {
                     )}
                     {/* Grade Badge */}
                     {getEvalForProject(project.id) && (
-                      <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold border ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
+                      <div className={`absolute top-10 right-2 px-2 py-1 rounded text-xs font-bold border ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
                         {getGrade(getEvalForProject(project.id).overall_score)} · {getEvalForProject(project.id).overall_score.toFixed(0)}%
                       </div>
                     )}
