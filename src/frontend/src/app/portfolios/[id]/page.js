@@ -381,7 +381,7 @@ export default function PortfolioDetailPage() {
               )}
 
               {/* ---- ACTIVITY HEATMAP SECTION ---- */}
-              <PortfolioActivityHeatmap portfolioId={portfolioId} token={token} />
+              <PortfolioActivityHeatmap portfolioId={portfolio.id} token={token} />
 
               {/* ---- PROJECTS / EXPERIENCE SECTION ---- */}
               <div className="bg-[var(--card-bg)] rounded-lg overflow-hidden border border-white/5">
