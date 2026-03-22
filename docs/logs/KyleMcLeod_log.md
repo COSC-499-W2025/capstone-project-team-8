@@ -386,3 +386,21 @@ Next week:
 Reflection:
 Our system is ready for peer testing. This peer testing should go much smoother than the last one since our frontend is fully connected to our backend. The troubles we had with the inital peer testing was that our system was setup with API calls from the start, so users had to call each individual API through CURL or our API docs which was very inconvenient. Now, we have a full user interface which they can work with.
 
+## Week 11 & 12 Mar 16-29
+(TODO IMAGE)
+
+This week:
+- fix portfolio dropdown style PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/348
+- fix naming since users got confused with "update" button PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/349
+- toast transparency  PR: fixhttps://github.com/COSC-499-W2025/capstone-project-team-8/pull/350
+- review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/346
+- review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/343
+
+What went well:
+
+What went wrong:
+
+Next week:
+
+Reflection:
+
