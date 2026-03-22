@@ -393,7 +393,7 @@ Our system is ready for peer testing. This peer testing should go much smoother 
 This week:
 - fix portfolio dropdown style PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/348
 - fix naming since users got confused with "update" button PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/349
-- toast transparency  PR: fixhttps://github.com/COSC-499-W2025/capstone-project-team-8/pull/350
+- fix toast transparency  PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/350
 - review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/346
 - review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/343
 
