@@ -7,6 +7,7 @@ AI-related tests skip (not fail) when LLM service is unavailable.
 import os
 import sys
 import requests
+import re
 
 # Add the backend directory to the Python path if not already there
 backend_path = os.path.join(os.path.dirname(__file__), '..', 'src', 'backend')
@@ -138,7 +139,7 @@ class PortfolioEndpointsTests(TestCase):
         self.assertEqual(len(portfolio["projects"]), 2)
     
     def test_generate_portfolio_auto_slug(self):
-        """Portfolio slug is auto-generated from title if not provided."""
+        """Portfolio slug is auto-generated as an opaque pseudorandom token."""
         self.client.force_authenticate(user=self.user1)
         url = reverse("portfolio-generate")
         
@@ -149,10 +150,11 @@ class PortfolioEndpointsTests(TestCase):
         
         self.assertEqual(resp.status_code, 201)
         portfolio = resp.json()["portfolio"]
-        self.assertEqual(portfolio["slug"], "my-awesome-portfolio")
+        self.assertRegex(portfolio["slug"], r"^pf-[a-z0-9]{10}$")
+        self.assertNotEqual(portfolio["slug"], "my-awesome-portfolio")
     
     def test_generate_portfolio_unique_slug_enforcement(self):
-        """Duplicate slugs are auto-incremented."""
+        """Server-generated pseudorandom slugs are unique even for same title/input slug."""
         self.client.force_authenticate(user=self.user1)
         url = reverse("portfolio-generate")
         
@@ -163,15 +165,21 @@ class PortfolioEndpointsTests(TestCase):
             "generate_summary": False,
         }, format="json")
         self.assertEqual(resp1.status_code, 201)
+        slug1 = resp1.json()["portfolio"]["slug"]
+        self.assertTrue(re.match(r"^pf-[a-z0-9]{10}$", slug1))
         
-        # Create second with same slug - should get incremented
+        # Create second with same title + requested slug. Request slug should be ignored.
         resp2 = self.client.post(url, data={
-            "title": "Another Portfolio",
+            "title": "Test Portfolio",
             "slug": "test-slug",
             "generate_summary": False,
         }, format="json")
         self.assertEqual(resp2.status_code, 201)
-        self.assertEqual(resp2.json()["portfolio"]["slug"], "test-slug-1")
+        slug2 = resp2.json()["portfolio"]["slug"]
+        self.assertTrue(re.match(r"^pf-[a-z0-9]{10}$", slug2))
+        self.assertNotEqual(slug1, slug2)
+        self.assertNotEqual(slug1, "test-slug")
+        self.assertNotEqual(slug2, "test-slug")
     
     def test_generate_portfolio_invalid_project_ids(self):
         """Cannot add projects that don't belong to user."""
@@ -199,7 +207,7 @@ class PortfolioEndpointsTests(TestCase):
         )
         
         self.client.force_authenticate(user=self.user1)
-        url = reverse("portfolio-detail", args=[portfolio.id])
+        url = reverse("portfolio-detail", args=[portfolio.slug])
         resp = self.client.get(url)
         
         self.assertEqual(resp.status_code, 200)
@@ -215,7 +223,7 @@ class PortfolioEndpointsTests(TestCase):
         )
 
         self.client.force_authenticate(user=self.user2)
-        url = reverse("portfolio-detail", args=[portfolio.id])
+        url = reverse("portfolio-detail", args=[portfolio.slug])
         resp = self.client.get(url)
 
         self.assertEqual(resp.status_code, 403)
@@ -233,7 +241,7 @@ class PortfolioEndpointsTests(TestCase):
             is_public=False,
         )
 
-        url = reverse("portfolio-detail", args=[portfolio.id])
+        url = reverse("portfolio-detail", args=[portfolio.slug])
         resp = self.client.get(url)
 
         self.assertEqual(resp.status_code, 403)
@@ -251,11 +259,26 @@ class PortfolioEndpointsTests(TestCase):
         )
         
         # No authentication
-        url = reverse("portfolio-detail", args=[portfolio.id])
+        url = reverse("portfolio-detail", args=[portfolio.slug])
         resp = self.client.get(url)
         
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["title"], "Public Portfolio")
+
+    def test_legacy_id_detail_route_still_accessible(self):
+        """Legacy ID detail route still resolves for backward compatibility."""
+        portfolio = Portfolio.objects.create(
+            user=self.user1,
+            title="Legacy Route Portfolio",
+            slug="legacy-route-portfolio",
+            is_public=True,
+        )
+
+        url = reverse("portfolio-detail-by-id", args=[portfolio.id])
+        resp = self.client.get(url)
+
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()["slug"], "legacy-route-portfolio")
     
     # ==================== Portfolio Edit Tests ====================
     
@@ -297,6 +320,24 @@ class PortfolioEndpointsTests(TestCase):
         
         resp = self.client.post(url, data={"title": "Hacked"}, format="json")
         self.assertEqual(resp.status_code, 404)
+
+    def test_slug_is_immutable_after_creation(self):
+        """Slug cannot be changed through edit endpoint once created."""
+        portfolio = Portfolio.objects.create(
+            user=self.user1,
+            title="Immutable Slug Portfolio",
+            slug="immutable-slug",
+            is_public=False,
+        )
+
+        self.client.force_authenticate(user=self.user1)
+        url = reverse("portfolio-edit", args=[portfolio.id])
+
+        resp = self.client.post(url, data={"slug": "new-slug"}, format="json")
+        self.assertEqual(resp.status_code, 400)
+
+        portfolio.refresh_from_db()
+        self.assertEqual(portfolio.slug, "immutable-slug")
     
     # ==================== Portfolio Delete Tests ====================
     
@@ -309,7 +350,7 @@ class PortfolioEndpointsTests(TestCase):
         )
         
         self.client.force_authenticate(user=self.user1)
-        url = reverse("portfolio-detail", args=[portfolio.id])
+        url = reverse("portfolio-detail-by-id", args=[portfolio.id])
         
         resp = self.client.delete(url)
         self.assertEqual(resp.status_code, 200)
@@ -324,10 +365,25 @@ class PortfolioEndpointsTests(TestCase):
         )
         
         self.client.force_authenticate(user=self.user2)
-        url = reverse("portfolio-detail", args=[portfolio.id])
+        url = reverse("portfolio-detail-by-id", args=[portfolio.id])
         
         resp = self.client.delete(url)
         self.assertEqual(resp.status_code, 404)
+        self.assertTrue(Portfolio.objects.filter(id=portfolio.id).exists())
+
+    def test_delete_via_slug_route_not_allowed(self):
+        """Delete must use ID route; slug route returns method not allowed."""
+        portfolio = Portfolio.objects.create(
+            user=self.user1,
+            title="Delete Guard",
+            slug="delete-guard",
+        )
+
+        self.client.force_authenticate(user=self.user1)
+        url = reverse("portfolio-detail", args=[portfolio.slug])
+
+        resp = self.client.delete(url)
+        self.assertEqual(resp.status_code, 405)
         self.assertTrue(Portfolio.objects.filter(id=portfolio.id).exists())
     
     # ==================== Portfolio List Tests ====================
@@ -839,13 +895,13 @@ class PortfolioStatisticsTests(TestCase):
     
     def test_portfolio_stats_endpoint_exists(self):
         """Portfolio stats endpoint returns 200."""
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200)
     
     def test_portfolio_stats_empty_portfolio(self):
         """Empty portfolio returns zero stats."""
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         
         self.assertEqual(resp.status_code, 200)
@@ -863,7 +919,7 @@ class PortfolioStatisticsTests(TestCase):
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
         
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         
         self.assertEqual(resp.status_code, 200)
@@ -880,7 +936,7 @@ class PortfolioStatisticsTests(TestCase):
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
         
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         
         data = resp.json()
@@ -912,7 +968,7 @@ class PortfolioStatisticsTests(TestCase):
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
         
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         
         data = resp.json()
@@ -924,7 +980,7 @@ class PortfolioStatisticsTests(TestCase):
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
         
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         
         data = resp.json()
@@ -945,7 +1001,7 @@ class PortfolioStatisticsTests(TestCase):
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
         
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         
         data = resp.json()
@@ -961,7 +1017,7 @@ class PortfolioStatisticsTests(TestCase):
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
         
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         
         data = resp.json()
@@ -976,7 +1032,7 @@ class PortfolioStatisticsTests(TestCase):
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
         
         # First request calculates stats
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         self.client.get(url)
         
         # Refresh from DB and check cached values
@@ -989,7 +1045,7 @@ class PortfolioStatisticsTests(TestCase):
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
         
         # Initial stats
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         initial_projects = resp.json()["total_projects"]
         
@@ -1007,7 +1063,7 @@ class PortfolioStatisticsTests(TestCase):
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
         
         # Initial stats
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         self.assertEqual(resp.json()["total_projects"], 2)
         
@@ -1024,7 +1080,7 @@ class PortfolioStatisticsTests(TestCase):
     def test_stats_requires_auth(self):
         """Stats endpoint requires authentication."""
         self.client.logout()
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         self.assertIn(resp.status_code, (401, 403))
     
@@ -1035,7 +1091,7 @@ class PortfolioStatisticsTests(TestCase):
         )
         self.client.force_authenticate(user=other_user)
         
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 404)
     
@@ -1044,7 +1100,7 @@ class PortfolioStatisticsTests(TestCase):
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project1, order=0)
         PortfolioProject.objects.create(portfolio=self.portfolio, project=self.project2, order=1)
         
-        url = reverse("portfolio-stats", args=[self.portfolio.id])
+        url = reverse("portfolio-stats", args=[self.portfolio.slug])
         resp = self.client.get(url)
         
         languages = resp.json()["languages"]

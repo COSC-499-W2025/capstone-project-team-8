@@ -1,5 +1,5 @@
 
-[Jump to latest week](#t2-week-9-march-2---march-8)
+[Jump to latest week](#t2-week-10-march-9---march-15)
 
 September 15-21
 
@@ -406,5 +406,30 @@ Some issues with merge conflicts and local DB came up but were easy to deal with
 - Look into improving the auto-generate scoring 
 **Issues/blockers:**
 - Struggled with figuring out a good way for auto generate feature to select resume points, skills and experiences worthy of being on resume
+
+
+## T2 Week 10 March 9 - March 15
+![alt text](data/matin/image-2.png)
+
+- Implemented improve resume auto generate
+
+https://github.com/COSC-499-W2025/capstone-project-team-8/pull/341
+
+
+- https://github.com/COSC-499-W2025/capstone-project-team-8/pull/338
+- https://github.com/COSC-499-W2025/capstone-project-team-8/pull/335
+
+**What went well:**
+- PR reviews were straightforward and helped catch integration details early.
+- Heatmap feature implementation aligned with Milestone 3 requirements.
+
+**Connection to previous week:**
+- Builds on Week 9 resume/frontend work by improving portfolio visualization and usability for showcasing project activity.
+
+**Plan/goals for next week:**
+- Address any PR feedback on peer evaluationswr
+
+**Issues/blockers:**
+- Some merge conflicts were hard to solve
 
 

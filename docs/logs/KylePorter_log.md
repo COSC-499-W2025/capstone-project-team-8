@@ -63,8 +63,7 @@ Finished 2 PRs.
 ### PRs Reviewed
 | Pull Request | Issues addressed |
 |---|---|
-| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/258 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/259 |
-| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/265 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/262 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/265 |  |
 
 ### What went well
 Was able to finish a PR.
@@ -75,5 +74,21 @@ Started working on PR late.
 ### What's next
 Start working on peer reviews and continue on creating more API routes.
 
+## Week 10 T2
+### March 9th - March 13th:
+<img width="1603" height="933" alt="image" src="https://github.com/user-attachments/assets/f3346999-343f-4e97-b7f2-621af5b3b9cf" />
+
+
+### PRs Completed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/340 |  |
+
+
+### What went well
+Got an important refactor done.
+
+### What's next
+Peer testing and cleaning up the user interface and implementing final features.
 ### Reflection:
 - Need to start working on features and reviews earlier in week.

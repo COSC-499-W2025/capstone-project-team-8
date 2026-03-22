@@ -14,7 +14,6 @@ from .views.project_views import (
 )
 from .views.skill_views import SkillsView
 from .views.user_views import UserMeView, PublicUserView, PasswordChangeView, ProfileImageUploadView
-from .views.resume_views import ResumeTemplatesView, ResumePreviewView, GenerateLatexResumeView
 from .views.portfolio_views import (
     PortfolioListView,
     PortfolioGenerateView,
@@ -25,11 +24,13 @@ from .views.portfolio_views import (
     PortfolioReorderProjectsView,
     PortfolioStatsView,
     PortfolioGenerateResumeView,
+    PortfolioActivityHeatmapView,
 )
 from .views.resume_views import (
     ResumeTemplatesView, 
     ResumePreviewView, 
     GenerateLatexResumeView,
+    ResumeListView,
     ResumeGenerateView,
     ResumeDetailView,
     ResumeEditView,
@@ -77,15 +78,19 @@ urlpatterns = [
     # Portfolio endpoints
     path("portfolio/", PortfolioListView.as_view(), name="portfolio-list"),
     path("portfolio/generate/", PortfolioGenerateView.as_view(), name="portfolio-generate"),
-    path("portfolio/<int:pk>/", PortfolioDetailView.as_view(), name="portfolio-detail"),
+    path("portfolio/<slug:slug>/", PortfolioDetailView.as_view(), name="portfolio-detail"),
+    path("portfolio/id/<int:pk>/", PortfolioDetailView.as_view(), name="portfolio-detail-by-id"),
     path("portfolio/<int:pk>/edit/", PortfolioEditView.as_view(), name="portfolio-edit"),
-    path("portfolio/<int:pk>/stats/", PortfolioStatsView.as_view(), name="portfolio-stats"),
+    path("portfolio/<slug:slug>/stats/", PortfolioStatsView.as_view(), name="portfolio-stats"),
+    path("portfolio/id/<int:pk>/stats/", PortfolioStatsView.as_view(), name="portfolio-stats-by-id"),
+    path("portfolio/<int:pk>/activity-heatmap/", PortfolioActivityHeatmapView.as_view(), name="portfolio-activity-heatmap"),
     path("portfolio/<int:pk>/projects/add/", PortfolioAddProjectView.as_view(), name="portfolio-add-project"),
     path("portfolio/<int:pk>/projects/<int:project_id>/", PortfolioRemoveProjectView.as_view(), name="portfolio-remove-project"),
     path("portfolio/<int:pk>/projects/reorder/", PortfolioReorderProjectsView.as_view(), name="portfolio-reorder-projects"),
     path("portfolio/<int:pk>/generate-resume/", PortfolioGenerateResumeView.as_view(), name="portfolio-generate-resume"),
 
     # Resume endpoints
+    path("resume/", ResumeListView.as_view(), name="resume-list"),
     path("resume/templates/", ResumeTemplatesView.as_view(), name="resume-templates"),
     path("resume/preview/", ResumePreviewView.as_view(), name="resume-preview"),
     path("resume/generate/latex/", GenerateLatexResumeView.as_view(), name="resume-generate-latex"),

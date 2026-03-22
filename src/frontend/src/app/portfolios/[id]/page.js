@@ -5,8 +5,9 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
+import PortfolioActivityHeatmap from '@/components/PortfolioActivityHeatmap';
 import config from '@/config';
-import { getPortfolio, deletePortfolio, removeProjectFromPortfolio, updatePortfolio, generateResumeFromPortfolio } from '@/utils/portfolioApi';
+import { getPortfolio, getPortfolioById, deletePortfolio, removeProjectFromPortfolio, updatePortfolio, generateResumeFromPortfolio, getPortfolioStats } from '@/utils/portfolioApi';
 
 export default function PortfolioDetailPage() {
   const router = useRouter();
@@ -20,13 +21,27 @@ export default function PortfolioDetailPage() {
   const [removingProjectId, setRemovingProjectId] = useState(null);
   const [regeneratingSummary, setRegeneratingSummary] = useState(false);
   const [generatingResume, setGeneratingResume] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
 
-  const portfolioId = params.id;
+  const portfolioSlug = params.id;
 
   useEffect(() => {
     const fetchPortfolio = async () => {
       try {
-        const data = await getPortfolio(portfolioId, token);
+        let data;
+        try {
+          data = await getPortfolio(portfolioSlug, token);
+        } catch (slugError) {
+          if (/^\d+$/.test(portfolioSlug)) {
+            data = await getPortfolioById(Number(portfolioSlug), token);
+            if (data?.slug) {
+              router.replace(`/portfolios/${data.slug}`);
+            }
+          } else {
+            throw slugError;
+          }
+        }
+
         setPortfolio(data);
 
         // Fetch owner public profile
@@ -42,12 +57,8 @@ export default function PortfolioDetailPage() {
 
         // Fetch portfolio stats
         try {
-          const statsHeaders = {};
-          if (token) statsHeaders['Authorization'] = `Bearer ${token}`;
-          const statsRes = await fetch(`${config.API_URL}/api/portfolio/${portfolioId}/stats/`, { headers: statsHeaders });
-          if (statsRes.ok) {
-            setStats(await statsRes.json());
-          }
+          const statsData = await getPortfolioStats(portfolioSlug, token);
+          setStats(statsData);
         } catch (e) { /* ignore */ }
       } catch (err) {
         console.error('Error fetching portfolio:', err);
@@ -58,12 +69,12 @@ export default function PortfolioDetailPage() {
     };
 
     fetchPortfolio();
-  }, [portfolioId, token]);
+  }, [portfolioSlug, token]);
 
   const handleDelete = async () => {
     if (!confirm(`Are you sure you want to delete "${portfolio.title}"? This action cannot be undone.`)) return;
     try {
-      await deletePortfolio(portfolioId, token);
+      await deletePortfolio(portfolio.id, token);
       router.push('/portfolios');
     } catch (err) {
       setError(err.message || 'Failed to delete portfolio');
@@ -75,7 +86,7 @@ export default function PortfolioDetailPage() {
     setRemovingProjectId(projectId);
     setError('');
     try {
-      await removeProjectFromPortfolio(portfolioId, projectId, token);
+      await removeProjectFromPortfolio(portfolio.id, projectId, token);
       setPortfolio(prev => ({
         ...prev,
         projects: prev.projects.filter(p => p.project.id !== projectId),
@@ -92,7 +103,7 @@ export default function PortfolioDetailPage() {
     setRegeneratingSummary(true);
     setError('');
     try {
-      const data = await updatePortfolio(portfolioId, { regenerate_summary: true }, token);
+      const data = await updatePortfolio(portfolio.id, { regenerate_summary: true }, token);
       setPortfolio(data.portfolio);
     } catch (err) {
       setError(err.message || 'Failed to regenerate summary');
@@ -106,13 +117,38 @@ export default function PortfolioDetailPage() {
     setError('');
 
     try {
-      const data = await generateResumeFromPortfolio(portfolioId, token);
+      const data = await generateResumeFromPortfolio(portfolio.id, token);
       // Redirect to resume page with the new resume ID
       router.push(`/resume?resume_id=${data.resume_id}`);
     } catch (err) {
       console.error('Error generating resume:', err);
       setError(err.message || 'Failed to generate resume');
       setGeneratingResume(false);
+    }
+  };
+
+  const handleCopyShareLink = async () => {
+    if (!portfolio?.slug) return;
+
+    const shareUrl = `${window.location.origin}/portfolios/${portfolio.slug}`;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch (err) {
+      setError('Failed to copy share link');
     }
   };
 
@@ -198,7 +234,7 @@ export default function PortfolioDetailPage() {
             <div className="h-36 sm:h-48 relative" style={{ background: 'linear-gradient(135deg, #1a3a5c 0%, #0f2027 40%, #203a43 70%, #2c5364 100%)' }}>
               {isOwner && (
                 <div className="absolute top-3 right-3 flex items-center gap-2">
-                  <Link href={`/portfolios/${portfolioId}/edit`} className="px-3 py-1.5 rounded bg-black/40 hover:bg-black/60 text-white text-xs font-medium transition-colors backdrop-blur-sm">Edit Portfolio</Link>
+                  <Link href={`/portfolios/${portfolio.slug}/edit`} className="px-3 py-1.5 rounded bg-black/40 hover:bg-black/60 text-white text-xs font-medium transition-colors backdrop-blur-sm">Edit Portfolio</Link>
                 </div>
               )}
             </div>
@@ -220,6 +256,9 @@ export default function PortfolioDetailPage() {
               <div className="absolute top-3 right-6 flex gap-2">
                 {isOwner && (
                   <>
+                    <button onClick={handleCopyShareLink} className="px-4 py-1.5 rounded-full border border-emerald-400/50 text-emerald-300 text-xs font-bold hover:bg-emerald-400/10 transition-colors">
+                      {shareCopied ? 'Copied!' : 'Copy Share Link'}
+                    </button>
                     <Link href="/profile" className="px-4 py-1.5 rounded-full border border-blue-400 text-blue-400 text-xs font-bold hover:bg-blue-400/10 transition-colors">Edit Profile</Link>
                     <button onClick={handleDelete} className="px-4 py-1.5 rounded-full border border-red-400/50 text-red-400 text-xs font-bold hover:bg-red-400/10 transition-colors">Delete</button>
                   </>
@@ -341,6 +380,9 @@ export default function PortfolioDetailPage() {
                 </div>
               )}
 
+              {/* ---- ACTIVITY HEATMAP SECTION ---- */}
+              <PortfolioActivityHeatmap portfolioId={portfolio.id} token={token} />
+
               {/* ---- PROJECTS / EXPERIENCE SECTION ---- */}
               <div className="bg-[var(--card-bg)] rounded-lg overflow-hidden border border-white/5">
                 <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between">
@@ -349,7 +391,7 @@ export default function PortfolioDetailPage() {
                     <span className="ml-2 text-white/30">{portfolio.project_count || portfolio.projects?.length || 0}</span>
                   </span>
                   {isOwner && (
-                    <Link href={`/portfolios/${portfolioId}/edit`} className="flex items-center gap-1 text-[11px] text-white/40 hover:text-white/70 transition-colors">
+                    <Link href={`/portfolios/${portfolio.slug}/edit`} className="flex items-center gap-1 text-[11px] text-white/40 hover:text-white/70 transition-colors">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                       Add
                     </Link>
@@ -418,7 +460,7 @@ export default function PortfolioDetailPage() {
                     </div>
                     <p className="text-white/50 text-sm mb-3">No projects yet</p>
                     {isOwner && (
-                      <Link href={`/portfolios/${portfolioId}/edit`} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-colors bg-blue-500 text-white hover:bg-blue-600">
+                      <Link href={`/portfolios/${portfolio.slug}/edit`} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-colors bg-blue-500 text-white hover:bg-blue-600">
                         Add Your First Project
                       </Link>
                     )}

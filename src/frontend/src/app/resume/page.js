@@ -6,9 +6,15 @@ import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import { getCurrentUser } from '@/utils/api';
-import { getProjects, getSkills, getResume } from '@/utils/resumeApi';
-import { generateRenderCVPdf, downloadRenderCVYaml } from '@/utils/resumeApi';
-import { saveDraft, getDraft, getCurrentDraft } from '@/utils/draftStorage';
+import {
+  getProjects,
+  getSkills,
+  generateRenderCVPdf,
+  downloadRenderCVYaml,
+  generateResume,
+  updateResume,
+  getResume,
+} from '@/utils/resumeApi';
 import { getProjectDateRange } from '@/utils/resumeCleanup';
 import { autoGenerateResume } from '@/utils/autoGenerateResume';
 import ProjectsPanel from '@/components/resume/ProjectsPanel';
@@ -312,15 +318,39 @@ function ResumePreview({ resumeData }) {
 
 // ─── Page ────────────────────────────────────────────────────────────────────
 
-export default function ResumeNewPage() {
+function mergeResumeData(baseResume, savedResume) {
+  const savedContent = savedResume?.content || {};
+  const savedSections = savedContent.sections || {};
+
+  return {
+    ...baseResume,
+    ...savedContent,
+    sections: {
+      ...baseResume.sections,
+      ...savedSections,
+      education: savedSections.education || baseResume.sections.education,
+      experience: savedSections.experience || baseResume.sections.experience,
+      projects: savedSections.projects || baseResume.sections.projects,
+      skills: savedSections.skills || baseResume.sections.skills,
+      certifications: savedSections.certifications || baseResume.sections.certifications,
+      summary: savedSections.summary ?? baseResume.sections.summary,
+    },
+  };
+}
+
+export default function ResumeNewPage({ resumeId = null }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, token, refreshAccessToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [autoGenerating, setAutoGenerating] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [theme, setTheme] = useState('classic');
+  const [currentResumeId, setCurrentResumeId] = useState(
+    resumeId ? Number.parseInt(resumeId, 10) : null
+  );
 
   // Track if we've done initial load (to avoid marking first load as unsaved changes)
   const initialLoadRef = useRef(true);
@@ -512,55 +542,42 @@ export default function ResumeNewPage() {
           },
         };
 
-        // Check if we have a resume_id to load from portfolio generation
-        const resumeId = searchParams.get('resume_id');
-        
         if (resumeId) {
-          try {
-            const savedResume = await getResume(token, resumeId);
-            const resumeContent = savedResume.content || {};
-            
-            // Always load the generated resume directly (overwrite any draft)
-            setResumeData(resumeContent);
-            setHistory([resumeContent]);
-            setHistoryIndex(0);
-            setMessage({ type: 'success', text: `Resume loaded from portfolio!` });
-          } catch (err) {
-            console.error('Error loading resume:', err);
-            setMessage({ type: 'error', text: 'Failed to load generated resume. Starting with a new one.' });
-            // Fall back to draft or initial
-            const draft = getCurrentDraft();
-            if (draft && draft.content && draft.content.sections) {
-              setResumeData(draft.content);
-              setHistory([draft.content]);
-              setHistoryIndex(0);
-            } else {
-              setResumeData(initial);
-              setHistory([initial]);
-              setHistoryIndex(0);
-            }
-          }
+          const savedResume = await getResume(token, resumeId);
+          const mergedResume = mergeResumeData(initial, savedResume);
+          const initialHistory = [mergedResume];
+          setResumeData(mergedResume);
+          setHistory(initialHistory);
+          setHistoryIndex(0);
+          setCurrentResumeId(savedResume.id);
+          setTheme(savedResume.theme || 'classic');
+          return;
+        }
+
+        const draftKey = 'resumeBuilderCurrentDraft';
+        const draftsKey = 'resumeBuilderDrafts';
+        const currentDraftId = typeof window !== 'undefined'
+          ? window.localStorage.getItem(draftKey)
+          : null;
+        const allDrafts = typeof window !== 'undefined'
+          ? JSON.parse(window.localStorage.getItem(draftsKey) || '{}')
+          : {};
+        const draft = currentDraftId ? allDrafts[currentDraftId]?.content : null;
+        if (draft && draft.sections) {
+          const draftSkillTitles = new Set((draft.sections.skills || []).map((s) => s.title));
+          const newSkills = allSkills.filter((s) => !draftSkillTitles.has(s.title));
+          const mergedDraft = newSkills.length
+            ? { ...draft, sections: { ...draft.sections, skills: [...draft.sections.skills, ...newSkills] } }
+            : draft;
+          setResumeData(mergedDraft);
+          const initialHistory = [mergedDraft];
+          setHistory(initialHistory);
+          setHistoryIndex(0);
         } else {
-          // Restore draft if available (original behavior)
-          const draft = getCurrentDraft();
-          if (draft && draft.content && draft.content.sections) {
-            // Merge any new skills the user doesn't already have saved in their draft
-            const draftContent = draft.content;
-            const draftSkillTitles = new Set((draftContent.sections.skills || []).map((s) => s.title));
-            const newSkills = allSkills.filter((s) => !draftSkillTitles.has(s.title));
-            const mergedDraft = newSkills.length
-              ? { ...draftContent, sections: { ...draftContent.sections, skills: [...draftContent.sections.skills, ...newSkills] } }
-              : draftContent;
-            setResumeData(mergedDraft);
-            const initialHistory = [mergedDraft];
-            setHistory(initialHistory);
-            setHistoryIndex(0);
-          } else {
-            setResumeData(initial);
-            const initialHistory = [initial];
-            setHistory(initialHistory);
-            setHistoryIndex(0);
-          }
+          setResumeData(initial);
+          const initialHistory = [initial];
+          setHistory(initialHistory);
+          setHistoryIndex(0);
         }
       } catch (err) {
         console.error('Init error:', err);
@@ -575,14 +592,23 @@ export default function ResumeNewPage() {
     };
 
     init();
-  }, [isAuthenticated, token, router, searchParams]);
+  }, [isAuthenticated, token, router, resumeId]);
 
   // Auto-save draft
   useEffect(() => {
-    if (!loading && resumeData.name) {
-      saveDraft('current', resumeData);
+    if (!loading && !currentResumeId && resumeData.name && typeof window !== 'undefined') {
+      const drafts = JSON.parse(window.localStorage.getItem('resumeBuilderDrafts') || '{}');
+      const draftId = window.localStorage.getItem('resumeBuilderCurrentDraft') || Date.now().toString();
+      drafts[draftId] = {
+        id: Number.parseInt(draftId, 10),
+        name: 'current',
+        content: resumeData,
+        savedAt: new Date().toISOString(),
+      };
+      window.localStorage.setItem('resumeBuilderDrafts', JSON.stringify(drafts));
+      window.localStorage.setItem('resumeBuilderCurrentDraft', draftId);
     }
-  }, [resumeData, loading]);
+  }, [resumeData, loading, currentResumeId]);
 
   // ── section helpers ──────────────────────────────────────────────────────
 
@@ -951,6 +977,52 @@ export default function ResumeNewPage() {
     }
   };
 
+  const handleSaveResume = async () => {
+    setSaving(true);
+    setMessage({ type: '', text: '' });
+
+    const resumeName = (resumeData.name || '').trim() || 'Untitled Resume';
+
+    try {
+      let activeToken = token;
+      let savedResume;
+
+      try {
+        savedResume = currentResumeId
+          ? await updateResume(activeToken, currentResumeId, resumeName, resumeData, theme)
+          : await generateResume(activeToken, resumeName, resumeData, theme);
+      } catch (err) {
+        if (err.message?.includes('401')) {
+          activeToken = await refreshAccessToken();
+          if (!activeToken) throw new Error('Session expired. Please log in again.');
+          savedResume = currentResumeId
+            ? await updateResume(activeToken, currentResumeId, resumeName, resumeData, theme)
+            : await generateResume(activeToken, resumeName, resumeData, theme);
+        } else {
+          throw err;
+        }
+      }
+
+      setCurrentResumeId(savedResume.id);
+      if (typeof window !== 'undefined') {
+        window.localStorage.removeItem('resumeBuilderCurrentDraft');
+      }
+      setMessage({
+        type: 'success',
+        text: currentResumeId ? 'Resume updated.' : 'Resume saved.',
+      });
+
+      if (!currentResumeId) {
+        router.replace(`/resume/${savedResume.id}`);
+      }
+    } catch (err) {
+      console.error('Save resume error:', err);
+      setMessage({ type: 'error', text: err.message || 'Failed to save resume.' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // ── render ───────────────────────────────────────────────────────────────
 
   if (loading) {
@@ -1070,6 +1142,20 @@ export default function ResumeNewPage() {
                 title="Download RenderCV YAML"
               >
                 ↓ YAML
+              </button>
+              <button
+                className={`${styles.saveBtn} ${saving ? styles.saving : ''}`}
+                onClick={handleSaveResume}
+                disabled={saving}
+                type="button"
+              >
+                {saving ? (
+                  <>
+                    <span className={styles.btnSpinner} /> Saving…
+                  </>
+                ) : (
+                  currentResumeId ? 'Save Changes' : 'Save Resume'
+                )}
               </button>
               <button
                 className={`${styles.generateBtn} ${generating ? styles.generating : ''}`}

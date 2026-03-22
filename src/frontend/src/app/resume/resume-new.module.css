@@ -173,6 +173,31 @@
   cursor: not-allowed;
 }
 
+.saveBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: #15803d;
+}
+
+.saveBtn:disabled,
+.saving {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
 /* ── Auto-Generate button ─────────────────────────────────────────────────── */
 
 .autoGenerateBtn {

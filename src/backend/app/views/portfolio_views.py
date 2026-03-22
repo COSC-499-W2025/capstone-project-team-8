@@ -4,9 +4,9 @@ Portfolio API views for creating, managing, and showcasing user portfolios.
 Endpoints:
 - GET    /portfolio/           - List user's portfolios
 - POST   /portfolio/generate   - Create new portfolio with optional AI summary
-- GET    /portfolio/{id}/      - Retrieve portfolio details
+- GET    /portfolio/{slug}/    - Retrieve portfolio details
 - POST   /portfolio/{id}/edit  - Update portfolio and optionally regenerate summary
-- DELETE /portfolio/{id}/      - Delete portfolio
+- DELETE /portfolio/id/{id}/   - Delete portfolio
 
 Project curation:
 - POST   /portfolio/{id}/projects/add       - Add project to portfolio
@@ -16,15 +16,21 @@ Project curation:
 
 from django.http import JsonResponse
 from django.utils import timezone
-from django.utils.text import slugify
 from django.db import transaction
+from django.db.models import Count, F, Q
+from django.db.models.functions import TruncDate, Cast
+from django.db.models import DateTimeField
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from datetime import datetime, timedelta
+from collections import defaultdict
 import logging
+import secrets
+import string
 
-from app.models import Portfolio, PortfolioProject, Project, Resume
+from app.models import Portfolio, PortfolioProject, Project, Resume, ProjectFile, ProjectContribution
 from app.serializers import (
     PortfolioSerializer,
     PortfolioGenerateSerializer,
@@ -34,6 +40,27 @@ from app.serializers import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def generate_random_portfolio_slug(length=10):
+    """Generate an opaque, URL-safe slug for public sharing."""
+    alphabet = string.ascii_lowercase + string.digits
+    token = ''.join(secrets.choice(alphabet) for _ in range(length))
+    return f"pf-{token}"
+
+
+def generate_unique_portfolio_slug(max_attempts=10):
+    """Generate a globally unique slug with retry protection against rare collisions."""
+    for _ in range(max_attempts):
+        slug = generate_random_portfolio_slug()
+        if not Portfolio.objects.filter(slug=slug).exists():
+            return slug
+
+    # Fallback: longer token if collisions keep occurring.
+    while True:
+        slug = generate_random_portfolio_slug(length=14)
+        if not Portfolio.objects.filter(slug=slug).exists():
+            return slug
 
 
 def generate_portfolio_summary(portfolio, projects):
@@ -132,15 +159,8 @@ class PortfolioGenerateView(APIView):
         
         data = serializer.validated_data
         
-        # Auto-generate slug if not provided
-        slug = data.get('slug') or slugify(data['title'])
-        
-        # Ensure unique slug
-        base_slug = slug
-        counter = 1
-        while Portfolio.objects.filter(slug=slug).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
+        # Always generate pseudorandom share slug (input slug is ignored for immutability/privacy).
+        slug = generate_unique_portfolio_slug()
         
         with transaction.atomic():
             # Create portfolio
@@ -187,18 +207,22 @@ class PortfolioGenerateView(APIView):
 class PortfolioDetailView(APIView):
     """
     Retrieve portfolio details.
-    GET /portfolio/{id}/
+    GET /portfolio/{slug}/
     Public portfolios can be accessed without authentication.
     """
     permission_classes = [AllowAny]
     serializer_class = PortfolioSerializer
 
-    def get_portfolio(self, pk, user=None):
+    def get_portfolio(self, *, slug=None, pk=None, user=None):
         """Get portfolio, respecting visibility rules.
         Returns (portfolio, status) where status is 'ok', 'private', or 'not_found'.
         """
+        if slug is None and pk is None:
+            return None, 'not_found'
+
         try:
-            portfolio = Portfolio.objects.prefetch_related('portfolio_projects__project').get(pk=pk)
+            query = {'slug': slug} if slug is not None else {'pk': pk}
+            portfolio = Portfolio.objects.prefetch_related('portfolio_projects__project').get(**query)
             # Allow access if public or if user is owner
             if portfolio.is_public or (user and user.is_authenticated and portfolio.user == user):
                 return portfolio, 'ok'
@@ -206,8 +230,8 @@ class PortfolioDetailView(APIView):
         except Portfolio.DoesNotExist:
             return None, 'not_found'
 
-    def get(self, request, pk):
-        portfolio, status = self.get_portfolio(pk, request.user)
+    def get(self, request, slug=None, pk=None):
+        portfolio, status = self.get_portfolio(slug=slug, pk=pk, user=request.user)
         if status == 'not_found':
             return JsonResponse({"error": "Portfolio not found"}, status=404)
         if status == 'private':
@@ -221,7 +245,10 @@ class PortfolioDetailView(APIView):
         serializer = PortfolioSerializer(portfolio, context={'request': request})
         return JsonResponse(serializer.data)
 
-    def delete(self, request, pk):
+    def delete(self, request, slug=None, pk=None):
+        if pk is None:
+            return JsonResponse({"error": "Delete is only available on ID routes"}, status=405)
+
         if not request.user.is_authenticated:
             return JsonResponse({"error": "Authentication required"}, status=401)
         
@@ -249,6 +276,9 @@ class PortfolioEditView(APIView):
             portfolio = Portfolio.objects.prefetch_related('portfolio_projects__project').get(pk=pk, user=request.user)
         except Portfolio.DoesNotExist:
             return JsonResponse({"error": "Portfolio not found"}, status=404)
+
+        if 'slug' in request.data:
+            return JsonResponse({"error": "Portfolio slug is immutable after creation"}, status=400)
         
         serializer = PortfolioEditSerializer(data=request.data)
         if not serializer.is_valid():
@@ -427,7 +457,7 @@ class PortfolioReorderProjectsView(APIView):
 class PortfolioStatsView(APIView):
     """
     Get portfolio statistics including lines of code per language.
-    GET /portfolio/{id}/stats/
+    GET /portfolio/{slug}/stats/
     
     Statistics are cached and updated when projects are added/removed.
     On first access (lazy loading), stats are calculated and cached.
@@ -435,9 +465,13 @@ class PortfolioStatsView(APIView):
     """
     permission_classes = [AllowAny]
 
-    def get(self, request, pk):
+    def get(self, request, slug=None, pk=None):
+        if slug is None and pk is None:
+            return JsonResponse({"error": "Portfolio not found"}, status=404)
+
         try:
-            portfolio = Portfolio.objects.get(pk=pk)
+            query = {'slug': slug} if slug is not None else {'pk': pk}
+            portfolio = Portfolio.objects.get(**query)
         except Portfolio.DoesNotExist:
             return JsonResponse({"error": "Portfolio not found"}, status=404)
         
@@ -623,3 +657,150 @@ class PortfolioGenerateResumeView(APIView):
             'portfolio_id': portfolio.id,
             'portfolio_title': portfolio.title,
         }, status=201)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PortfolioActivityHeatmapView(APIView):
+    """
+    Get activity heatmap data for all projects in a portfolio.
+    GET /portfolio/{id}/activity-heatmap/
+    
+    Returns daily activity counts aggregated from:
+    - File uploads (ProjectFile.created_at)
+    - Project creation dates
+    
+    Response format:
+    {
+        "portfolio_id": int,
+        "total_activity": int,
+        "date_range": {"start": "YYYY-MM-DD", "end": "YYYY-MM-DD"},
+        "activity_data": [
+            {"date": "YYYY-MM-DD", "count": int, "projects": [{"id": int, "name": str, "count": int}]},
+            ...
+        ],
+        "max_activity": int,
+        "min_activity": int
+    }
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, pk):
+        try:
+            portfolio = Portfolio.objects.get(pk=pk)
+        except Portfolio.DoesNotExist:
+            return JsonResponse({"error": "Portfolio not found"}, status=404)
+        
+        # Check permissions
+        if not portfolio.is_public:
+            if not request.user.is_authenticated:
+                return JsonResponse({"error": "Authentication required"}, status=401)
+            if portfolio.user != request.user:
+                return JsonResponse({"error": "Portfolio not found"}, status=404)
+        
+        # Get all projects in the portfolio
+        portfolio_projects = portfolio.portfolio_projects.select_related('project').prefetch_related('project__files')
+        
+        if not portfolio_projects.exists():
+            return JsonResponse({
+                "portfolio_id": portfolio.id,
+                "total_activity": 0,
+                "date_range": {"start": None, "end": None},
+                "activity_data": [],
+                "max_activity": 0,
+                "min_activity": 0,
+            })
+        
+        # Aggregate activity by date
+        activity_by_date = defaultdict(lambda: {"count": 0, "projects": defaultdict(int)})
+        
+        all_dates = []
+        
+        # Collect file activity (ProjectFile.created_at)
+        project_ids = [pp.project_id for pp in portfolio_projects]
+        file_activity = ProjectFile.objects.filter(
+            project_id__in=project_ids
+        ).values('project_id', 'project__name').annotate(
+            date=TruncDate('created_at')
+        ).values('date', 'project_id', 'project__name').annotate(
+            count=Count('id')
+        )
+        
+        for entry in file_activity:
+            date_str = entry['date'].isoformat() if entry['date'] else None
+            if date_str:
+                activity_by_date[date_str]["count"] += entry['count']
+                activity_by_date[date_str]["projects"][entry['project__name']] += entry['count']
+                all_dates.append(entry['date'])
+        
+        # Collect project creation activity (Project.created_at)
+        project_activity = Project.objects.filter(
+            id__in=project_ids
+        ).values('id', 'name', 'created_at').annotate(
+            date=TruncDate('created_at')
+        ).values('date', 'id', 'name')
+        
+        for entry in project_activity:
+            date_str = entry['date'].isoformat() if entry['date'] else None
+            if date_str:
+                activity_by_date[date_str]["count"] += 1
+                activity_by_date[date_str]["projects"][entry['name']] += 1
+                all_dates.append(entry['date'])
+        
+        # Determine date range
+        if all_dates:
+            min_date = min(all_dates)
+            max_date = max(all_dates)
+        else:
+            min_date = None
+            max_date = None
+        
+        # Fill in gaps with zero activity
+        if min_date and max_date:
+            current_date = min_date
+            while current_date <= max_date:
+                date_str = current_date.isoformat()
+                if date_str not in activity_by_date:
+                    activity_by_date[date_str] = {"count": 0, "projects": {}}
+                current_date += timedelta(days=1)
+        
+        # Convert to list format
+        activity_data = []
+        total_activity = 0
+        max_activity = 0
+        min_activity = float('inf')
+        
+        for date_str in sorted(activity_by_date.keys()):
+            entry = activity_by_date[date_str]
+            count = entry["count"]
+            
+            # Build projects list
+            projects_list = [
+                {"name": name, "count": count}
+                for name, count in sorted(entry["projects"].items(), key=lambda x: x[1], reverse=True)
+            ]
+            
+            activity_data.append({
+                "date": date_str,
+                "count": count,
+                "projects": projects_list,
+            })
+            
+            total_activity += count
+            max_activity = max(max_activity, count)
+            if count > 0:
+                min_activity = min(min_activity, count)
+        
+        if min_activity == float('inf'):
+            min_activity = 0
+        
+        return JsonResponse({
+            "portfolio_id": portfolio.id,
+            "total_activity": total_activity,
+            "date_range": {
+                "start": min_date.isoformat() if min_date else None,
+                "end": max_date.isoformat() if max_date else None,
+            },
+            "activity_data": activity_data,
+            "max_activity": max_activity,
+            "min_activity": min_activity,
+        })

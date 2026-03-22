@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
-import { getPortfolio, updatePortfolio, addProjectToPortfolio, removeProjectFromPortfolio, reorderPortfolioProjects } from '@/utils/portfolioApi';
+import { getPortfolio, getPortfolioById, updatePortfolio, addProjectToPortfolio, removeProjectFromPortfolio, reorderPortfolioProjects } from '@/utils/portfolioApi';
 import config from '@/config';
 
 export default function EditPortfolioPage() {
@@ -32,7 +32,7 @@ export default function EditPortfolioPage() {
   const [originalFormData, setOriginalFormData] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  const portfolioId = params.id;
+  const portfolioSlug = params.id;
 
   useEffect(() => {
     if (authLoading) return;
@@ -43,13 +43,23 @@ export default function EditPortfolioPage() {
 
     const fetchData = async () => {
       try {
-        // Fetch portfolio and all projects in parallel
-        const [portfolioData, projectsResponse] = await Promise.all([
-          getPortfolio(portfolioId, token),
-          fetch(`${config.API_URL}/api/projects/`, {
-            headers: { 'Authorization': `Bearer ${token}` },
-          }),
-        ]);
+        let portfolioData;
+        try {
+          portfolioData = await getPortfolio(portfolioSlug, token);
+        } catch (slugError) {
+          if (/^\d+$/.test(portfolioSlug)) {
+            portfolioData = await getPortfolioById(Number(portfolioSlug), token);
+            if (portfolioData?.slug) {
+              router.replace(`/portfolios/${portfolioData.slug}/edit`);
+            }
+          } else {
+            throw slugError;
+          }
+        }
+
+        const projectsResponse = await fetch(`${config.API_URL}/api/projects/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
 
         if (!projectsResponse.ok) {
           throw new Error('Failed to fetch projects');
@@ -91,7 +101,7 @@ export default function EditPortfolioPage() {
     };
 
     fetchData();
-  }, [authLoading, isAuthenticated, token, portfolioId, router]);
+  }, [authLoading, isAuthenticated, token, portfolioSlug, router]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -114,7 +124,7 @@ export default function EditPortfolioPage() {
         regenerate_summary: regenerateSummary,
       };
 
-      const data = await updatePortfolio(portfolioId, updateData, token);
+      const data = await updatePortfolio(portfolio.id, updateData, token);
       setPortfolio(data.portfolio);
       setOriginalFormData(formData);
       setHasChanges(false);
@@ -147,7 +157,7 @@ export default function EditPortfolioPage() {
     setError('');
 
     try {
-      await addProjectToPortfolio(portfolioId, { project_id: projectId }, token);
+      await addProjectToPortfolio(portfolio.id, { project_id: projectId }, token);
       
       // Move project from available to portfolio
       const project = availableProjects.find(p => p.id === projectId);
@@ -168,7 +178,7 @@ export default function EditPortfolioPage() {
     setError('');
 
     try {
-      await removeProjectFromPortfolio(portfolioId, projectId, token);
+      await removeProjectFromPortfolio(portfolio.id, projectId, token);
       
       // Move project from portfolio to available
       const portfolioProject = portfolioProjects.find(pp => pp.project.id === projectId);
@@ -193,7 +203,7 @@ export default function EditPortfolioPage() {
     // Save new order to backend
     try {
       await reorderPortfolioProjects(
-        portfolioId,
+        portfolio.id,
         newProjects.map(pp => pp.project.id),
         token
       );
@@ -249,7 +259,7 @@ export default function EditPortfolioPage() {
           {/* Breadcrumb */}
           <div className="mb-6">
             <Link 
-              href={`/portfolios/${portfolioId}`} 
+              href={`/portfolios/${portfolio?.slug || portfolioSlug}`} 
               onClick={(e) => {
                 if (hasChanges && !confirm('You have unsaved changes. Are you sure you want to leave without saving?')) {
                   e.preventDefault();
@@ -523,7 +533,7 @@ export default function EditPortfolioPage() {
 
                 <div className="pt-4 border-t border-white/10">
                   <Link
-                    href={`/portfolios/${portfolioId}`}
+                    href={`/portfolios/${portfolio?.slug || portfolioSlug}`}
                     className="block w-full py-2 px-4 rounded-lg bg-white/10 hover:bg-white/20 text-white text-sm font-medium text-center transition-colors"
                   >
                     View Portfolio

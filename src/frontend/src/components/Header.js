@@ -32,10 +32,9 @@ export default function Header() {
 
   const navLinks = [
     { href: '/dashboard', label: 'Dashboard' },
-    { href: '/upload', label: 'Upload' },
-    { href: '/resume', label: 'Build Resume' },
+    { href: '/resumes', label: 'Resumes' },
     { href: '/portfolios', label: 'Portfolios' },
-    { href: '/projects', label: 'Previous Projects' },
+    { href: '/projects', label: 'Projects' },
   ];
 
   const isActive = (href) => pathname === href || pathname.startsWith(href + '/');
@@ -50,21 +49,35 @@ export default function Header() {
           </Link>
 
           {/* Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-4 py-2 rounded-lg transition-colors ${
-                  isActive(link.href)
-                    ? 'bg-white/10 text-white font-semibold'
-                    : 'text-white/80 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <div className="hidden md:flex items-center gap-4">
+            <nav className="flex items-center space-x-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`px-4 py-2 rounded-lg transition-colors ${
+                    isActive(link.href)
+                      ? 'bg-white/10 text-white font-semibold'
+                      : 'text-white/80 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            <Link
+              href="/upload"
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                isActive('/upload')
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-blue-500/20 text-blue-300 hover:bg-blue-500/30'
+              }`}
+            >
+              <span>Upload</span>
+              <span aria-hidden="true">+</span>
+            </Link>
+          </div>
 
           {/* Account Dropdown */}
           <div className="relative" ref={dropdownRef}>
@@ -126,14 +139,14 @@ export default function Header() {
                     onClick={() => setIsDropdownOpen(false)}
                     className="block px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors md:hidden"
                   >
-                    Upload
+                    Upload +
                   </Link>
                   <Link
-                    href="/resume"
+                    href="/resumes"
                     onClick={() => setIsDropdownOpen(false)}
                     className="block px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors md:hidden"
                   >
-                    Build Resume
+                    Resumes
                   </Link>
                   <Link
                     href="/portfolios"
@@ -147,7 +160,7 @@ export default function Header() {
                     onClick={() => setIsDropdownOpen(false)}
                     className="block px-4 py-2 text-sm text-white hover:bg-white/5 transition-colors md:hidden"
                   >
-                    Previous Projects
+                    Projects
                   </Link>
                 </div>
 
