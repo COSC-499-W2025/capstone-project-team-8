@@ -14,7 +14,8 @@ export default function DashboardPage() {
   const { isAuthenticated, token, user, setCurrentUser, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
-  const [evaluations, setEvaluations] = useState([]);
+  const [topProjects, setTopProjects] = useState([]);
+  const [rankedProjects, setRankedProjects] = useState([]);
   const [skills, setSkills] = useState({
     languages: {},
     frameworks: {},
@@ -73,17 +74,30 @@ export default function DashboardPage() {
           });
         }
 
-        // Fetch evaluations
+        // Fetch ranked projects for avg score
         try {
-          const evalResponse = await fetch(`${config.API_URL}/api/evaluations/`, {
+          const rankedResponse = await fetch(`${config.API_URL}/api/projects/ranked/`, {
             headers: { 'Authorization': `Bearer ${token}` },
           });
-          if (evalResponse.ok) {
-            const evalData = await evalResponse.json();
-            setEvaluations(evalData.evaluations || []);
+          if (rankedResponse.ok) {
+            const rankedData = await rankedResponse.json();
+            setRankedProjects(rankedData.projects || []);
           }
         } catch (err) {
-          console.log('Evaluations not available:', err);
+          console.log('Ranked projects not available:', err);
+        }
+
+        // Fetch top 3 ranked projects
+        try {
+          const topResponse = await fetch(`${config.API_URL}/api/projects/ranked/summary/`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (topResponse.ok) {
+            const topData = await topResponse.json();
+            setTopProjects(topData.top_projects || []);
+          }
+        } catch (err) {
+          console.log('Top projects not available:', err);
         }
       } catch (err) {
         console.log('Error fetching data:', err);
@@ -132,12 +146,13 @@ export default function DashboardPage() {
     }
   };
 
-  const avgScore = evaluations.length > 0
-    ? evaluations.reduce((sum, e) => sum + e.overall_score, 0) / evaluations.length
+  const avgScore = rankedProjects.length > 0
+    ? rankedProjects.reduce((sum, p) => sum + (p.highlight_score || 0), 0) / rankedProjects.length
     : null;
 
-  const getEvalForProject = (projectId) => {
-    return evaluations.find(e => e.project_id === projectId);
+  const getScoreForProject = (projectId) => {
+    const rp = rankedProjects.find(p => p.id === projectId);
+    return rp ? rp.highlight_score : null;
   };
   if (loading) {
     return (
@@ -262,17 +277,91 @@ export default function DashboardPage() {
                   <p className="text-3xl font-bold text-white">{Object.keys(skills.frameworks).length}</p>
                 </div>
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
-                  <p className="text-white/60 text-sm mb-1">Avg Quality Score</p>
+                  <p className="text-white/60 text-sm mb-1">Avg Project Score</p>
                   {avgScore !== null ? (
                     <div className="flex items-baseline gap-2">
                       <p className={`text-3xl font-bold ${getGradeColor(avgScore)}`}>{getGrade(avgScore)}</p>
-                      <p className="text-white/60 text-sm">{avgScore.toFixed(1)}%</p>
+                      <p className="text-white/60 text-sm">{avgScore.toFixed(1)}/100</p>
                     </div>
                   ) : (
-                    <p className="text-white/40 text-sm mt-1">No evaluations yet</p>
+                    <p className="text-white/40 text-sm mt-1">No projects yet</p>
                   )}
                 </div>
               </div>
+
+              {/* Upload New Project Section */}
+              <div className="rounded-lg p-6" style={{ background: 'rgba(79, 124, 247, 0.08)', border: '1px solid rgba(79, 124, 247, 0.15)' }}>
+                <h2 className="text-2xl font-bold text-white mb-2">Analyze a New Project</h2>
+                <p className="text-white/70 mb-4">Upload your project folder to extract skills, frameworks, and get AI-powered insights</p>
+                <Link
+                  href="/upload"
+                  className="inline-block px-6 py-3 text-white font-semibold rounded-lg transition-colors"
+                  style={{ background: '#4f7cf7' }}
+                >
+                  Upload Project
+                </Link>
+              </div>
+
+              {/* Top Projects Spotlight */}
+              {topProjects.length > 0 && (
+                <div className="bg-[var(--card-bg)] rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Top 3 Projects</h2>
+                      <p className="text-white/50 text-sm mt-1">Your highest-ranked work by quality, scale, effort &amp; breadth</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {topProjects.map((tp, idx) => {
+                      const fc = tp.file_composition || { code: 0, content: 0, image: 0 };
+                      const totalFiles = fc.code + fc.content + fc.image;
+
+                      return (
+                        <Link key={tp.project_id} href={`/projects/${tp.project_id}`} className="block">
+                          <div
+                            className="rounded-lg p-5 transition-all hover:scale-[1.01]"
+                            style={{ background: 'rgba(79, 124, 247, 0.06)', border: '1px solid #27272a' }}
+                            onMouseEnter={(e) => e.currentTarget.style.borderColor = '#4f7cf7'}
+                            onMouseLeave={(e) => e.currentTarget.style.borderColor = '#27272a'}
+                          >
+                            {/* Header row */}
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-bold text-sm">#{idx + 1}</span>
+                                <div>
+                                  <h3 className="text-lg font-semibold text-white">{tp.name}</h3>
+                                  <div className="flex flex-wrap gap-1.5 mt-1">
+                                    {tp.languages.slice(0, 3).map((lang) => (
+                                      <span key={lang} className="px-2 py-0.5 bg-blue-500/20 text-blue-300 text-xs rounded-full">{lang}</span>
+                                    ))}
+                                    {tp.frameworks.slice(0, 2).map((fw) => (
+                                      <span key={fw} className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">{fw}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-white/50 text-xs">Project Score</span>
+                                <p className={`text-xl font-bold ${getGradeColor(tp.highlight_score || 0)}`}>{tp.highlight_score || 0}<span className="text-sm text-white/40">/100</span></p>
+                              </div>
+                            </div>
+
+                            {/* Summary */}
+                            <p className="text-white/70 text-sm mb-3 line-clamp-2">{tp.summary}</p>
+
+                            {/* Quick stats row */}
+                            <div className="flex items-center gap-4 text-[11px] text-white/40">
+                              {tp.total_commits > 0 && <span>{tp.total_commits} commits</span>}
+                              {totalFiles > 0 && <span>{totalFiles} files</span>}
+                              {tp.total_lines_changed > 0 && <span>{tp.total_lines_changed.toLocaleString()} lines changed</span>}
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Recent Projects - Scrollable Carousel */}
               <div className="bg-[var(--card-bg)] rounded-lg p-6">
@@ -300,9 +389,9 @@ export default function DashboardPage() {
                             <span className="text-4xl">📁</span>
                           )}
                           {/* Grade Badge */}
-                          {getEvalForProject(project.id) && (
-                            <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold border ${getGradeBg(getEvalForProject(project.id).overall_score)} ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
-                              {getGrade(getEvalForProject(project.id).overall_score)} · {getEvalForProject(project.id).overall_score.toFixed(0)}%
+                          {getScoreForProject(project.id) !== null && (
+                            <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold border ${getGradeBg(getScoreForProject(project.id))} ${getGradeColor(getScoreForProject(project.id))}`}>
+                              {getGrade(getScoreForProject(project.id))} · {getScoreForProject(project.id).toFixed(0)}
                             </div>
                           )}
                         </div>
@@ -351,19 +440,6 @@ export default function DashboardPage() {
                     </Link>
                   </div>
                 )}
-              </div>
-
-              {/* Upload New Project Section */}
-              <div className="rounded-lg p-6" style={{ background: 'rgba(79, 124, 247, 0.08)', border: '1px solid rgba(79, 124, 247, 0.15)' }}>
-                <h2 className="text-2xl font-bold text-white mb-2">Analyze a New Project</h2>
-                <p className="text-white/70 mb-4">Upload your portfolio to extract skills, frameworks, and get AI-powered insights</p>
-                <Link
-                  href="/upload"
-                  className="inline-block px-6 py-3 text-white font-semibold rounded-lg transition-colors"
-                  style={{ background: '#4f7cf7' }}
-                >
-                  Upload Portfolio
-                </Link>
               </div>
 
               {/* Recent Activity / Quick Links */}

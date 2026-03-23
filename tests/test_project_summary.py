@@ -186,7 +186,7 @@ class TopProjectsSummaryTests(TestCase):
         self.assertEqual(len(data["top_projects"]), 3)
     
     def test_projects_ranked_correctly(self):
-        """Test that projects are returned in correct order by contribution score"""
+        """Test that projects are returned in correct order by highlight score"""
         self.client.force_authenticate(user=self.user)
         url = reverse("projects-ranked-summary")
         resp = self.client.get(url)
@@ -194,14 +194,14 @@ class TopProjectsSummaryTests(TestCase):
         data = resp.json()
         projects = data["top_projects"]
         
-        # Check order: p1 (72) > p2 (46) > p3 (26)
+        # E-commerce has most lines, most effort, most breadth (2 langs + 2 frameworks)
         self.assertEqual(projects[0]["name"], "E-commerce Platform")
         self.assertEqual(projects[1]["name"], "Mobile Game")
         self.assertEqual(projects[2]["name"], "Data Analysis Tool")
         
-        # Verify scores are descending
-        self.assertGreater(projects[0]["contribution_score"], projects[1]["contribution_score"])
-        self.assertGreater(projects[1]["contribution_score"], projects[2]["contribution_score"])
+        # Verify scores are descending by highlight_score
+        self.assertGreater(projects[0]["highlight_score"], projects[1]["highlight_score"])
+        self.assertGreater(projects[1]["highlight_score"], projects[2]["highlight_score"])
     
     def test_includes_languages_and_frameworks(self):
         """Test that response includes languages and frameworks"""
@@ -266,7 +266,8 @@ class TopProjectsSummaryTests(TestCase):
         
         # Check all required fields
         required_fields = [
-            'project_id', 'name', 'contribution_score', 'commit_percentage',
+            'project_id', 'name', 'highlight_score', 'score_breakdown',
+            'contribution_score', 'commit_percentage',
             'lines_changed_percentage', 'total_commits', 'total_lines_changed',
             'total_project_lines', 'classification_type', 'languages', 
             'frameworks', 'summary', 'llm_consent'
