@@ -131,6 +131,16 @@ input, textarea, select {
   font-family: var(--font-montserrat), 'Montserrat', sans-serif;
 }
 
+select option {
+  background-color: #18181b !important;
+  color: #ffffff !important;
+}
+
+select option:checked {
+  background-color: #27272a !important;
+  color: #ffffff !important;
+}
+
 input::placeholder {
   color: #a1a1aa !important;
 }
