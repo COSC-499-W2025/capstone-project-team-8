@@ -480,14 +480,14 @@ export default function ProjectsPage() {
                       href={`/projects/${project.id}`}
                       className="flex-1 px-4 py-2 bg-white/10 text-white text-center text-sm font-medium rounded-lg hover:bg-white/20 transition-colors"
                     >
-                      View Details
+                      View
                     </Link>
                     <Link
                       href={`/upload?project_id=${project.id}`}
                       className="flex-1 px-4 py-2 bg-blue-500/20 text-blue-300 text-center text-sm font-medium rounded-lg hover:bg-blue-500/30 transition-colors"
                       title="Upload new files to add to this project"
                     >
-                      Update
+                      Re-upload
                     </Link>
                     <button
                       onClick={() => handleDeleteProject(project.id, project.name)}
