@@ -9,6 +9,7 @@ import OnboardingActions from './components/OnboardingActions';
 import PersonalInfoStep from './steps/PersonalInfoStep';
 import OnlinePresenceStep from './steps/OnlinePresenceStep';
 import EducationStep from './steps/EducationStep';
+import { isValidLinkedInUrl } from '@/utils/validation';
 
 const TOTAL_STEPS = 3;
 
@@ -36,15 +37,6 @@ export default function OnboardingPage() {
 
   const update = (field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const isValidLinkedInUrl = (value) => {
-    if (!value) return true;
-    const normalized = value.trim().toLowerCase();
-    return (
-      normalized.startsWith('https://www.linkedin.com/in/') ||
-      normalized.startsWith('linkedin.com/in/')
-    );
   };
 
   const linkedinUrlInvalid =

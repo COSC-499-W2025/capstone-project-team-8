@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/utils/api';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import { initializeButtons } from '@/utils/buttonAnimation';
+import { isValidLinkedInUrl } from '@/utils/validation';
 import config from '@/config';
 
 export default function ProfilePage() {
@@ -53,15 +54,6 @@ export default function ProfilePage() {
       return `${year.slice(0, 4)}-${month}-${day}`;
     }
     return value;
-  };
-
-  const isValidLinkedInUrl = (value) => {
-    if (!value) return true;
-    const normalized = value.trim().toLowerCase();
-    return (
-      normalized.startsWith('https://www.linkedin.com/in/') ||
-      normalized.startsWith('linkedin.com/in/')
-    );
   };
 
   useEffect(() => {
