@@ -142,18 +142,20 @@ export default function OnboardingPage() {
           onSubmit={handleSubmit}
         />
 
-        {/* Skip */}
-        <div className="text-center mt-6">
-          <button
-            onClick={handleSkip}
-            className="text-xs transition-colors bg-transparent border-none cursor-pointer"
-            style={{ color: '#52525b' }}
-            onMouseEnter={(e) => { e.target.style.color = '#a1a1aa'; }}
-            onMouseLeave={(e) => { e.target.style.color = '#52525b'; }}
-          >
-            Skip for now
-          </button>
-        </div>
+        {/* Skip - Hidden on upload step */}
+        {step !== TOTAL_STEPS && (
+          <div className="text-center mt-6">
+            <button
+              onClick={handleSkip}
+              className="text-xs transition-colors bg-transparent border-none cursor-pointer"
+              style={{ color: '#52525b' }}
+              onMouseEnter={(e) => { e.target.style.color = '#a1a1aa'; }}
+              onMouseLeave={(e) => { e.target.style.color = '#52525b'; }}
+            >
+              Skip for now
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
