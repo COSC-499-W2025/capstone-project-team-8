@@ -396,12 +396,20 @@ This week:
 - fix toast transparency  PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/350
 - review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/346
 - review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/343
+- review Harper's PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/354
+- review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/356
+- review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/340
 
 What went well:
+- We were able to get a lot of feedback from our peer evaluations and identified plenty of HCI issues and bugs thoughout the app that we were able to mostly fix during this week
+- Plenty of small manageable PR's from the team which makes it easy to keep track of work done
+- No merge conflicts so far
 
 What went wrong:
 
 Next week:
+- Finalize last remaining bugs and any outstanding issues we need to resolve
+- Fix any confusing naming conventions and keep optimizing HCI
 
 Reflection:
 
