@@ -136,3 +136,70 @@ class SkillsView(APIView):
             'resume_skills': resume_skills_list,
             'total_projects': total_projects
         })
+
+@method_decorator(csrf_exempt, name="dispatch")
+class SkillsTimelineView(APIView):
+    """
+    GET /api/skills/timeline/
+    
+    Returns the chronological timeline of when skills first appeared.
+    Optionally filter by portfolio using ?portfolio_id=123
+    """
+    permission_classes = [IsAuthenticated]
+    
+    @extend_schema(
+        responses={
+            200: OpenApiResponse(
+                description="Chronological timeline of skills",
+            ),
+        },
+        description="Get chronological timeline of when skills first appeared. Optionally takes ?portfolio_id=",
+        tags=["Skills"],
+    )
+    def get(self, request):
+        user = request.user
+        portfolio_id = request.GET.get('portfolio_id')
+
+        # Base project query
+        projects = Project.objects.filter(user=user)
+        if portfolio_id:
+            projects = projects.filter(portfolios__id=portfolio_id)
+
+        projects = projects.prefetch_related('languages', 'frameworks')
+        
+        skill_earliest_date = {}
+
+        for p in projects:
+            # Use first_commit_date, fallback to created_at
+            p_date = p.first_commit_date or p.created_at
+            if not p_date:
+                continue
+                
+            for lang in p.languages.all():
+                key = f"lang_{lang.name}"
+                if key not in skill_earliest_date or p_date < skill_earliest_date[key]['date_obj']:
+                    skill_earliest_date[key] = {
+                        "skill": lang.name, 
+                        "date_obj": p_date, 
+                        "type": "language"
+                    }
+                    
+            for fw in p.frameworks.all():
+                key = f"fw_{fw.name}"
+                if key not in skill_earliest_date or p_date < skill_earliest_date[key]['date_obj']:
+                    skill_earliest_date[key] = {
+                        "skill": fw.name, 
+                        "date_obj": p_date, 
+                        "type": "framework"
+                    }
+
+        # Convert to list and sort by date
+        timeline = list(skill_earliest_date.values())
+        timeline.sort(key=lambda x: x['date_obj'])
+
+        # Format dates for JSON
+        for item in timeline:
+            item['date'] = item['date_obj'].isoformat()
+            del item['date_obj']
+
+        return JsonResponse({"timeline": timeline})

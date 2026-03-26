@@ -8,6 +8,7 @@ import { getCurrentUser } from '@/utils/api';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import config from '@/config';
+import SkillsTimeline from '@/components/skillsTimeline';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -56,7 +57,7 @@ export default function DashboardPage() {
               const primaryLang = project.classification_type.split(':')[0].trim();
               languageCount[primaryLang] = (languageCount[primaryLang] || 0) + 1;
             }
-            
+
             // Count frameworks if available in response
             if (project.frameworks && Array.isArray(project.frameworks)) {
               project.frameworks.forEach((fw) => {
@@ -125,9 +126,9 @@ export default function DashboardPage() {
       window.open(user.portfolio_url, '_blank', 'noopener,noreferrer');
     } else {
       // Show message that no portfolio link is available
-      setMessage({ 
-        type: 'error', 
-        text: 'No portfolio link found. Please add your portfolio URL in your profile settings.' 
+      setMessage({
+        type: 'error',
+        text: 'No portfolio link found. Please add your portfolio URL in your profile settings.'
       });
     }
   };
@@ -166,8 +167,8 @@ export default function DashboardPage() {
                 <div className="mb-6 text-center">
                   <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center mb-4 overflow-hidden">
                     {user?.profile_image_url ? (
-                      <img 
-                        src={user.profile_image_url} 
+                      <img
+                        src={user.profile_image_url}
                         alt={user.username}
                         className="w-full h-full object-cover"
                       />
@@ -178,7 +179,7 @@ export default function DashboardPage() {
                     )}
                   </div>
                   <h2 className="text-xl font-bold text-white">
-                    {user?.first_name && user?.last_name 
+                    {user?.first_name && user?.last_name
                       ? `${user.first_name} ${user.last_name}`
                       : user?.username}
                   </h2>
@@ -306,7 +307,7 @@ export default function DashboardPage() {
                             </div>
                           )}
                         </div>
-                        
+
                         {/* Content */}
                         <div className="p-4">
                           <div className="flex items-start justify-between mb-3">
@@ -365,6 +366,7 @@ export default function DashboardPage() {
                   Upload Portfolio
                 </Link>
               </div>
+              <SkillsTimeline />
 
               {/* Recent Activity / Quick Links */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -399,10 +401,10 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-      
+
       {message.text && (
-        <Toast 
-          message={message.text} 
+        <Toast
+          message={message.text}
           type={message.type}
           onClose={() => setMessage({ type: '', text: '' })}
         />
