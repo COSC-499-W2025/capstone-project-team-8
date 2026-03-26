@@ -406,10 +406,13 @@ What went well:
 - No merge conflicts so far
 
 What went wrong:
+- still bugs with some aspects of app that were not addresses
+- portfolio projects on public portfolios are not accessible if not logged in
 
 Next week:
 - Finalize last remaining bugs and any outstanding issues we need to resolve
 - Fix any confusing naming conventions and keep optimizing HCI
 
 Reflection:
+Our last semester is coming to an end and we have a working product which we are able to use. Our application still have some flaws but we are working towards getting the system complete and ready to use in an actual real world setting.
 
