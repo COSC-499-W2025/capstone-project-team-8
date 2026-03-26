@@ -19,7 +19,8 @@
 - [T2 Week 4-5 (Jan 26-Feb 6)](#week-18--19-january-26---february-6)
 - [T2 Week 6–7–8 (Feb 9–27)](#week-20--21--22-february-9---27)
 - [T2 Week 9 (Mar 02-08)](#week-9-mar-02-08)
-- [T2 Week 10 (Mar 02-08)](#week-10-mar-09-15)
+- [T2 Week 10 (Mar 09-15)](#week-10-mar-09-15)
+- [T2 Week 11 & 12 (Mar 16-29)](#week-11--12-mar-16-29)
 
 
 ## Week 3 September 15-21
@@ -385,4 +386,33 @@ Next week:
   
 Reflection:
 Our system is ready for peer testing. This peer testing should go much smoother than the last one since our frontend is fully connected to our backend. The troubles we had with the inital peer testing was that our system was setup with API calls from the start, so users had to call each individual API through CURL or our API docs which was very inconvenient. Now, we have a full user interface which they can work with.
+
+## Week 11 & 12 Mar 16-29
+(TODO IMAGE)
+
+This week:
+- fix portfolio dropdown style PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/348
+- fix naming since users got confused with "update" button PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/349
+- fix toast transparency  PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/350
+- review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/346
+- review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/343
+- review Harper's PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/354
+- review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/356
+- review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/340
+
+What went well:
+- We were able to get a lot of feedback from our peer evaluations and identified plenty of HCI issues and bugs thoughout the app that we were able to mostly fix during this week
+- Plenty of small manageable PR's from the team which makes it easy to keep track of work done
+- No merge conflicts so far
+
+What went wrong:
+- still bugs with some aspects of app that were not addresses
+- portfolio projects on public portfolios are not accessible if not logged in
+
+Next week:
+- Finalize last remaining bugs and any outstanding issues we need to resolve
+- Fix any confusing naming conventions and keep optimizing HCI
+
+Reflection:
+Our last semester is coming to an end and we have a working product which we are able to use. Our application still have some flaws but we are working towards getting the system complete and ready to use in an actual real world setting.
 
