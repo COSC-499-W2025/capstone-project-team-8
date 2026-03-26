@@ -1,6 +1,23 @@
 import OnboardingInput from '../components/OnboardingInput';
 
 export default function EducationStep({ form, update, inputStyle }) {
+  const normalizeGraduationDate = (value) => {
+    if (!value) return value;
+    const parts = value.split('-');
+    if (parts.length !== 3) return value;
+
+    const [year, month, day] = parts;
+    if (year.length > 4) {
+      return `${year.slice(0, 4)}-${month}-${day}`;
+    }
+    return value;
+  };
+
+  const handleGraduationChange = (e) => {
+    const normalizedValue = normalizeGraduationDate(e.target.value);
+    update('expected_graduation', normalizedValue);
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-semibold text-white mb-2">Education</h1>
@@ -38,14 +55,19 @@ export default function EducationStep({ form, update, inputStyle }) {
             inputStyle={inputStyle}
           />
         </div>
-        <OnboardingInput
-          label="Expected Graduation"
-          type="date"
-          value={form.expected_graduation}
-          onChange={(value) => update('expected_graduation', value)}
-          placeholder="2026-06-15"
-          inputStyle={inputStyle}
-        />
+        <div>
+          <label className="block text-sm font-medium mb-2 text-white">Expected Graduation</label>
+          <input
+            type="date"
+            value={form.expected_graduation}
+            onChange={handleGraduationChange}
+            onInput={handleGraduationChange}
+            min="0001-01-01"
+            max="9999-12-31"
+            className={`w-full px-3 py-2 rounded-md text-sm focus:outline-none transition-all ${form.expected_graduation ? 'date-input-filled' : 'date-input-empty'}`}
+            style={inputStyle}
+          />
+        </div>
       </div>
     </div>
   );
