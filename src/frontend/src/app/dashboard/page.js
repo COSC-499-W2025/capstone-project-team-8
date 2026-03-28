@@ -17,9 +17,10 @@ export default function DashboardPage() {
   const [projects, setProjects] = useState([]);
   const [evaluations, setEvaluations] = useState([]);
   const [skills, setSkills] = useState({
-    languages: {},
-    frameworks: {},
+    languages: [],
+    frameworks: [],
   });
+  const [editingSkill, setEditingSkill] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
@@ -44,34 +45,22 @@ export default function DashboardPage() {
 
         if (projectsResponse.ok) {
           const projectsData = await projectsResponse.json();
-          const projectsList = projectsData.projects || [];
-          setProjects(projectsList);
+          setProjects(projectsData.projects || []);
+        }
 
-          // Calculate skills from projects
-          const languageCount = {};
-          const frameworkCount = {};
-
-          projectsList.forEach((project) => {
-            // Count primary classification as language
-            if (project.classification_type) {
-              const primaryLang = project.classification_type.split(':')[0].trim();
-              languageCount[primaryLang] = (languageCount[primaryLang] || 0) + 1;
-            }
-
-            // Count frameworks if available in response
-            if (project.frameworks && Array.isArray(project.frameworks)) {
-              project.frameworks.forEach((fw) => {
-                if (fw.name) {
-                  frameworkCount[fw.name] = (frameworkCount[fw.name] || 0) + 1;
-                }
-              });
-            }
+        try {
+          const skillsRes = await fetch(`${config.API_URL}/api/skills/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
           });
-
-          setSkills({
-            languages: languageCount,
-            frameworks: frameworkCount,
-          });
+          if (skillsRes.ok) {
+            const skillsData = await skillsRes.json();
+            setSkills({
+              languages: skillsData.languages || [],
+              frameworks: skillsData.frameworks || []
+            });
+          }
+        } catch (err) {
+          console.error('Skills error:', err);
         }
 
         // Fetch evaluations
@@ -95,6 +84,33 @@ export default function DashboardPage() {
 
     fetchData();
   }, [authLoading, isAuthenticated, token, router]);
+
+  const handleExpertiseChange = async (skillName, newExpertise, category) => {
+    // Optimistic update
+    setSkills(prev => {
+      const updatedCategory = prev[category].map(s => 
+        s.name === skillName ? { ...s, expertise: newExpertise } : s
+      );
+      return { ...prev, [category]: updatedCategory };
+    });
+
+    try {
+      const resp = await fetch(`${config.API_URL}/api/skills/expertise/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ skill: skillName, expertise: newExpertise })
+      });
+      if (!resp.ok) {
+        throw new Error('Failed to update expertise');
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ type: 'error', text: 'Could not save expertise level.' });
+    }
+  };
 
   const getGrade = (score) => {
     if (score >= 90) return 'A';
@@ -213,11 +229,39 @@ export default function DashboardPage() {
                   <div className="mb-4">
                     <p className="text-white/70 text-sm font-medium mb-2">Languages</p>
                     <div className="space-y-2">
-                      {Object.entries(skills.languages).length > 0 ? (
-                        Object.entries(skills.languages).map(([lang, count]) => (
-                          <div key={lang} className="flex justify-between items-center">
-                            <span className="text-white/60 text-sm">{lang}</span>
-                            <span className="text-white font-bold">{count} {count === 1 ? 'project' : 'projects'}</span>
+                      {skills.languages.length > 0 ? (
+                        skills.languages.map((lang) => (
+                          <div key={lang.name} className="flex justify-between items-center group">
+                            <div className="flex-1 truncate">
+                              <span className="text-white/60 text-sm mr-2">{lang.name}</span>
+                              <span className="text-white/40 text-[10px]">({lang.project_count})</span>
+                            </div>
+                            {editingSkill === `languages-${lang.name}` ? (
+                              <select
+                                autoFocus
+                                value={lang.expertise || ''}
+                                onChange={(e) => {
+                                  handleExpertiseChange(lang.name, e.target.value, 'languages');
+                                  setEditingSkill(null);
+                                }}
+                                onBlur={() => setEditingSkill(null)}
+                                className="text-xs bg-black/50 border border-white/10 rounded px-1 min-w-[90px] py-1 text-white/80 outline-none hover:border-white/30 transition-colors"
+                              >
+                                <option value="">Set Level</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                              </select>
+                            ) : (
+                              <div
+                                className="text-xs text-white/60 hover:text-white/90 cursor-pointer flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2 py-1 rounded transition-colors"
+                                onClick={() => setEditingSkill(`languages-${lang.name}`)}
+                                title="Click to edit expertise level"
+                              >
+                                {lang.expertise || 'Set Level'} 
+                                <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✏️</span>
+                              </div>
+                            )}
                           </div>
                         ))
                       ) : (
@@ -230,11 +274,39 @@ export default function DashboardPage() {
                   <div className="mb-4">
                     <p className="text-white/70 text-sm font-medium mb-2">Frameworks</p>
                     <div className="space-y-2">
-                      {Object.entries(skills.frameworks).length > 0 ? (
-                        Object.entries(skills.frameworks).map(([fw, count]) => (
-                          <div key={fw} className="flex justify-between items-center">
-                            <span className="text-white/60 text-sm">{fw}</span>
-                            <span className="text-white font-bold">{count} {count === 1 ? 'project' : 'projects'}</span>
+                      {skills.frameworks.length > 0 ? (
+                        skills.frameworks.map((fw) => (
+                          <div key={fw.name} className="flex justify-between items-center group">
+                            <div className="flex-1 truncate">
+                              <span className="text-white/60 text-sm mr-2">{fw.name}</span>
+                              <span className="text-white/40 text-[10px]">({fw.project_count})</span>
+                            </div>
+                            {editingSkill === `frameworks-${fw.name}` ? (
+                              <select
+                                autoFocus
+                                value={fw.expertise || ''}
+                                onChange={(e) => {
+                                  handleExpertiseChange(fw.name, e.target.value, 'frameworks');
+                                  setEditingSkill(null);
+                                }}
+                                onBlur={() => setEditingSkill(null)}
+                                className="text-xs bg-black/50 border border-white/10 rounded px-1 min-w-[90px] py-1 text-white/80 outline-none hover:border-white/30 transition-colors"
+                              >
+                                <option value="">Set Level</option>
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                              </select>
+                            ) : (
+                              <div
+                                className="text-xs text-white/60 hover:text-white/90 cursor-pointer flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2 py-1 rounded transition-colors"
+                                onClick={() => setEditingSkill(`frameworks-${fw.name}`)}
+                                title="Click to edit expertise level"
+                              >
+                                {fw.expertise || 'Set Level'} 
+                                <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✏️</span>
+                              </div>
+                            )}
                           </div>
                         ))
                       ) : (
@@ -256,11 +328,11 @@ export default function DashboardPage() {
                 </div>
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
                   <p className="text-white/60 text-sm mb-1">Languages Used</p>
-                  <p className="text-3xl font-bold text-white">{Object.keys(skills.languages).length}</p>
+                  <p className="text-3xl font-bold text-white">{skills.languages.length || 0}</p>
                 </div>
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
                   <p className="text-white/60 text-sm mb-1">Frameworks Used</p>
-                  <p className="text-3xl font-bold text-white">{Object.keys(skills.frameworks).length}</p>
+                  <p className="text-3xl font-bold text-white">{skills.frameworks.length || 0}</p>
                 </div>
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
                   <p className="text-white/60 text-sm mb-1">Avg Quality Score</p>

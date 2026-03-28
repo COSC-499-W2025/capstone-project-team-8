@@ -550,6 +550,30 @@
   color: #52525b;
 }
 
+.skillExpertiseSelect {
+  background: transparent;
+  border: none;
+  color: #8b8b93;
+  font-size: 10px;
+  outline: none;
+  cursor: pointer;
+  margin-right: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  text-align: right;
+  text-align-last: right;
+}
+
+.skillExpertiseSelect:focus, .skillExpertiseSelect:hover {
+  color: #e4e4e7;
+}
+
+.skillExpertiseSelect option {
+  background: #18181b;
+  color: #e4e4e7;
+  text-align: left;
+}
+
 .removeSkillBtn {
   width: 18px;
   height: 18px;
