@@ -47,6 +47,8 @@ class ProjectUpdateSerializer(serializers.Serializer):
     description = serializers.CharField(required=False, allow_blank=True)
     classification = serializers.CharField(required=False)
     user_role = serializers.ChoiceField(choices=VALID_USER_ROLES, required=False)
+    first_commit_date = serializers.IntegerField(required=False, allow_null=True)
+    last_commit_date = serializers.IntegerField(required=False, allow_null=True)
 
 
 class ProjectStatsSerializer(serializers.Serializer):

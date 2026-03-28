@@ -444,7 +444,20 @@ export default function ProjectsPage() {
                         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>Updated: {formatDate(project.updated_at)}</span>
+                        <span className="truncate">Updated: {formatDate(project.updated_at)}</span>
+                      </div>
+                    )}
+                    {project.first_commit_date && (
+                      <div className="flex items-center text-xs text-white/60">
+                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3" />
+                          <circle cx="12" cy="12" r="9" strokeWidth={2} />
+                        </svg>
+                        <span className="truncate">
+                          Active: {formatDate(project.first_commit_date)}
+                          {project.last_commit_date && project.last_commit_date !== project.first_commit_date ? ` — ${formatDate(project.last_commit_date)}` : ''}
+                          {project.duration_days !== undefined && project.duration_days !== null && ` (${project.duration_days < 30 ? project.duration_days + 'd' : project.duration_days < 365 ? Math.floor(project.duration_days / 30) + 'mo' : (project.duration_days / 365).toFixed(1) + 'y'})`}
+                        </span>
                       </div>
                     )}
                     {project.file_count !== undefined && (

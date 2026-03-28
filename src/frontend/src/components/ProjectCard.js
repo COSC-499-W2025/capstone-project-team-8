@@ -72,6 +72,16 @@ export default function ProjectCard({ project, index, evaluation }) {
             </h3>
             <p className="text-sm" style={{ color: '#a1a1aa' }}>
               {contributors.length} contributor{contributors.length !== 1 ? 's' : ''} • {files.code?.length || 0} code files
+              {project.first_commit_date && (
+                <>
+                  {' '}•{' '}
+                  <span className="text-zinc-400">
+                    {new Date(project.first_commit_date * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                    {project.last_commit_date && project.last_commit_date !== project.first_commit_date ? ` — ${new Date(project.last_commit_date * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}` : ''}
+                    {project.duration_days !== undefined && project.duration_days !== null && ` (${project.duration_days < 30 ? project.duration_days + 'd' : project.duration_days < 365 ? Math.floor(project.duration_days / 30) + 'mo' : (project.duration_days / 365).toFixed(1) + 'y'})`}
+                  </span>
+                </>
+              )}
             </p>
           </div>
           {evaluation && (

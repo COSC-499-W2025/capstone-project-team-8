@@ -201,6 +201,8 @@ class ProjectDetailView(APIView):
         name = data.get("name")
         description = data.get("description")
         user_role = data.get("user_role")
+        first_commit_date = data.get("first_commit_date")
+        last_commit_date = data.get("last_commit_date")
         changed = False
 
         if user_role is not None:
@@ -211,6 +213,20 @@ class ProjectDetailView(APIView):
                 )
             p.user_role = user_role
             changed = True
+
+        if first_commit_date is not None:
+            try:
+                p.first_commit_date = timezone.datetime.fromtimestamp(int(first_commit_date), tz=timezone.get_current_timezone())
+                changed = True
+            except (ValueError, TypeError, OverflowError):
+                return JsonResponse({"error": "Invalid first_commit_date format. Expected Unix timestamp."}, status=400)
+
+        if last_commit_date is not None:
+            try:
+                p.last_commit_date = timezone.datetime.fromtimestamp(int(last_commit_date), tz=timezone.get_current_timezone())
+                changed = True
+            except (ValueError, TypeError, OverflowError):
+                return JsonResponse({"error": "Invalid last_commit_date format. Expected Unix timestamp."}, status=400)
 
         if name:
             p.name = str(name)[:255]
