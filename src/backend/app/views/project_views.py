@@ -189,6 +189,7 @@ class ProjectDetailView(APIView):
         name = data.get("name")
         description = data.get("description")
         user_role = data.get("user_role")
+        classification = data.get("classification")
         changed = False
 
         if user_role is not None:
@@ -198,6 +199,20 @@ class ProjectDetailView(APIView):
                     status=400,
                 )
             p.user_role = user_role
+            changed = True
+            
+        VALID_CLASSIFICATION_TYPES = [
+            'coding', 'writing', 'art', 'mixed:coding+writing',
+            'mixed:coding+art', 'mixed:writing+art', 'unknown'
+        ]
+        
+        if classification is not None:
+            if classification not in VALID_CLASSIFICATION_TYPES:
+                return JsonResponse(
+                    {"error": f"Invalid classification '{classification}'. Valid choices: {VALID_CLASSIFICATION_TYPES}"},
+                    status=400,
+                )
+            p.classification_type = classification
             changed = True
 
         if name:
