@@ -431,6 +431,13 @@ export default function PortfolioDetailPage() {
                                 <p className="text-white/40 text-xs mt-1 italic">&ldquo;{portfolioProject.notes}&rdquo;</p>
                               )}
                               <div className="flex flex-wrap items-center gap-2 mt-2">
+                                {project.first_commit_date && (
+                                  <span className="px-1.5 py-0.5 bg-white/5 text-white/40 text-[10px] rounded" title="Project Duration">
+                                    {new Date(project.first_commit_date * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                                    {project.last_commit_date && project.last_commit_date !== project.first_commit_date ? ` — ${new Date(project.last_commit_date * 1000).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}` : ''}
+                                    {project.duration_days !== undefined && project.duration_days !== null && ` (${project.duration_days < 30 ? project.duration_days + 'd' : project.duration_days < 365 ? Math.floor(project.duration_days / 30) + 'mo' : (project.duration_days / 365).toFixed(1) + 'y'})`}
+                                  </span>
+                                )}
                                 {project.total_files > 0 && (
                                   <span className="px-1.5 py-0.5 bg-white/5 text-white/40 text-[10px] rounded">{project.total_files} files</span>
                                 )}

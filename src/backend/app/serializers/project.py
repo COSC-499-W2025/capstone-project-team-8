@@ -12,6 +12,9 @@ class ProjectSerializer(serializers.Serializer):
     frameworks = serializers.ListField(child=serializers.CharField())
     created_at = serializers.DateTimeField(read_only=True)
     last_updated = serializers.DateTimeField(read_only=True)
+    first_commit_date = serializers.IntegerField(allow_null=True, required=False)
+    last_commit_date = serializers.IntegerField(allow_null=True, required=False)
+    duration_days = serializers.IntegerField(allow_null=True, required=False)
     thumbnail_url = serializers.URLField(allow_blank=True, required=False)
 
 
@@ -22,6 +25,9 @@ class ProjectDetailSerializer(serializers.Serializer):
     classification = serializers.CharField()
     created_at = serializers.DateTimeField(read_only=True)
     last_updated = serializers.DateTimeField(read_only=True)
+    first_commit_date = serializers.IntegerField(allow_null=True, required=False)
+    last_commit_date = serializers.IntegerField(allow_null=True, required=False)
+    duration_days = serializers.IntegerField(allow_null=True, required=False)
     thumbnail_url = serializers.URLField(allow_blank=True, required=False)
     contributors = serializers.ListField()
     languages = serializers.ListField()
@@ -41,6 +47,8 @@ class ProjectUpdateSerializer(serializers.Serializer):
     description = serializers.CharField(required=False, allow_blank=True)
     classification = serializers.CharField(required=False)
     user_role = serializers.ChoiceField(choices=VALID_USER_ROLES, required=False)
+    first_commit_date = serializers.IntegerField(required=False, allow_null=True)
+    last_commit_date = serializers.IntegerField(required=False, allow_null=True)
 
 
 class ProjectStatsSerializer(serializers.Serializer):

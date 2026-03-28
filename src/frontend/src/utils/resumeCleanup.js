@@ -103,27 +103,38 @@ export const extractDraggableItems = (projects) => {
         id: `skill-${lang.id}`,
         title: lang.name,
         source: 'language',
-        projectId: project.id
+        projectId: project.id,
+        projectName: project.name,
+        projectFirstCommitDate: project.first_commit_date,
+        projectLastCommitDate: project.last_commit_date
       }))
       .concat((project.frameworks || [])
         .map(fw => ({
           id: `framework-${fw.id}`,
           title: fw.name,
           source: 'framework',
-          projectId: project.id
+          projectId: project.id,
+          projectName: project.name,
+          projectFirstCommitDate: project.first_commit_date,
+          projectLastCommitDate: project.last_commit_date
         })))
       .concat((project.resume_bullet_points || [])
         .map((bullet, idx) => ({
           id: `skill-text-${project.id}-${idx}`,
           title: bullet,
           source: 'custom',
-          projectId: project.id
+          projectId: project.id,
+          projectName: project.name,
+          projectFirstCommitDate: project.first_commit_date,
+          projectLastCommitDate: project.last_commit_date
         }))),
     bullets: (project.resume_bullet_points || []).map((bullet, idx) => ({
       id: `bullet-${project.id}-${idx}`,
       content: bullet,
       projectId: project.id,
-      projectName: project.name
+      projectName: project.name,
+      projectFirstCommitDate: project.first_commit_date,
+      projectLastCommitDate: project.last_commit_date
     }))
   }));
 };

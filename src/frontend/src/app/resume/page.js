@@ -693,7 +693,7 @@ export default function ResumeNewPage({ resumeId = null }) {
         );
         const dateRange = getProjectDateRange(
           data.projectFirstCommitDate,
-          data.projectCreatedAt
+          data.projectLastCommitDate
         );
         let updatedProjects;
         if (existingIndex >= 0) {
@@ -749,7 +749,7 @@ export default function ResumeNewPage({ resumeId = null }) {
       const projectName = data.projectName || 'Project Work';
       const dateRange = getProjectDateRange(
         data.projectFirstCommitDate,
-        data.projectCreatedAt
+        data.projectLastCommitDate
       );
       const existingIndex = (resumeData.sections.projects || []).findIndex(
         (p) => p.title === projectName
@@ -792,7 +792,7 @@ export default function ResumeNewPage({ resumeId = null }) {
       if (item.projectName) {
         const project = projects.find((p) => p.id === item.projectId);
         const dateRange = project
-          ? getProjectDateRange(project.first_commit_date, project.created_at)
+          ? getProjectDateRange(project.first_commit_date, project.last_commit_date)
           : 'Present';
         const existingIndex = (resumeData.sections.projects || []).findIndex(
           (p) => p.company === item.projectName
@@ -841,7 +841,7 @@ export default function ResumeNewPage({ resumeId = null }) {
       const project = projects.find((p) => p.id === item.projectId);
       const projectName = item.projectName || 'Project Work';
       const dateRange = project
-        ? getProjectDateRange(project.first_commit_date, project.created_at)
+        ? getProjectDateRange(project.first_commit_date, project.last_commit_date)
         : 'Present';
       const existingIndex = (resumeData.sections.projects || []).findIndex(
         (p) => p.title === projectName

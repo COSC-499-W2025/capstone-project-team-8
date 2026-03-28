@@ -17,6 +17,10 @@ export default function ProjectDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [evaluation, setEvaluation] = useState(null);
   const [evalLoading, setEvalLoading] = useState(false);
+  const [isEditingDates, setIsEditingDates] = useState(false);
+  const [editedFirstDate, setEditedFirstDate] = useState('');
+  const [editedLastDate, setEditedLastDate] = useState('');
+  const [savingDates, setSavingDates] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -213,6 +217,57 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const handleEditDates = () => {
+    setEditedFirstDate(project.first_commit_date ? new Date(project.first_commit_date * 1000).toISOString().split('T')[0] : '');
+    setEditedLastDate(project.last_commit_date ? new Date(project.last_commit_date * 1000).toISOString().split('T')[0] : '');
+    setIsEditingDates(true);
+  };
+
+  const handleSaveDates = async () => {
+    setSavingDates(true);
+    setError('');
+
+    try {
+      const firstTs = editedFirstDate ? Math.floor(new Date(editedFirstDate).getTime() / 1000) : null;
+      const lastTs = editedLastDate ? Math.floor(new Date(editedLastDate).getTime() / 1000) : null;
+
+      const response = await fetch(`${config.API_URL}/api/projects/${params.id}/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          first_commit_date: firstTs,
+          last_commit_date: lastTs,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update project dates');
+      }
+
+      const updatedProject = {
+        ...project,
+        first_commit_date: firstTs,
+        last_commit_date: lastTs,
+      };
+      
+      // Calculate duration locally if possible
+      if (firstTs && lastTs) {
+        updatedProject.duration_days = Math.max(0, Math.floor((lastTs - firstTs) / (24 * 60 * 60)));
+      }
+
+      setProject(updatedProject);
+      setIsEditingDates(false);
+    } catch (err) {
+      console.error('Error saving dates:', err);
+      setError('Failed to update project dates');
+    } finally {
+      setSavingDates(false);
+    }
+  };
+
   const formatDate = (timestamp) => {
     if (!timestamp) return 'N/A';
     // Handle both Unix timestamps (numbers) and date strings
@@ -321,24 +376,74 @@ export default function ProjectDetailPage() {
             </div>
 
             {/* Stats bar */}
-            <div className="flex flex-wrap items-center gap-0 border-t border-b border-white/10 text-[11px] uppercase tracking-widest">
-              {[
-                { label: 'First Commit', value: project.first_commit_date ? new Date(project.first_commit_date * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
-                { label: 'Created', value: project.created_at ? new Date(project.created_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
-                { label: 'Last Updated', value: project.updated_at ? new Date(project.updated_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
-                { label: 'Total Files', value: project.total_files ?? 0 },
-                { label: 'Contributors', value: project.contributors?.length ?? 0 },
-                { label: 'Commits', value: project.contributors?.reduce((s, c) => s + (c.commits || 0), 0) || 0 },
-                { label: 'Code Files', value: project.files?.code?.length ?? 0 },
-              ].map((stat, i) => (
-                <div key={i} className="flex items-center">
-                  <div className="px-5 py-2.5">
-                    <span className="text-white/40">{stat.label}&nbsp;</span>
-                    <span className="text-white font-bold">{stat.value}</span>
+            <div className="flex flex-wrap items-center gap-0 border-t border-b border-white/10 text-[11px] uppercase tracking-widest min-h-[42px]">
+              {isEditingDates ? (
+                <div className="flex flex-wrap items-center px-5 py-2 overflow-hidden gap-4 w-full">
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/40">{project.git_repository ? 'FIRST COMMIT' : 'STARTED'}</span>
+                    <input
+                      type="date"
+                      value={editedFirstDate}
+                      onChange={(e) => setEditedFirstDate(e.target.value)}
+                      className="bg-white/10 text-white border border-white/20 rounded px-2 py-0.5 outline-none focus:border-blue-500 text-[10px]"
+                    />
                   </div>
-                  <span className="text-white/10 select-none">|</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white/40">{project.git_repository ? 'LAST UPDATED' : 'LAST MODIFIED'}</span>
+                    <input
+                      type="date"
+                      value={editedLastDate}
+                      onChange={(e) => setEditedLastDate(e.target.value)}
+                      className="bg-white/10 text-white border border-white/20 rounded px-2 py-0.5 outline-none focus:border-blue-500 text-[10px]"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 ml-auto">
+                    <button
+                      onClick={handleSaveDates}
+                      disabled={savingDates}
+                      className="px-3 py-1 bg-blue-500 text-white rounded font-bold hover:bg-blue-600 disabled:opacity-50"
+                    >
+                      {savingDates ? 'SAVING...' : 'SAVE'}
+                    </button>
+                    <button
+                      onClick={() => setIsEditingDates(false)}
+                      className="px-3 py-1 bg-white/10 text-white rounded font-bold hover:bg-white/20"
+                    >
+                      CANCEL
+                    </button>
+                  </div>
                 </div>
-              ))}
+              ) : (
+                <>
+                  {[
+                    { label: project.git_repository ? 'First Commit' : 'Started', value: project.first_commit_date ? new Date(project.first_commit_date * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
+                    { label: 'Created', value: project.created_at ? new Date(project.created_at * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
+                    { label: project.git_repository ? 'Last Updated' : 'Last Modified', value: project.last_commit_date ? new Date(project.last_commit_date * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A' },
+                    { label: 'Total Files', value: project.total_files ?? 0 },
+                    { label: 'Contributors', value: project.contributors?.length ?? 0, hide: !project.git_repository && !project.contributors?.length },
+                    { label: 'Commits', value: project.contributors?.reduce((s, c) => s + (c.commits || 0), 0) || 0, hide: !project.git_repository && !project.contributors?.reduce((s, c) => s + (c.commits || 0), 0) },
+                    { label: 'Code Files', value: project.files?.code?.length ?? 0 },
+                  ].filter(stat => !stat.hide).map((stat, i) => (
+                    <div key={i} className="flex items-center h-10">
+                      <div className="px-5 py-2.5">
+                        <span className="text-white/40">{stat.label}&nbsp;</span>
+                        <span className="text-white font-bold">{stat.value}</span>
+                      </div>
+                      <span className="text-white/10 select-none">|</span>
+                    </div>
+                  ))}
+                  <button
+                    onClick={handleEditDates}
+                    className="ml-auto mr-5 p-1.5 text-white/30 hover:text-white transition-colors flex items-center gap-1.5"
+                    title="Manual date adjustment"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    <span className="font-black">EDIT</span>
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Big 3 stats */}
