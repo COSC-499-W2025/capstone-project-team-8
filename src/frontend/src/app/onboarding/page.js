@@ -9,8 +9,9 @@ import OnboardingActions from './components/OnboardingActions';
 import PersonalInfoStep from './steps/PersonalInfoStep';
 import OnlinePresenceStep from './steps/OnlinePresenceStep';
 import EducationStep from './steps/EducationStep';
+import ProjectUploadStep from './steps/ProjectUploadStep';
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -44,7 +45,12 @@ export default function OnboardingPage() {
 
   const handleNext = () => {
     if (step < TOTAL_STEPS) {
-      setStep(step + 1);
+      // Save profile data before moving to upload step
+      if (step === 3) {
+        handleSubmit('next');
+      } else {
+        setStep(step + 1);
+      }
     }
   };
 
@@ -54,7 +60,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (action = 'finish') => {
     setLoading(true);
     setError('');
     try {
@@ -69,11 +75,24 @@ export default function OnboardingPage() {
       if (Object.keys(profileData).length > 0) {
         await updateUserProfile(profileData, token);
       }
-      router.push('/dashboard');
+      
+      // If moving to next step (upload), don't redirect yet
+      if (action === 'next') {
+        setStep(step + 1);
+        setLoading(false);
+      } else {
+        // Finishing onboarding without upload
+        router.push('/dashboard');
+      }
     } catch (err) {
       setError(err.message || 'Failed to save profile');
       setLoading(false);
     }
+  };
+
+  const handleUploadComplete = () => {
+    // Redirect to dashboard after successful upload
+    router.push('/dashboard');
   };
 
   const inputStyle = {
@@ -91,7 +110,11 @@ export default function OnboardingPage() {
       return <OnlinePresenceStep form={form} update={update} inputStyle={inputStyle} />;
     }
 
-    return <EducationStep form={form} update={update} inputStyle={inputStyle} />;
+    if (step === 3) {
+      return <EducationStep form={form} update={update} inputStyle={inputStyle} />;
+    }
+
+    return <ProjectUploadStep token={token} onUploadComplete={handleUploadComplete} />;
   };
 
   return (
@@ -119,18 +142,20 @@ export default function OnboardingPage() {
           onSubmit={handleSubmit}
         />
 
-        {/* Skip */}
-        <div className="text-center mt-6">
-          <button
-            onClick={handleSkip}
-            className="text-xs transition-colors bg-transparent border-none cursor-pointer"
-            style={{ color: '#52525b' }}
-            onMouseEnter={(e) => { e.target.style.color = '#a1a1aa'; }}
-            onMouseLeave={(e) => { e.target.style.color = '#52525b'; }}
-          >
-            Skip for now
-          </button>
-        </div>
+        {/* Skip - Hidden on upload step */}
+        {step !== TOTAL_STEPS && (
+          <div className="text-center mt-6">
+            <button
+              onClick={handleSkip}
+              className="text-xs transition-colors bg-transparent border-none cursor-pointer"
+              style={{ color: '#52525b' }}
+              onMouseEnter={(e) => { e.target.style.color = '#a1a1aa'; }}
+              onMouseLeave={(e) => { e.target.style.color = '#52525b'; }}
+            >
+              Skip for now
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
