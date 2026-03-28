@@ -67,6 +67,10 @@ class ProjectsListView(APIView):
             languages = [{"id": l.id, "name": l.name} for l in p.languages.all()]
             frameworks = [{"id": f.id, "name": f.name} for f in p.frameworks.all()]
             
+            duration_days = None
+            if p.first_commit_date and p.last_commit_date:
+                duration_days = max(0, (p.last_commit_date - p.first_commit_date).days)
+            
             out.append({
                 "id": p.id,
                 "name": p.name,
@@ -80,6 +84,8 @@ class ProjectsListView(APIView):
                 "image_files_count": int(p.image_files_count or 0),
                 "git_repository": bool(p.git_repository),
                 "first_commit_date": int(p.first_commit_date.timestamp()) if p.first_commit_date else None,
+                "last_commit_date": int(p.last_commit_date.timestamp()) if p.last_commit_date else None,
+                "duration_days": duration_days,
                 "created_at": int(p.created_at.timestamp()) if p.created_at else None,
                 "updated_at": int(p.updated_at.timestamp()) if p.updated_at else None,
                 "thumbnail_url": request.build_absolute_uri(p.thumbnail.url) if p.thumbnail else None,
@@ -145,6 +151,10 @@ class ProjectDetailView(APIView):
                 "percent_of_commits": float(c.percent_of_commits or 0.0)
             })
 
+        duration_days = None
+        if p.first_commit_date and p.last_commit_date:
+            duration_days = max(0, (p.last_commit_date - p.first_commit_date).days)
+
         resp = {
             "id": p.id,
             "name": p.name,
@@ -157,6 +167,8 @@ class ProjectDetailView(APIView):
             "contributors": contributors,
             "git_repository": bool(p.git_repository),
             "first_commit_date": int(p.first_commit_date.timestamp()) if p.first_commit_date else None,
+            "last_commit_date": int(p.last_commit_date.timestamp()) if p.last_commit_date else None,
+            "duration_days": duration_days,
             "created_at": int(p.created_at.timestamp()) if p.created_at else None,
             "resume_bullet_points": p.resume_bullet_points or [],
             "user_role": p.user_role or 'other',

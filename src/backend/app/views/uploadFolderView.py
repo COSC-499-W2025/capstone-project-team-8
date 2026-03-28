@@ -307,8 +307,17 @@ class UploadFolderView(APIView):
             # Handle validation errors from service
             return JsonResponse({"error": str(e)}, status=400)
         except Exception as e:
-            # Handle unexpected errors
-            return JsonResponse({"error": f"Processing failed: {str(e)}"}, status=500)
+            import traceback
+            from rest_framework.response import Response
+            from rest_framework import status
+            import logging
+            logger = logging.getLogger(__name__)
+            error_trace = traceback.format_exc()
+            logger.error(f"Error processing upload: {e}\n{error_trace}")
+            return Response(
+                {"error": f"Internal server error processing zip file: {str(e)}", "trace": error_trace},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @extend_schema(
         exclude=True,  # Hide from API docs since it's just for HTML form

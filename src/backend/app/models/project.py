@@ -59,6 +59,7 @@ class Project(models.Model):
 	image_files_count = models.IntegerField(default=0)
 	git_repository = models.BooleanField(default=False)
 	first_commit_date = models.DateTimeField(null=True, blank=True)
+	last_commit_date = models.DateTimeField(null=True, blank=True)
 	resume_bullet_points = models.JSONField(default=list, blank=True)
 	resume_skills = models.JSONField(default=list, blank=True)
 	upload_source = models.CharField(max_length=50, default='zip_file')

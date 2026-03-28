@@ -176,7 +176,7 @@ class FolderUploadService:
                         }
             
             # Step 6: Get Git contributors and timestamps
-            git_contrib_data, project_timestamps = self._get_git_contributors(projects)
+            git_contrib_data, project_timestamps, project_last_timestamps = self._get_git_contributors(projects)
             
             # Step 7: Get timestamps for non-git projects from ZIP metadata
             zip_timestamps = self._get_zip_file_timestamps(archive_path, projects, content_dir)
@@ -187,7 +187,10 @@ class FolderUploadService:
 
             # Step 7b: Get end timestamps (newest files) for non-git projects from ZIP metadata
             zip_end_timestamps = self._get_zip_file_end_timestamps(archive_path, projects, content_dir)
-            # TODO: In future, could get git last commit timestamps here and merge (git takes priority)
+            # Merge git last commit timestamps here (git takes priority)
+            for tag, timestamp in project_last_timestamps.items():
+                if timestamp > 0:
+                    zip_end_timestamps[tag] = timestamp
             
 
             # Step 8: Generate AI summaries if consent given
@@ -340,7 +343,7 @@ class FolderUploadService:
     def _get_git_contributors(
         self, 
         projects: Dict[Path, int]
-    ) -> Tuple[Dict[str, Any], Dict[int, int]]:
+    ) -> Tuple[Dict[str, Any], Dict[int, int], Dict[int, int]]:
         """
         Extract Git contribution data for each project.
         
@@ -352,6 +355,7 @@ class FolderUploadService:
         """
         git_contrib_data = {}
         project_timestamps = {}
+        project_last_timestamps = {}
         
         if self.git_finder and projects:
             for root_path, tag in projects.items():
@@ -417,10 +421,17 @@ class FolderUploadService:
                 try:
                     timestamp = self.git_finder.get_project_timestamp(root_path)
                     project_timestamps[tag] = timestamp
+                    
+                    if hasattr(self.git_finder, 'get_project_last_timestamp'):
+                        last_timestamp = self.git_finder.get_project_last_timestamp(root_path)
+                        project_last_timestamps[tag] = last_timestamp
+                    else:
+                        project_last_timestamps[tag] = 0
                 except Exception:
                     project_timestamps[tag] = 0
+                    project_last_timestamps[tag] = 0
         
-        return git_contrib_data, project_timestamps
+        return git_contrib_data, project_timestamps, project_last_timestamps
     
     def _get_zip_file_timestamps(
         self,
@@ -429,8 +440,8 @@ class FolderUploadService:
         tmpdir_path: Path
     ) -> Dict[int, int]:
         """
-        Extract timestamps from ZIP file metadata for non-git projects.
-        Finds the oldest file in each project directory based on ZIP metadata.
+        Extract timestamps from ZIP file metadata for projects (including non-git).
+        Finds the oldest file in each project based on ZIP metadata.
         
         Args:
             zip_path: Path to the ZIP file
@@ -442,53 +453,35 @@ class FolderUploadService:
         """
         import zipfile
         from datetime import datetime
+        from app.services.analysis.analyzers.project_discovery import find_project_tag_for_path
         
         project_timestamps = {}
         
         try:
             with zipfile.ZipFile(zip_path, 'r') as zf:
-                # Group by project tag
-                for root_path, tag in projects.items():
-                    # Skip tag 0 (unorganized non-git files)
-                    if tag == 0:
+                # Pre-map all ZIP members to project tags
+                for zip_info in zf.infolist():
+                    if zip_info.is_dir():
                         continue
                     
-                    # Calculate relative path from tmpdir
+                    # Normalize path for matching
+                    file_path = zip_info.filename.replace('\\', '/')
+                    abs_file_path = (tmpdir_path / file_path).resolve()
+                    
+                    # Find project tag (defaults to 0 for unorganized files)
+                    tag = find_project_tag_for_path(abs_file_path, projects) or 0
+                    
                     try:
-                        rel_root = root_path.relative_to(tmpdir_path)
-                        project_prefix = str(rel_root).replace('\\', '/')
-                    except ValueError:
+                        # Convert date_time tuple to Unix timestamp
+                        dt = datetime(*zip_info.date_time)
+                        timestamp = int(dt.timestamp())
+                        
+                        if tag not in project_timestamps or timestamp < project_timestamps[tag]:
+                            project_timestamps[tag] = timestamp
+                    except (ValueError, OSError):
                         continue
-                    
-                    oldest_time = None
-                    
-                    # Find oldest file in this project
-                    for zip_info in zf.infolist():
-                        if zip_info.is_dir():
-                            continue
-                        
-                        # Normalize path separators
-                        file_path = zip_info.filename.replace('\\', '/')
-                        
-                        # Check if file belongs to this project
-                        if file_path.startswith(project_prefix + '/') or file_path == project_prefix:
-                            try:
-                                # Convert date_time tuple to Unix timestamp
-                                # date_time is (year, month, day, hour, minute, second)
-                                dt = datetime(*zip_info.date_time)
-                                timestamp = int(dt.timestamp())
-                                
-                                if oldest_time is None or timestamp < oldest_time:
-                                    oldest_time = timestamp
-                            except (ValueError, OSError):
-                                # Skip files with invalid timestamps
-                                continue
-                    
-                    if oldest_time is not None:
-                        project_timestamps[tag] = oldest_time
-                        
         except Exception:
-            # If anything fails, just return empty dict
+            # If anything fails, return what we have
             pass
         
         return project_timestamps
@@ -581,41 +574,33 @@ Date Range: {context['first_commit_date']}
         """
         import zipfile
         from datetime import datetime
+        from app.services.analysis.analyzers.project_discovery import find_project_tag_for_path
         
         project_end_timestamps = {}
         
         try:
             with zipfile.ZipFile(zip_path, 'r') as zf:
-                for root_path, tag in projects.items():
-                    if tag == 0:
+                for zip_info in zf.infolist():
+                    if zip_info.is_dir():
                         continue
+                    print(zip_info.filename)
+                    print(datetime(*zip_info.date_time).ctime())
+                    
+                    # Normalize path
+                    file_path = zip_info.filename.replace('\\', '/')
+                    abs_file_path = (tmpdir_path / file_path).resolve()
+                    
+                    # Find project tag (defaults to 0 for unorganized files)
+                    tag = find_project_tag_for_path(abs_file_path, projects) or 0
                     
                     try:
-                        rel_root = root_path.relative_to(tmpdir_path)
-                        project_prefix = str(rel_root).replace('\\', '/')
-                    except ValueError:
+                        dt = datetime(*zip_info.date_time)
+                        timestamp = int(dt.timestamp())
+                        
+                        if tag not in project_end_timestamps or timestamp > project_end_timestamps[tag]:
+                            project_end_timestamps[tag] = timestamp
+                    except (ValueError, OSError):
                         continue
-                    
-                    newest_time = None
-                    
-                    for zip_info in zf.infolist():
-                        if zip_info.is_dir():
-                            continue
-                        
-                        file_path = zip_info.filename.replace('\\', '/')
-                        
-                        if file_path.startswith(project_prefix + '/') or file_path == project_prefix:
-                            try:
-                                dt = datetime(*zip_info.date_time)
-                                timestamp = int(dt.timestamp())
-                                
-                                if newest_time is None or timestamp > newest_time:
-                                    newest_time = timestamp
-                            except (ValueError, OSError):
-                                continue
-                    
-                    if newest_time is not None:
-                        project_end_timestamps[tag] = newest_time
                         
         except Exception:
             pass

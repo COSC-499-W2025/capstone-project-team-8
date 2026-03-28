@@ -45,6 +45,45 @@ def get_project_timestamp(project_path: Path) -> int:
         return 0
 
 
+def get_project_last_timestamp(project_path: Path) -> int:
+    """Get project timestamp from last git commit.
+    
+    Returns Unix timestamp (integer) of the last commit, or 0 if:
+    - Not a git repository
+    - Git repo has no commits
+    - Error occurred
+    
+    Args:
+        project_path: Path to the project directory
+        
+    Returns:
+        int: Unix timestamp of last commit, or 0 on failure
+    """
+    if not (project_path / ".git").exists():
+        return 0
+    
+    try:
+        cp = _safe_run(
+            ["git", "log", "-1", "--format=%ct", "--all"],
+            cwd=project_path,
+            timeout=5
+        )
+        
+        if cp.returncode != 0:
+            return 0
+        
+        timestamps = cp.stdout.strip().splitlines()
+        if timestamps and timestamps[0]:
+            return int(timestamps[0])
+        else:
+            return 0
+            
+    except subprocess.TimeoutExpired:
+        return 0
+    except Exception:
+        return 0
+
+
 def _safe_run(cmd, cwd: Path, timeout: int = 10) -> subprocess.CompletedProcess:
     """Run subprocess command with environment protection and timeout."""
     env = dict(**os.environ)

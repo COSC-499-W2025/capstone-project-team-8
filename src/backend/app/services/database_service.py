@@ -248,6 +248,15 @@ class ProjectDatabaseService:
         if created_at_dt is None:
             created_at_dt = timezone.now()
 
+        # Parse last commit date from end_date timestamp
+        last_commit_date = None
+        end_date_timestamp = project_data.get('end_date')
+        if end_date_timestamp:
+            try:
+                last_commit_date = dt.datetime.fromtimestamp(float(end_date_timestamp), tz=dt.timezone.utc)
+            except (ValueError, TypeError):
+                pass
+
         # Prefer explicit last-updated ISO from analyzer for updated_at if present
         updated_at_dt = None
         last_updated_iso = project_data.get("_last_updated_iso") or project_data.get("last_updated")
@@ -301,6 +310,7 @@ class ProjectDatabaseService:
             image_files_count=image_files,
             git_repository=is_git_repo,
             first_commit_date=first_commit_date,
+            last_commit_date=last_commit_date,
             upload_source='zip_file',
             original_zip_name=upload_filename
             # Explicitly set created_at/updated_at from the incoming JSON timestamp when available.
@@ -415,6 +425,15 @@ class ProjectDatabaseService:
                 first_commit_ts = float(project_data.get('first_commit_date', 0))
                 first_commit_dt = dt.datetime.fromtimestamp(first_commit_ts, tz=dt.timezone.utc)
                 project.first_commit_date = first_commit_dt
+            except (ValueError, TypeError):
+                pass
+                
+        # Update last_commit_date if new data available
+        if project_data.get('end_date'):
+            try:
+                last_commit_ts = float(project_data.get('end_date', 0))
+                last_commit_dt = dt.datetime.fromtimestamp(last_commit_ts, tz=dt.timezone.utc)
+                project.last_commit_date = last_commit_dt
             except (ValueError, TypeError):
                 pass
         
