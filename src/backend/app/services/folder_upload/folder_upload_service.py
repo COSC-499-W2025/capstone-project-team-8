@@ -508,7 +508,7 @@ class FolderUploadService:
         if not send_to_llm:
             return {}
     
-        from app.services.llm.azure_client import ai_analyze
+        from app.services.llm import LLMFactory
         from app.utils.prompt_loader import load_prompt_template
         from app.services.human_file_filter import HumanFileFilter
         import logging
@@ -553,7 +553,7 @@ Date Range: {context['first_commit_date']}
                 prompt = prompt_template.build_prompt(context_str)
             
                 # Generate summary
-                summary = ai_analyze(prompt)
+                summary = LLMFactory.get_provider().analyze(prompt)
                 summaries[tag] = summary
             
             except Exception as e:

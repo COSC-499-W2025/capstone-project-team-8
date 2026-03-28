@@ -247,7 +247,7 @@ class TopProjectsSummaryTests(TestCase):
     
     def test_no_ai_calls_made(self):
         """Test that API does not call AI service (summaries are pre-generated)"""
-        with patch('app.views.project_views.ai_analyze') as mock_ai:
+        with patch('app.views.project_views.LLMFactory.get_provider') as mock_ai:
             self.client.force_authenticate(user=self.user)
             url = reverse("projects-ranked-summary")
             resp = self.client.get(url)
