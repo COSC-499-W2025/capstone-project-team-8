@@ -7,6 +7,7 @@ import { getCurrentUser } from '@/utils/api';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import { initializeButtons } from '@/utils/buttonAnimation';
+import { isValidLinkedInUrl } from '@/utils/validation';
 import config from '@/config';
 
 export default function ProfilePage() {
@@ -42,6 +43,18 @@ export default function ProfilePage() {
 
   const [profileImagePreview, setProfileImagePreview] = useState(user?.profile_image_url || '');
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  const normalizeGraduationDate = (value) => {
+    if (!value) return value;
+    const parts = value.split('-');
+    if (parts.length !== 3) return value;
+
+    const [year, month, day] = parts;
+    if (year.length > 4) {
+      return `${year.slice(0, 4)}-${month}-${day}`;
+    }
+    return value;
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -106,16 +119,8 @@ export default function ProfilePage() {
   };
 
   const handleGraduationDateChange = (e) => {
-    const { value } = e.target;
-    if (value) {
-      const year = new Date(value).getFullYear();
-      const currentYear = new Date().getFullYear();
-      if (year < currentYear - 10 || year > currentYear + 20) {
-        setMessage({ type: 'error', text: 'Please enter a reasonable graduation year' });
-        return;
-      }
-    }
-    setFormData(prev => ({ ...prev, expected_graduation: value }));
+    const normalizedValue = normalizeGraduationDate(e.target.value);
+    setFormData(prev => ({ ...prev, expected_graduation: normalizedValue }));
   };
 
   const handlePasswordChange = (e) => {
@@ -127,6 +132,15 @@ export default function ProfilePage() {
     e.preventDefault();
     setSaving(true);
     setMessage({ type: '', text: '' });
+
+    if (!isValidLinkedInUrl(formData.linkedin_url)) {
+      setSaving(false);
+      setMessage({
+        type: 'error',
+        text: 'Must be a valid LinkedIn URL',
+      });
+      return;
+    }
 
     try {
       const response = await fetch(`${config.API_URL}/api/users/me/`, {
@@ -449,11 +463,11 @@ export default function ProfilePage() {
                       LinkedIn URL
                     </label>
                     <input
-                      type="url"
+                      type="text"
                       name="linkedin_url"
                       value={formData.linkedin_url}
                       onChange={handleInputChange}
-                      placeholder="https://linkedin.com/in/username"
+                      placeholder="https://www.linkedin.com/in/username"
                       className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
                     />
                   </div>
@@ -554,9 +568,10 @@ export default function ProfilePage() {
                       name="expected_graduation"
                       value={formData.expected_graduation}
                       onChange={handleGraduationDateChange}
-                      min={`${new Date().getFullYear() - 10}-01-01`}
-                      max={`${new Date().getFullYear() + 20}-12-31`}
-                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
+                      onInput={handleGraduationDateChange}
+                      min="0001-01-01"
+                      max="9999-12-31"
+                      className={`w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors ${formData.expected_graduation ? 'date-input-filled' : 'date-input-empty'}`}
                     />
                   </div>
                 </div>
