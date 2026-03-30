@@ -153,7 +153,7 @@ export default function DashboardPage() {
 
   const getScoreForProject = (projectId) => {
     const rp = rankedProjects.find(p => p.id === projectId);
-    return rp ? rp.highlight_score : null;
+    return (rp && rp.highlight_score != null) ? Number(rp.highlight_score) : null;
   };
   if (loading) {
     return (
