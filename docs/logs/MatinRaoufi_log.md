@@ -1,5 +1,5 @@
 
-[Jump to latest week](#t2-week-10-march-9---march-15)
+[Jump to latest week](#t2-week-11--12-march-16---march-29)
 
 September 15-21
 
@@ -431,5 +431,32 @@ https://github.com/COSC-499-W2025/capstone-project-team-8/pull/341
 
 **Issues/blockers:**
 - Some merge conflicts were hard to solve
+
+
+## T2 Week 11 & 12 March 16 - March 29
+
+**Coding tasks:**
+- Refactored the 1,473-line `language_rubrics.py` into a `rubrics/` subpackage
+- PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/365
+
+
+**Testing or debugging tasks:**
+- Used unit tests to make sure no breaking changes
+- Verified all existing tests still pass after refactor
+
+**Reviewing:**
+-
+
+**What went well:**
+- Went as expected and everything worked well with no breaking changes
+
+**Connection to previous week:**
+- Continues the pattern of backend modularization from earlier weeks (models refactor, classifier refactor)
+
+**Plan/goals for next week:**
+- Meet with team and discuss future plans and what needs to be done vs additions we can add
+
+**Issues/blockers:**
+- None
 
 
