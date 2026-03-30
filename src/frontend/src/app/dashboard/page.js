@@ -9,6 +9,7 @@ import Header from '@/components/Header';
 import Toast from '@/components/Toast';
 import config from '@/config';
 import SkillsTimeline from '@/components/skillsTimeline';
+import { getGrade } from '@/utils/gradeUtils';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -94,7 +95,7 @@ export default function DashboardPage() {
           console.log('Top projects not available:', err);
         }
       } catch (err) {
-        console.log('Error fetching data:', err);
+        console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
       }

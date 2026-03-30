@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import { isNewProject, getNewProjects } from '@/utils/newProjectsSession';
 import config from '@/config';
+import { getGrade, getBarColor } from '@/utils/gradeUtils';
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -60,7 +61,6 @@ export default function ProjectsPage() {
   useEffect(() => {
     const checkNewProjects = () => {
       const stored = getNewProjects();
-      console.log('New projects from sessionStorage:', stored);
       setNewProjects(stored);
     };
     
@@ -83,7 +83,7 @@ export default function ProjectsPage() {
           setEvaluations(data.evaluations || []);
         }
       } catch (err) {
-        console.log('Evaluations not available');
+        // evaluations endpoint not available
       }
     };
     fetchEvaluations();
@@ -124,14 +124,6 @@ export default function ProjectsPage() {
     if (score >= 70) return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
     if (score >= 60) return 'text-orange-400 bg-orange-500/20 border-orange-500/30';
     return 'text-red-400 bg-red-500/20 border-red-500/30';
-  };
-
-  const getBarColor = (score) => {
-    if (score >= 90) return 'bg-green-500';
-    if (score >= 80) return 'bg-blue-500';
-    if (score >= 70) return 'bg-yellow-500';
-    if (score >= 60) return 'bg-orange-500';
-    return 'bg-red-500';
   };
 
   const getEvalForProject = (projectId) => {

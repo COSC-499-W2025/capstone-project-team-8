@@ -80,8 +80,6 @@ export default function ProjectUploadStep({ token, onUploadComplete = () => {} }
       
       // Perform the upload
       const response = await uploadFolder(selectedFile, scanConsent, llmConsent, token, null);
-      console.log('Upload response:', response);
-      
       // Wait a moment for backend to process
       await new Promise(resolve => setTimeout(resolve, 1000));
       
