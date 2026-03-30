@@ -413,8 +413,8 @@ What went wrong:
 - portfolio projects on public portfolios are not accessible if not logged in
 
 Next week:
-- Finalize last remaining bugs and any outstanding issues we need to resolve
-- Fix any confusing naming conventions and keep optimizing HCI
+- Finalize last remaining bugs and any outstanding issues we need to resolve (noted in week 11)
+- Fix any confusing naming conventions and keep optimizing HCI (noted in week 11)
 
 Reflection:
 Our last semester is coming to an end and we have a working product which we are able to use. Our application still have some flaws but we are working towards getting the system complete and ready to use in an actual real world setting.
