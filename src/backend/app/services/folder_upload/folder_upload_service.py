@@ -471,6 +471,11 @@ class FolderUploadService:
                     # Find project tag (defaults to 0 for unorganized files)
                     tag = find_project_tag_for_path(abs_file_path, projects) or 0
                     
+                    # Skip unorganized files (tag 0)
+                    if tag == 0:
+                        continue
+
+                    
                     try:
                         # Convert date_time tuple to Unix timestamp
                         dt = datetime(*zip_info.date_time)
@@ -583,8 +588,6 @@ Date Range: {context['first_commit_date']}
                 for zip_info in zf.infolist():
                     if zip_info.is_dir():
                         continue
-                    print(zip_info.filename)
-                    print(datetime(*zip_info.date_time).ctime())
                     
                     # Normalize path
                     file_path = zip_info.filename.replace('\\', '/')
@@ -592,6 +595,11 @@ Date Range: {context['first_commit_date']}
                     
                     # Find project tag (defaults to 0 for unorganized files)
                     tag = find_project_tag_for_path(abs_file_path, projects) or 0
+                    
+                    # Skip unorganized files (tag 0)
+                    if tag == 0:
+                        continue
+
                     
                     try:
                         dt = datetime(*zip_info.date_time)
