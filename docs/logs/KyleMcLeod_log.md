@@ -395,6 +395,7 @@ This week:
 - fix naming since users got confused with "update" button PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/349
 - fix toast transparency  PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/350
 - page titles and metadata PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/369
+- ui and refactor on landing PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/373
 - review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/346
 - review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/343
 - review Harper's PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/354
