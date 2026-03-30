@@ -142,7 +142,7 @@ This report documents which automated tests are expected to run successfully on 
 2. **Backend tests (Django unittest)**: run from the repo root with Docker Compose
    - `docker compose build backend`
    - `docker compose up -d db`
-   - `docker compose run --rm backend python manage.py test --exclude-tag=llm`
+   - `docker-compose exec backend python -m unittest discover -s /app/tests -p "test_*.py" -v`
 
 ### What the tests cover
 
