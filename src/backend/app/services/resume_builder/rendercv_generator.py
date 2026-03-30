@@ -199,6 +199,22 @@ def resume_data_to_rendercv_yaml(resume_data: dict, theme: str = "classic") -> d
     if cert_entries:
         sections["certifications"] = cert_entries
 
+    # Awards (treated as NormalEntry)
+    award_entries = []
+    for item in raw_sections.get("awards", []):
+        entry = {"name": item.get("title") or "Award"}
+        org = item.get("company", "")
+        if item.get("duration"):
+            entry["date"] = item["duration"]
+        bullets = _parse_bullets(item.get("content", ""))
+        if org:
+            bullets = [f"Issued by {org}"] + bullets
+        if bullets:
+            entry["highlights"] = bullets
+        award_entries.append(entry)
+    if award_entries:
+        sections["awards"] = award_entries
+
     if sections:
         cv["sections"] = sections
 
