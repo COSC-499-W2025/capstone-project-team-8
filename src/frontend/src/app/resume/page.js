@@ -1468,11 +1468,11 @@ export default function ResumeNewPage({ resumeId = null }) {
               onToggle={() => toggleSection('awards')}
               onAdd={() => addEntry('awards')}
             />
-            {!collapsed.awards && sec.awards.length === 0 && (
+            {!collapsed.awards && (sec.awards?.length ?? 0) === 0 && (
               <p className={styles.emptyHint}>No awards yet — click + Add</p>
             )}
             {!collapsed.awards &&
-              sec.awards.map((item) => (
+              (sec.awards ?? []).map((item) => (
                 <EntryCard
                   key={item.id}
                   item={item}
