@@ -434,7 +434,7 @@ https://github.com/COSC-499-W2025/capstone-project-team-8/pull/341
 
 
 ## T2 Week 11 & 12 March 16 - March 29
-
+![alt text](data/matin/image-6.png)
 **Coding tasks:**
 - Refactored the 1,473-line `language_rubrics.py` into a `rubrics/` subpackage
 
@@ -443,7 +443,7 @@ https://github.com/COSC-499-W2025/capstone-project-team-8/pull/341
   - Removed temporary console debug statements across frontend pages/components.
   - Added shared grade utility functions (getGrade, getBarColor) with unit tests.
   - Replaced duplicated grading helper implementations in multiple files with shared imports.
-  
+
 - PR: 
   - https://github.com/COSC-499-W2025/capstone-project-team-8/pull/365
   - https://github.com/COSC-499-W2025/capstone-project-team-8/pull/366
