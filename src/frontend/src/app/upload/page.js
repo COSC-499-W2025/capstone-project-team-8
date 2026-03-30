@@ -124,7 +124,6 @@ export default function UploadPage() {
         if (beforeResponse.ok) {
           const beforeData = await beforeResponse.json();
           projectsBeforeUpload = (beforeData.projects || []).map(p => p.id);
-          console.log('Projects before upload:', projectsBeforeUpload);
         }
       } catch (err) {
         console.error('Error fetching projects before upload:', err);
@@ -132,8 +131,6 @@ export default function UploadPage() {
       
       // Perform the upload
       const response = await uploadFolder(selectedFile, scanConsent, llmConsent, token, selectedProject);
-      console.log('Upload response:', response);
-      
       // Wait a moment for backend to process
       await new Promise(resolve => setTimeout(resolve, 1000));
       
@@ -146,8 +143,6 @@ export default function UploadPage() {
         if (afterResponse.ok) {
           const afterData = await afterResponse.json();
           const projectsAfterUpload = (afterData.projects || []).map(p => p.id);
-          console.log('Projects after upload:', projectsAfterUpload);
-          
           // Find projects that exist after but not before
           newProjectIds = projectsAfterUpload.filter(id => !projectsBeforeUpload.includes(id));
           
@@ -155,8 +150,6 @@ export default function UploadPage() {
           if (selectedProject && !newProjectIds.includes(selectedProject)) {
             newProjectIds.push(selectedProject);
           }
-          
-          console.log('New/updated project IDs:', newProjectIds);
           
           if (newProjectIds.length > 0) {
             addNewProjects(newProjectIds);

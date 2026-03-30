@@ -12,13 +12,6 @@ export default function ProjectsPanel({ projects, onAddItem }) {
   const [expandedProjects, setExpandedProjects] = useState(new Set());
   const [draggedItem, setDraggedItem] = useState(null);
 
-  // Debug: Log projects when they arrive
-  useEffect(() => {
-    if (projects && projects.length > 0) {
-      console.log('ProjectsPanel received projects:', projects);
-    }
-  }, [projects]);
-
   const toggleProject = (projectId) => {
     const newExpanded = new Set(expandedProjects);
     if (newExpanded.has(projectId)) {

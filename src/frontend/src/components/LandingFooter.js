@@ -1,46 +1,77 @@
+'use client';
+
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+
+const footerLinks = [
+  {
+    heading: 'Product',
+    links: [
+      { label: 'Features', href: '#features' },
+      { label: 'How It Works', href: '#how-it-works' },
+      { label: 'FAQ', href: '#faq' },
+    ],
+  },
+  {
+    heading: 'Account',
+    links: [
+      { label: 'Login', href: '/login' },
+      { label: 'Sign Up', href: '/signup' },
+      { label: 'Dashboard', href: '/dashboard' },
+    ],
+  },
+  {
+    heading: 'Project',
+    links: [
+      { label: 'COSC 499 Capstone', href: '#' },
+      { label: 'Team 8', href: '#' },
+    ],
+  },
+];
 
 export default function LandingFooter() {
   return (
-    <footer style={{ background: '#060812', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-          {/* Brand */}
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-white font-bold text-lg">Team 8</span>
-            </div>
-            <p className="text-sm max-w-xs" style={{ color: '#64748b' }}>
-              A capstone project by Team 8 for COSC499. Building a portfolio builder to help young professionals showcase their work.
+    <motion.footer
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      style={{ background: '#050508', borderTop: '1px solid rgba(255,255,255,0.04)' }}
+    >
+      <div className="max-w-6xl mx-auto px-6 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+          <div className="md:col-span-1">
+            <span className="text-white font-bold text-base">Portfolio Analyzer</span>
+            <p className="text-sm mt-3 leading-relaxed max-w-[240px]" style={{ color: '#d4d4d8' }}>
+              A capstone project by Team 8 for COSC 499. An AI-powered portfolio builder for young professionals.
             </p>
           </div>
 
-          {/* Links */}
-          <div className="flex gap-16">
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-3">Product</h4>
-              <div className="flex flex-col gap-2">
-                <Link href="#features" className="text-sm no-underline transition-colors" style={{ color: '#64748b' }}>Features</Link>
-                <Link href="#how-it-works" className="text-sm no-underline transition-colors" style={{ color: '#64748b' }}>How It Works</Link>
+          {footerLinks.map((col) => (
+            <div key={col.heading}>
+              <h4 className="text-sm font-semibold uppercase tracking-wider text-white mb-4">{col.heading}</h4>
+              <div className="flex flex-col gap-2.5">
+                {col.links.map((link) => (
+                  <Link
+                    key={link.label}
+                    href={link.href}
+                    className="text-sm no-underline transition-colors hover:text-white"
+                    style={{ color: '#d4d4d8' }}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
             </div>
-            <div>
-              <h4 className="text-sm font-semibold text-white mb-3">Account</h4>
-              <div className="flex flex-col gap-2">
-                <Link href="/login" className="text-sm no-underline transition-colors" style={{ color: '#64748b' }}>Login</Link>
-                <Link href="/signup" className="text-sm no-underline transition-colors" style={{ color: '#64748b' }}>Sign Up</Link>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-12 pt-6" style={{ borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
-          <p className="text-xs text-center" style={{ color: '#475569' }}>
-            © {new Date().getFullYear()} Team 8 Capstone Project. All rights reserved.
+        <div className="mt-12 pt-5 flex flex-col md:flex-row justify-between items-center gap-3" style={{ borderTop: '1px solid rgba(255,255,255,0.04)' }}>
+          <p className="text-xs" style={{ color: '#71717a' }}>
+            &copy; {new Date().getFullYear()} Team 8 Capstone Project. All rights reserved.
           </p>
         </div>
       </div>
-    </footer>
+    </motion.footer>
   );
 }

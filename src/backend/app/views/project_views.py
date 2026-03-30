@@ -15,7 +15,7 @@ from app.serializers import (
     ProjectConsentSerializer,
     ErrorResponseSerializer,
 )
-from app.services.llm import ai_analyze
+from app.services.llm import LLMFactory
 from app.utils.prompt_loader import load_prompt_template
 import logging
 
@@ -89,6 +89,7 @@ class ProjectsListView(APIView):
                 "frameworks": frameworks,
                 "resume_bullet_points": p.resume_bullet_points or [],
                 "user_role": p.user_role or 'other',
+                "description": p.description or '',
             })
 
         return JsonResponse({"projects": out})
@@ -213,6 +214,7 @@ class ProjectDetailView(APIView):
             "created_at": int(p.created_at.timestamp()) if p.created_at else None,
             "resume_bullet_points": p.resume_bullet_points or [],
             "user_role": p.user_role or 'other',
+            "description": p.description or '',
             "highlight_score": round(highlight_score, 1),
             "score_breakdown": {
                 "quality": round(quality_score, 1),
@@ -249,6 +251,7 @@ class ProjectDetailView(APIView):
         name = data.get("name")
         description = data.get("description")
         user_role = data.get("user_role")
+        classification = data.get("classification")
         changed = False
 
         if user_role is not None:
@@ -258,6 +261,20 @@ class ProjectDetailView(APIView):
                     status=400,
                 )
             p.user_role = user_role
+            changed = True
+            
+        VALID_CLASSIFICATION_TYPES = [
+            'coding', 'writing', 'art', 'mixed:coding+writing',
+            'mixed:coding+art', 'mixed:writing+art', 'unknown'
+        ]
+        
+        if classification is not None:
+            if classification not in VALID_CLASSIFICATION_TYPES:
+                return JsonResponse(
+                    {"error": f"Invalid classification '{classification}'. Valid choices: {VALID_CLASSIFICATION_TYPES}"},
+                    status=400,
+                )
+            p.classification_type = classification
             changed = True
 
         if name:
@@ -610,7 +627,7 @@ Guidelines:
 
 Output ONLY the summary text."""
             
-            summary = ai_analyze(full_prompt, system_message=system_msg)
+            summary = LLMFactory.get_provider().analyze(full_prompt, system_message=system_msg)
             return summary if summary else "Unable to generate summary at this time."
             
         except FileNotFoundError as e:

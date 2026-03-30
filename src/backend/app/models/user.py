@@ -47,6 +47,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 	date_joined = models.DateTimeField(auto_now_add=True)
 	last_login = models.DateTimeField(null=True, blank=True)
 	profile_updated_at = models.DateTimeField(auto_now=True)
+	skill_expertises = models.JSONField(default=dict, blank=True)
 	objects = UserManager()
 	USERNAME_FIELD = 'username'
 	REQUIRED_FIELDS = ['email']
