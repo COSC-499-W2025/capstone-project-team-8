@@ -14,6 +14,9 @@ A web application that enables users to upload, scan, and analyze their work art
     - Matin Raoufi
     - Kyle McLeod
 
+
+
+
 ## Quick Start with Docker
 
 ### Prerequisites
@@ -47,6 +50,14 @@ A web application that enables users to upload, scan, and analyze their work art
      - ReDoc: http://localhost:8000/api/schema/redoc/
      - OpenAPI Schema: http://localhost:8000/api/schema/
 
+### Testing files
+We have included three sample ZIP files:
+These Two files reflect the same project, one at an early stage and the same project at a later stage.
+[Original](testfolders/testfolder-33-Original.zip)
+[Updated](testfolders/testfolder-33-Updated.zip)
+This folder has a variety of projects including both a individual and collaborative coding project
+[Collaborative Project](testfolders/testfolder-34.zip)
+
 ### Stopping the Project
 ```bash
 docker-compose down
@@ -66,6 +77,8 @@ docker-compose logs -f frontend
 ```bash
 docker-compose up -d --build
 ```
+
+
 
 
 ## Technology Stack
@@ -101,10 +114,13 @@ docker-compose up -d --build
 
 ## Diagrams & Work Breakdown Structure
 
-### Data Flow Diagram (DFD) 📄 [View DFD](./docs/design/DFD.md)
+### Level 0 Context Diagram 📄 [View Context Diagram](./docs/design/Milestone3-Design-Documents/FinalFlowChart.png)
+A low-level view of the system's main components and how they interact with each other and external entities.
+
+### Level 1 Data Flow Diagram (DFD) 📄 [View DFD](./docs/design/Milestone3-Design-Documents/DFD1Final.png)
 A high-level view of how data moves through the system.
 
-### System Architecture Diagram (SAD) 📄 [View SAD](./docs/design/SAD.md)
+### System Architecture Diagram (SAD) 📄 [View SAD](./docs/design/Milestone3-Design-Documents/SystemArchitechtureFinal.png)
 Overview of components, services, and infrastructure for the application. This diagram focused mostly on the backend logic since we will spend the majority of the semester building the backend first.
 
 ### Work Breakdown Structure (WBS) 📄 [View WBS](./docs/plan/WBS.md)
