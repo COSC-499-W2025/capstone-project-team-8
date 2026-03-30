@@ -437,7 +437,16 @@ https://github.com/COSC-499-W2025/capstone-project-team-8/pull/341
 
 **Coding tasks:**
 - Refactored the 1,473-line `language_rubrics.py` into a `rubrics/` subpackage
-- PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/365
+
+- Did Frontend cleanup on things we didn't need 
+  - Removed unused resume-deprecated folder.
+  - Removed temporary console debug statements across frontend pages/components.
+  - Added shared grade utility functions (getGrade, getBarColor) with unit tests.
+  - Replaced duplicated grading helper implementations in multiple files with shared imports.
+  
+- PR: 
+  - https://github.com/COSC-499-W2025/capstone-project-team-8/pull/365
+  - https://github.com/COSC-499-W2025/capstone-project-team-8/pull/366
 
 
 **Testing or debugging tasks:**
@@ -445,6 +454,9 @@ https://github.com/COSC-499-W2025/capstone-project-team-8/pull/341
 - Verified all existing tests still pass after refactor
 
 **Reviewing:**
+- https://github.com/COSC-499-W2025/capstone-project-team-8/pull/359
+- https://github.com/COSC-499-W2025/capstone-project-team-8/pull/358
+- https://github.com/COSC-499-W2025/capstone-project-team-8/pull/369
 -
 
 **What went well:**
