@@ -92,3 +92,30 @@ Got an important refactor done.
 Peer testing and cleaning up the user interface and implementing final features.
 ### Reflection:
 - Need to start working on features and reviews earlier in week.
+
+## Week 11-12 T2
+### March 15th - March 29th:
+<img width="1603" height="933" alt="image" src="https://github.com/user-attachments/assets/f3346999-343f-4e97-b7f2-621af5b3b9cf" />
+
+
+### PRs Completed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/343 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/342 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/344 |  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/346 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/317 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/355 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/330 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/356 |  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/358 |  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/359 |  |
+
+
+
+
+### What went well
+Many Feature additions and bug fixes.
+
+### What's next
+Nothing, this is the last week before the project deliverable.
+### Reflection:
+Got good work done this week but alot was still left until the end of the week.
