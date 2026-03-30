@@ -95,7 +95,7 @@ Peer testing and cleaning up the user interface and implementing final features.
 
 ## Week 11-12 T2
 ### March 15th - March 29th:
-<img width="1603" height="933" alt="image" src="https://github.com/user-attachments/assets/f3346999-343f-4e97-b7f2-621af5b3b9cf" />
+<img width="1602" height="933" alt="image" src="https://github.com/user-attachments/assets/06e033ee-01ff-4b30-ba13-d979ace70023" />
 
 
 ### PRs Completed
