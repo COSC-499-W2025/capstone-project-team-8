@@ -17,6 +17,75 @@ export default function ProjectDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [evaluation, setEvaluation] = useState(null);
   const [evalLoading, setEvalLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: '', description: '', classification_type: '', user_role: '' });
+  const [saving, setSaving] = useState(false);
+
+  const USER_ROLES = [
+    { value: 'solo_developer', label: 'Solo Developer' },
+    { value: 'lead_developer', label: 'Lead Developer' },
+    { value: 'contributor', label: 'Contributor' },
+    { value: 'frontend_developer', label: 'Frontend Developer' },
+    { value: 'backend_developer', label: 'Backend Developer' },
+    { value: 'full_stack_developer', label: 'Full Stack Developer' },
+    { value: 'designer', label: 'Designer' },
+    { value: 'writer', label: 'Writer' },
+    { value: 'architect', label: 'Architect' },
+    { value: 'other', label: 'Other' },
+  ];
+
+  const CLASSIFICATION_TYPES = [
+    { value: 'coding', label: 'Coding' },
+    { value: 'writing', label: 'Writing' },
+    { value: 'art', label: 'Art/Design' },
+    { value: 'mixed:coding+writing', label: 'Mixed: Coding + Writing' },
+    { value: 'mixed:coding+art', label: 'Mixed: Coding + Art' },
+    { value: 'mixed:writing+art', label: 'Mixed: Writing + Art' },
+    { value: 'unknown', label: 'Unknown' }
+  ];
+
+  const handleEditClick = () => {
+    setEditForm({
+      name: project.name || '',
+      description: project.description || '',
+      classification_type: project.classification_type || 'unknown',
+      user_role: project.user_role || 'other'
+    });
+    setIsEditing(true);
+  };
+
+  const handleSaveProject = async () => {
+    setSaving(true);
+    try {
+      const response = await fetch(`${config.API_URL}/api/projects/${params.id}/`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: editForm.name,
+          description: editForm.description,
+          classification: editForm.classification_type,
+          user_role: editForm.user_role
+        })
+      });
+      if (!response.ok) throw new Error('Failed to update project');
+      
+      setProject({
+        ...project,
+        name: editForm.name,
+        description: editForm.description,
+        classification_type: editForm.classification_type,
+        user_role: editForm.user_role
+      });
+      setIsEditing(false);
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -290,7 +359,78 @@ export default function ProjectDetailPage() {
 
           {/* Project Header */}
           <div className="bg-[var(--card-bg)] rounded-lg overflow-hidden mb-6 border border-white/5">
-
+            {isEditing ? (
+              <div className="p-6 space-y-4">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold text-white">Edit Project Details</h2>
+                  <button onClick={() => setIsEditing(false)} className="text-white/50 hover:text-white">✕</button>
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-bold text-white/70 uppercase tracking-widest mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-bold text-white/70 uppercase tracking-widest mb-1">Description</label>
+                  <textarea
+                    value={editForm.description}
+                    onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                    rows={4}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-white/70 uppercase tracking-widest mb-1">Classification Phase</label>
+                    <select
+                      value={editForm.classification_type}
+                      onChange={(e) => setEditForm({...editForm, classification_type: e.target.value})}
+                      className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                    >
+                      {CLASSIFICATION_TYPES.map(type => (
+                        <option key={type.value} value={type.value}>{type.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-white/70 uppercase tracking-widest mb-1">Your Role</label>
+                    <select
+                      value={editForm.user_role}
+                      onChange={(e) => setEditForm({...editForm, user_role: e.target.value})}
+                      className="w-full bg-black/50 border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                    >
+                      {USER_ROLES.map(role => (
+                        <option key={role.value} value={role.value}>{role.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end gap-3 pt-4 border-t border-white/10">
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-4 py-2 text-xs font-bold uppercase tracking-widest text-white/50 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveProject}
+                    disabled={saving}
+                    className="px-4 py-2 bg-blue-500 text-white text-xs font-bold uppercase tracking-widest rounded hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+                <>
             {/* Top meta bar */}
             <div className="flex items-center justify-between px-5 py-2 border-b border-white/10 bg-white/[0.02]">
               <span className="text-[11px] uppercase tracking-widest text-white/40 font-medium flex items-center gap-2">
@@ -318,6 +458,11 @@ export default function ProjectDetailPage() {
                 {project.name || 'Untitled Project'}&nbsp;
                 <span className="text-blue-400">#{params.id}</span>
               </h1>
+              {project.description && (
+                <p className="mt-4 text-white/70 text-sm max-w-3xl leading-relaxed">
+                  {project.description}
+                </p>
+              )}
             </div>
 
             {/* Stats bar */}
@@ -403,6 +548,8 @@ export default function ProjectDetailPage() {
                   </span>
                 </div>
               </div>
+            )}
+            </>
             )}
 
             {/* Contributor distribution bar */}
@@ -493,6 +640,7 @@ export default function ProjectDetailPage() {
 
           {/* Mobile Project Score + Actions */}
           <div className="lg:hidden mb-6">
+            {renderEvalCard()}
             {project.highlight_score != null && (
               <div className="bg-[var(--card-bg)] rounded-lg border border-white/5 overflow-hidden mb-3">
                 <div className="px-4 pt-4 pb-3 border-b border-white/5">
@@ -527,6 +675,14 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
             )}
+            <div className="flex flex-col gap-2 mt-3">
+              <button
+                onClick={handleEditClick}
+                className="w-full px-4 py-2.5 bg-blue-500/10 text-blue-400 text-xs font-black uppercase tracking-widest rounded hover:bg-blue-500/20 transition-colors border border-blue-500/50"
+              >
+                Edit Project
+              </button>
+            </div>
             <div className="flex flex-col gap-2">
               <Link
                 href="/results"
@@ -669,6 +825,7 @@ export default function ProjectDetailPage() {
 
           {/* Sticky Project Score Sidebar - Right (desktop only) */}
           <div className="hidden lg:flex flex-col gap-3 w-72 shrink-0 sticky top-24">
+            {renderEvalCard()}
             {/* Project Score Card */}
             {project.highlight_score != null && (
               <div className="bg-[var(--card-bg)] rounded-lg border border-white/5 overflow-hidden">
@@ -709,6 +866,12 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
             )}
+            <button
+              onClick={handleEditClick}
+              className="w-full px-4 py-2.5 bg-blue-500/10 text-blue-400 text-xs font-black uppercase tracking-widest rounded hover:bg-blue-500/20 transition-colors border border-blue-500/50"
+            >
+              Edit Project
+            </button>
             <Link
               href="/results"
               className="w-full text-center px-4 py-2.5 bg-white text-[var(--card-bg)] text-xs font-black uppercase tracking-widest rounded hover:opacity-80 transition-opacity"
