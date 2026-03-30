@@ -73,7 +73,7 @@ export default function ProjectDetailPage() {
         }
       }
     } catch (err) {
-      console.log('No evaluation data available');
+      // evaluation data not available for this project
     } finally {
       setEvalLoading(false);
     }

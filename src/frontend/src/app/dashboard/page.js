@@ -84,10 +84,10 @@ export default function DashboardPage() {
             setEvaluations(evalData.evaluations || []);
           }
         } catch (err) {
-          console.log('Evaluations not available:', err);
+          // evaluations endpoint not available
         }
       } catch (err) {
-        console.log('Error fetching data:', err);
+        console.error('Error fetching data:', err);
       } finally {
         setLoading(false);
       }

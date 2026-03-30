@@ -44,7 +44,7 @@ export default function ResultsPage() {
           setEvaluations(data.evaluations || []);
         }
       } catch (err) {
-        console.log('Evaluations not available:', err);
+        // evaluations endpoint not available
       }
     };
     fetchEvaluations();

@@ -59,7 +59,6 @@ export default function ProjectsPage() {
   useEffect(() => {
     const checkNewProjects = () => {
       const stored = getNewProjects();
-      console.log('New projects from sessionStorage:', stored);
       setNewProjects(stored);
     };
     
@@ -82,7 +81,7 @@ export default function ProjectsPage() {
           setEvaluations(data.evaluations || []);
         }
       } catch (err) {
-        console.log('Evaluations not available');
+        // evaluations endpoint not available
       }
     };
     fetchEvaluations();
