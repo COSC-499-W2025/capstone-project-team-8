@@ -1,6 +1,7 @@
 # T8BG Team Log
 
 ## Weekly Logs
+- [Milestone 3 Week 11-12](#milestone-3-week-11-12)
 - [Milestone 3 Week 10](#milestone-3-week-10)
 - [Milestone 2 Week 9](#milestone-2-week-9)
 - [Milestone 2 Week 6-8](#milestone-2-week-6-8)
@@ -29,6 +30,57 @@
 |matin0014|Matin Raoufi|
 |Porter-K|Kyle Porter|
 |harperkerstens|Harper Kerstens|
+
+## Milestone 3 Week 11-12
+
+### Completed Tasks
+| Task | Assigned To | Issue # | Pull Request |
+|------|-------------|---------|--------------|
+| [ui] fix portfolio dropdown style | Kyle McLeod | | [#348](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/348) |
+| [hci] fix naming since users got confused with "update" button | Kyle McLeod | | [#349](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/349) |
+| [ui] toast transparency fix | Kyle McLeod | | [#350](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/350) |
+| [ui] Update onboarding and profile UI: LinkedIn URL and date input | Charlie Schwebius | [#347](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/347) | [#352](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/352) |
+| Added Upload File Step in onboarding experience | Harper Kerstens | [#353](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/353) | [#354](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/354) |
+| feat: add skills timeline to dashboard | Kyle Porter | [#330](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/330) | [#355](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/355) |
+| Add stored media from running app to gitignore | Kyle Porter | | [#356](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/356) |
+| [ci] setup frontend workflow | Jordan Truong | [#332](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/332) | [#357](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/357) |
+| feat: add page to edit projects | Kyle Porter | | [#358](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/358) |
+| feat: skill level | Kyle Porter | | [#359](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/359) |
+| Feat/project length | Kyle Porter | | [#360](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/360) |
+| UI: Add download button on resume card | Charlie Schwebius | | [#362](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/362) |
+| Refactor/split language rubrics | Matin Raoufi | | [#365](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/365) |
+| Frontend cleanup | Matin Raoufi | | [#366](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/366) |
+| [feat] seo metadata and page titles on all pages | Kyle McLeod | [#368](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/368) | [#369](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/369) |
+| Added diagrams and readme for diagrams | Harper Kerstens | [#370](https://github.com/COSC-499-W2025/capstone-project-team-8/issues/370) | [#371](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/371) |
+| fix: error when highlight score is undefined for project | Kyle Porter | | [#372](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/372) |
+| [ui/refactor] landing page revamp and refactor | Kyle McLeod | | [#373](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/373) |
+
+### Our Goals this week:
+Our goal this week was to get as much done before the deadline and finish the video demonstration for Milestone 3. We wanted to make sure we met all requirements for the milestone and have a nice video to properly show off our project.
+### Reflection
+Overall we are super proud of our work done with this project! we are super happy to be done and we are all proud to put our name on what we created.
+
+
+### What went well:
+This week we were able to implement all the remaining stuff we had set out to do and complete a vide demo for milestone 3. We are really proud of how we came together as a team to get all the remaining features done.
+
+### What didn't go well:
+We wanted to try and get some last minute features in which came with the added risk of bugs. This caused some unexpected time in catching bugs and fixes which was a bit stressful.
+
+
+### Test Report
+
+<img width="919" height="144" alt="image" src="https://github.com/user-attachments/assets/0ff4344b-9477-4273-ba6a-397622497bf0" />
+(errors are caused by our expired OpenAI key)
+
+### Plan for next week:
+Relax and review other groups projects! What a year its been!
+
+
+
+### Burn up chart
+
+<img width="1801" height="949" alt="image" src="https://github.com/user-attachments/assets/b1883309-4739-4269-b3d3-10045fa74846" />
 
 ## Milestone 3 Week 10
 
