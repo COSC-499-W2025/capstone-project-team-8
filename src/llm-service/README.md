@@ -1,8 +1,10 @@
 # llm-service (Ollama + Express proxy)
 
-This microservice provides a small Express API that will act as a layer that is part of our analysis process. 
+This microservice provides a small Express API that will act as a layer that is part of our analysis process. It is used specifically when the Django backend is configured with `LLM_PROVIDER=ollama` (the default for local development).
 
 **Why separate this from our Django app you might be thinking?** Because we can deploy this microservice completely independently, scale it separately. If we need to rotate cloud providers, it is extremely easy to do so with this architecture. We can simply use our cloud computing trials and clone this microservice to the new environment without touching our main application.
+
+> **Note on Cloud Providers (Gemini / Azure):** The Django backend natively supports `google-genai` (Gemini) and `openai` (Azure) securely via its internal `LLMFactory`. This Express microservice is **only** required when you want to run open-source models (like `llama3.1` or `mistral`) through a local Ollama instance.
 
 **Why use an express.js layer and not the API that comes with Ollama?**
 The Express.js API forwards requests to a locally running Ollama instance, which hosts the LLM models. This allows us to handle authentication, logging, rate limiting, and much more when we need to in the future.

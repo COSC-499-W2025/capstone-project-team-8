@@ -97,6 +97,7 @@ docker-compose up -d --build
 | Express.js | 5.1.0+ | Open up API route |
 | Ollama | Latest | Run AI model |
 | llama3.1:8b | Latest |AI model |
+| gemini-2.5-flash | 2.5-flash |AI model |
 
 ## Diagrams & Work Breakdown Structure
 

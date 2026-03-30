@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
+import config from '@/config';
 import { getCurrentUser } from '@/utils/api';
 import {
   getProjects,
@@ -283,7 +284,7 @@ function ResumePreview({ resumeData }) {
           <div className={styles.previewSection}>
             <div className={styles.previewSectionTitle}>SKILLS</div>
             <div className={styles.previewSkills}>
-              {sec.skills.map((s) => s.title).filter(Boolean).join(' • ')}
+              {sec.skills.map((s) => s.expertise ? `${s.title} (${s.expertise})` : s.title).filter(Boolean).join(' • ')}
             </div>
           </div>
         )}
@@ -360,8 +361,8 @@ export default function ResumeNewPage({ resumeId = null }) {
 
   // Track if we've done initial load (to avoid marking first load as unsaved changes)
   const initialLoadRef = useRef(true);
-  // Store skills data for auto-generate
   const [aggregatedSkills, setAggregatedSkills] = useState(null);
+  const [editingSkillId, setEditingSkillId] = useState(null);
 
   // Collapsed state for each form section
   const [collapsed, setCollapsed] = useState({
@@ -519,8 +520,8 @@ export default function ResumeNewPage({ resumeId = null }) {
         setAggregatedSkills(skillsData);
 
         const allSkills = [
-          ...(skillsData.languages || []).map((l) => ({ id: `lang-${l.name}`, title: l.name })),
-          ...(skillsData.frameworks || []).map((f) => ({ id: `fw-${f.name}`, title: f.name })),
+          ...(skillsData.languages || []).map((l) => ({ id: `lang-${l.name}`, title: l.name, expertise: l.expertise || '' })),
+          ...(skillsData.frameworks || []).map((f) => ({ id: `fw-${f.name}`, title: f.name, expertise: f.expertise || '' })),
         ];
 
         // Build pre-populated education entry
@@ -1338,7 +1339,7 @@ export default function ResumeNewPage({ resumeId = null }) {
               collapsed={collapsed.skills}
               onToggle={() => toggleSection('skills')}
               onAdd={() => {
-                const newSkill = { id: Date.now(), title: '' };
+                const newSkill = { id: Date.now(), title: '', expertise: '' };
                 const updated = {
                   ...resumeData,
                   sections: {
@@ -1372,6 +1373,53 @@ export default function ResumeNewPage({ resumeId = null }) {
                       onBlur={flushPersonal}
                       placeholder="Skill"
                     />
+                    {editingSkillId === skill.id ? (
+                      <select
+                        autoFocus
+                        className={styles.skillExpertiseSelect}
+                        value={skill.expertise || ''}
+                        title="Expertise Level"
+                        onBlur={() => setEditingSkillId(null)}
+                        onChange={async (e) => {
+                          const newExp = e.target.value;
+                          const items = sec.skills.map((s) =>
+                            s.id === skill.id ? { ...s, expertise: newExp } : s
+                          );
+                          setResumeData((prev) => ({
+                            ...prev,
+                            sections: { ...prev.sections, skills: items },
+                          }));
+                          setEditingSkillId(null);
+                          if (skill.title) {
+                            try {
+                              await fetch(`${config.API_URL}/api/skills/expertise/`, {
+                                method: 'PATCH',
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({ skill: skill.title, expertise: newExp })
+                              });
+                            } catch (err) {
+                              console.error('Failed to sync expertise:', err);
+                            }
+                          }
+                        }}
+                      >
+                        <option value="">Lvl</option>
+                        <option value="Beginner">Beg</option>
+                        <option value="Intermediate">Int</option>
+                        <option value="Advanced">Adv</option>
+                      </select>
+                    ) : (
+                      <div
+                        className="text-[10px] text-[#8b8b93] hover:text-[#e4e4e7] cursor-pointer"
+                        title="Click to edit expertise"
+                        onClick={() => setEditingSkillId(skill.id)}
+                      >
+                        {skill.expertise || 'Lvl'}
+                      </div>
+                    )}
                     <button
                       className={styles.removeSkillBtn}
                       onClick={() => removeEntry('skills', skill.id)}
