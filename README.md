@@ -128,3 +128,28 @@ A brief overview of the work breakdown structure plan.
 
 ### List of known bugs
 [docs/BugList.docx](./docs/BugList.docx)
+
+## Test report
+
+This report documents which automated tests are expected to run successfully on the current codebase, and the strategy used to keep the system stable.
+
+### How to run
+
+1. **Frontend tests (Jest)**: run from `src/frontend`
+   - `cd src/frontend`
+   - `npm test`
+
+2. **Backend tests (Django unittest)**: run from the repo root with Docker Compose
+   - `docker compose build backend`
+   - `docker compose up -d db`
+   - `docker compose run --rm backend python manage.py test --exclude-tag=llm`
+
+### What the tests cover
+
+- **Frontend:** Jest tests under `src/frontend/src/__tests__/` cover key user flows and UI/business logic behavior. They typically use mocked network/API boundaries so failures are deterministic and regressions are caught early.
+- **Backend:** Django tests under the top-level `tests/` folder validate the core parsing/classification pipeline and API endpoint behavior. CI runs with `--exclude-tag=llm` to avoid nondeterminism when LLM services are not available.
+
+### GitHub Actions (auto tests)
+
+- **`frontend_tests.yml`** runs frontend Jest tests on `push` to `main` and on `pull_request`.
+- **`backend_tests.yml`** builds/runs the backend container, starts the database, and runs Django tests with LLM-tag exclusion on `push` to `main` and on `pull_request`.
