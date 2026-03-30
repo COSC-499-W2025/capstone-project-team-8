@@ -19,6 +19,8 @@ export default function DashboardPage() {
   const [skills, setSkills] = useState({
     languages: [],
     frameworks: [],
+    resume_skills: [],
+    total_projects: 0
   });
   const [editingSkill, setEditingSkill] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
@@ -56,7 +58,9 @@ export default function DashboardPage() {
             const skillsData = await skillsRes.json();
             setSkills({
               languages: skillsData.languages || [],
-              frameworks: skillsData.frameworks || []
+              frameworks: skillsData.frameworks || [],
+              resume_skills: skillsData.resume_skills || [],
+              total_projects: skillsData.total_projects || 0
             });
           }
         } catch (err) {
@@ -167,6 +171,43 @@ export default function DashboardPage() {
     );
   }
 
+  const renderSkillItem = (skill, category) => (
+    <div key={skill.name} className="flex justify-between items-center group gap-3 py-1">
+      <div className="flex items-center min-w-0 flex-1 gap-2">
+        <span className="text-white/70 text-sm truncate" title={skill.name}>{skill.name}</span>
+        <span className="text-white/40 text-[10px] whitespace-nowrap px-1.5 py-0.5 rounded bg-white/5 border border-white/5">
+          {skill.project_count} {skill.project_count === 1 ? 'proj' : 'projs'}
+        </span>
+      </div>
+      {editingSkill === `${category}-${skill.name}` ? (
+        <select
+          autoFocus
+          value={skill.expertise || ''}
+          onChange={(e) => {
+            handleExpertiseChange(skill.name, e.target.value, category);
+            setEditingSkill(null);
+          }}
+          onBlur={() => setEditingSkill(null)}
+          className="text-xs bg-black/50 border border-white/10 rounded px-1 min-w-[90px] py-1 text-white/80 outline-none hover:border-white/30 transition-colors"
+        >
+          <option value="">Set Level</option>
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      ) : (
+        <div
+          className="text-xs text-white/50 hover:text-white/90 cursor-pointer flex items-center gap-1.5 bg-white/5 hover:bg-white/10 px-2 py-1 rounded transition-colors"
+          onClick={() => setEditingSkill(`${category}-${skill.name}`)}
+          title="Click to edit expertise level"
+        >
+          <span className="max-w-[80px] truncate">{skill.expertise || 'Set Level'}</span>
+          <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✏️</span>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <>
       <Header />
@@ -230,42 +271,9 @@ export default function DashboardPage() {
                     <p className="text-white/70 text-sm font-medium mb-2">Languages</p>
                     <div className="space-y-2">
                       {skills.languages.length > 0 ? (
-                        skills.languages.map((lang) => (
-                          <div key={lang.name} className="flex justify-between items-center group">
-                            <div className="flex-1 truncate">
-                              <span className="text-white/60 text-sm mr-2">{lang.name}</span>
-                              <span className="text-white/40 text-[10px]">({lang.project_count})</span>
-                            </div>
-                            {editingSkill === `languages-${lang.name}` ? (
-                              <select
-                                autoFocus
-                                value={lang.expertise || ''}
-                                onChange={(e) => {
-                                  handleExpertiseChange(lang.name, e.target.value, 'languages');
-                                  setEditingSkill(null);
-                                }}
-                                onBlur={() => setEditingSkill(null)}
-                                className="text-xs bg-black/50 border border-white/10 rounded px-1 min-w-[90px] py-1 text-white/80 outline-none hover:border-white/30 transition-colors"
-                              >
-                                <option value="">Set Level</option>
-                                <option value="Beginner">Beginner</option>
-                                <option value="Intermediate">Intermediate</option>
-                                <option value="Advanced">Advanced</option>
-                              </select>
-                            ) : (
-                              <div
-                                className="text-xs text-white/60 hover:text-white/90 cursor-pointer flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2 py-1 rounded transition-colors"
-                                onClick={() => setEditingSkill(`languages-${lang.name}`)}
-                                title="Click to edit expertise level"
-                              >
-                                {lang.expertise || 'Set Level'} 
-                                <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✏️</span>
-                              </div>
-                            )}
-                          </div>
-                        ))
+                        skills.languages.map((lang) => renderSkillItem(lang, 'languages'))
                       ) : (
-                        <p className="text-white/40 text-sm">No projects uploaded yet</p>
+                        <p className="text-white/40 text-[10px]">No languages detected</p>
                       )}
                     </div>
                   </div>
@@ -275,42 +283,21 @@ export default function DashboardPage() {
                     <p className="text-white/70 text-sm font-medium mb-2">Frameworks</p>
                     <div className="space-y-2">
                       {skills.frameworks.length > 0 ? (
-                        skills.frameworks.map((fw) => (
-                          <div key={fw.name} className="flex justify-between items-center group">
-                            <div className="flex-1 truncate">
-                              <span className="text-white/60 text-sm mr-2">{fw.name}</span>
-                              <span className="text-white/40 text-[10px]">({fw.project_count})</span>
-                            </div>
-                            {editingSkill === `frameworks-${fw.name}` ? (
-                              <select
-                                autoFocus
-                                value={fw.expertise || ''}
-                                onChange={(e) => {
-                                  handleExpertiseChange(fw.name, e.target.value, 'frameworks');
-                                  setEditingSkill(null);
-                                }}
-                                onBlur={() => setEditingSkill(null)}
-                                className="text-xs bg-black/50 border border-white/10 rounded px-1 min-w-[90px] py-1 text-white/80 outline-none hover:border-white/30 transition-colors"
-                              >
-                                <option value="">Set Level</option>
-                                <option value="Beginner">Beginner</option>
-                                <option value="Intermediate">Intermediate</option>
-                                <option value="Advanced">Advanced</option>
-                              </select>
-                            ) : (
-                              <div
-                                className="text-xs text-white/60 hover:text-white/90 cursor-pointer flex items-center gap-2 bg-white/5 hover:bg-white/10 px-2 py-1 rounded transition-colors"
-                                onClick={() => setEditingSkill(`frameworks-${fw.name}`)}
-                                title="Click to edit expertise level"
-                              >
-                                {fw.expertise || 'Set Level'} 
-                                <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✏️</span>
-                              </div>
-                            )}
-                          </div>
-                        ))
+                        skills.frameworks.map((fw) => renderSkillItem(fw, 'frameworks'))
                       ) : (
-                        <p className="text-white/40 text-sm">No frameworks detected</p>
+                        <p className="text-white/40 text-[10px]">No frameworks detected</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Other Skills */}
+                  <div>
+                    <p className="text-white/70 text-sm font-medium mb-2">General Skills</p>
+                    <div className="space-y-2">
+                      {skills.resume_skills && skills.resume_skills.length > 0 ? (
+                        skills.resume_skills.map((skill) => renderSkillItem(skill, 'resume_skills'))
+                      ) : (
+                        <p className="text-white/40 text-[10px]">No general skills detected</p>
                       )}
                     </div>
                   </div>
