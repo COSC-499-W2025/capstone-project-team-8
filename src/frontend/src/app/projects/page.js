@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import { isNewProject, getNewProjects } from '@/utils/newProjectsSession';
 import config from '@/config';
+import { getGrade, getBarColor } from '@/utils/gradeUtils';
 
 export default function ProjectsPage() {
   const router = useRouter();
@@ -87,28 +88,12 @@ export default function ProjectsPage() {
     fetchEvaluations();
   }, [isAuthenticated, token]);
 
-  const getGrade = (score) => {
-    if (score >= 90) return 'A';
-    if (score >= 80) return 'B';
-    if (score >= 70) return 'C';
-    if (score >= 60) return 'D';
-    return 'F';
-  };
-
   const getGradeColor = (score) => {
     if (score >= 90) return 'text-green-400 bg-green-500/20 border-green-500/30';
     if (score >= 80) return 'text-blue-400 bg-blue-500/20 border-blue-500/30';
     if (score >= 70) return 'text-yellow-400 bg-yellow-500/20 border-yellow-500/30';
     if (score >= 60) return 'text-orange-400 bg-orange-500/20 border-orange-500/30';
     return 'text-red-400 bg-red-500/20 border-red-500/30';
-  };
-
-  const getBarColor = (score) => {
-    if (score >= 90) return 'bg-green-500';
-    if (score >= 80) return 'bg-blue-500';
-    if (score >= 70) return 'bg-yellow-500';
-    if (score >= 60) return 'bg-orange-500';
-    return 'bg-red-500';
   };
 
   const getEvalForProject = (projectId) => {
