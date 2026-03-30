@@ -18,6 +18,8 @@
 - [February 8-March 1](#february-8-march-1)
 - [March 2-8](#march-2-8)
 - [March 9-15](#march-9-15)
+- [March 16-22](#march-16-22)
+- [March 23-29](#march-23-29)
 
 
 ## September 15-21
@@ -443,3 +445,50 @@ The heatmap implementation took longer than expected as I ran into some issues w
 
 ### Reflection:
 This week was a mix of challenges and successes. The heatmap feature was a rewarding implementation, but it came with its share of hurdles that required patience and problem-solving to overcome. The positive outcome of finding a new AI hosting solution was a bright spot that will hopefully enhance our system's capabilities moving forward. I'm looking forward to refining the heatmap and integrating the new hosting solution in the coming weeks.
+
+## March 16-22 (Bonus Week)
+
+
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+|   |  |
+
+### What went well
+
+### What didn't go well
+
+
+### What's next
+
+### Reflection:
+
+## March 23-29 
+
+
+- Implemented new step in onboarding process (First upload of project)
+- Updated Onboarding UI to reflect new step
+- Reviewed team members code
+- Group meetings preparing for end of Milestone
+
+
+### Completed PRs
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/354  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/353 |
+
+### What went well
+The onboarding step implementation went smoothly overall. Getting the upload step integrated into the existing onboarding flow without breaking anything was satisfying. The UI updates to reflect the new step also came together without any major issues.
+
+
+### What didn't go well
+  There was a small bug where the skip button was appearing twice on the upload step which needed to be fixed. It wasn't a major issue but it was a little annoying to catch after the fact. End of milestone crunch also added some pressure this week with group meetings and preparing everything for submission.
+
+
+### What's next
+Reflecting on Milestone 3 and evaluating team's progress and others groups projects
+
+### Reflection:
+This week was a solid finish to the milestone. The onboarding upload step was a feature I felt was important for giving new users a proper introduction to the core functionality of the app. Despite a small bug that needed fixing and the typical end of milestone busyness, things came together well. I'm happy with where we landed.
