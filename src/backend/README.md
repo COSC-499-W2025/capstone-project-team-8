@@ -66,6 +66,8 @@ cp .env.example .env
 
 The default values work with Docker Compose. For custom MySQL setup, edit `.env` with your credentials.
 
+**LLM Configuration:** By default, the application is configured to use the local `ollama` provider running on port `3001` via the `llm-service`. You can switch this to `gemini` or `azure` by updating the `LLM_PROVIDER` variable and providing the necessary API keys in your `.env` file.
+
 **About python-decouple:** This package manages environment variables securely, keeping secrets out of your code and Git repository.
 
 ### 6. Run Migrations

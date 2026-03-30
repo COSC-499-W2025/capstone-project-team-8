@@ -11,6 +11,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.db.models import Count
 from drf_spectacular.utils import extend_schema, OpenApiResponse
+import json
 
 from collections import Counter
 
@@ -72,7 +73,7 @@ class SkillsView(APIView):
             401: ErrorResponseSerializer,
             403: ErrorResponseSerializer,
         },
-        description="Get aggregated skills (languages, frameworks, and resume skills) from authenticated user's projects. Skills are sorted by usage frequency (most used first).",
+        description="Get aggregated skills (languages, frameworks, and resume skills) from authenticated user's projects. Skills are sorted by usage frequency (most used first). Each skill now includes the user's defined expertise level.",
         tags=["Skills"],
     )
     def get(self, request):
@@ -80,12 +81,13 @@ class SkillsView(APIView):
         Get aggregated skills from user's projects.
         
         Returns:
-            - languages: List of programming languages with project counts
-            - frameworks: List of frameworks with project counts
-            - resume_skills: List of other skills (writing, art, etc.) with project counts
+            - languages: List of programming languages with project counts and expertise
+            - frameworks: List of frameworks with project counts and expertise
+            - resume_skills: List of other skills with project counts and expertise
             - total_projects: Total number of user's projects
         """
         user = request.user
+        expertises = user.skill_expertises or {}
 
         # Aggregate languages from user's projects
         # Uses the ProjectLanguage through model to count distinct projects
@@ -122,20 +124,74 @@ class SkillsView(APIView):
             'languages': [
                 {
                     'name': lang.name,
-                    'project_count': lang.project_count
+                    'project_count': lang.project_count,
+                    'expertise': expertises.get(lang.name, '')
                 }
                 for lang in languages
             ],
             'frameworks': [
                 {
                     'name': fw.name,
-                    'project_count': fw.project_count
+                    'project_count': fw.project_count,
+                    'expertise': expertises.get(fw.name, '')
                 }
                 for fw in frameworks
             ],
-            'resume_skills': resume_skills_list,
+            'resume_skills': [
+                {
+                    'name': sk['name'],
+                    'project_count': sk['project_count'],
+                    'expertise': expertises.get(sk['name'], '')
+                }
+                for sk in resume_skills_list
+            ],
             'total_projects': total_projects
         })
+
+@method_decorator(csrf_exempt, name="dispatch")
+class SkillExpertiseUpdateView(APIView):
+    """
+    PATCH /api/skills/expertise/
+    
+    Update the expertise levels for a user's skills.
+    Accepts JSON payload:
+    {"skill": "Python", "expertise": "Advanced"}
+    """
+    permission_classes = [IsAuthenticated]
+    
+    @extend_schema(
+        request=dict,
+        responses={
+            200: OpenApiResponse(description="Successfully updated skill expertise."),
+        },
+        tags=["Skills"],
+    )
+    def patch(self, request):
+        user = request.user
+        data = request.data if getattr(request, 'data', None) else {}
+        if not data and request.body:
+            try:
+                data = json.loads(request.body)
+            except Exception:
+                pass
+
+        if not isinstance(user.skill_expertises, dict):
+            user.skill_expertises = {}
+            
+        updated = False
+        
+        if "skill" in data and "expertise" in data:
+            user.skill_expertises[data["skill"]] = data["expertise"]
+            updated = True
+        else:
+            for k, v in data.items():
+                user.skill_expertises[k] = v
+                updated = True
+                
+        if updated:
+            user.save(update_fields=["skill_expertises"])
+            
+        return JsonResponse({"status": "success", "skill_expertises": user.skill_expertises})
 
 @method_decorator(csrf_exempt, name="dispatch")
 class SkillsTimelineView(APIView):

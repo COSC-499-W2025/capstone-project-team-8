@@ -16,11 +16,15 @@ export default function DashboardPage() {
   const { isAuthenticated, token, user, setCurrentUser, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [projects, setProjects] = useState([]);
-  const [evaluations, setEvaluations] = useState([]);
+  const [topProjects, setTopProjects] = useState([]);
+  const [rankedProjects, setRankedProjects] = useState([]);
   const [skills, setSkills] = useState({
-    languages: {},
-    frameworks: {},
+    languages: [],
+    frameworks: [],
+    resume_skills: [],
+    total_projects: 0
   });
+  const [editingSkill, setEditingSkill] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
 
   useEffect(() => {
@@ -45,47 +49,50 @@ export default function DashboardPage() {
 
         if (projectsResponse.ok) {
           const projectsData = await projectsResponse.json();
-          const projectsList = projectsData.projects || [];
-          setProjects(projectsList);
-
-          // Calculate skills from projects
-          const languageCount = {};
-          const frameworkCount = {};
-
-          projectsList.forEach((project) => {
-            // Count primary classification as language
-            if (project.classification_type) {
-              const primaryLang = project.classification_type.split(':')[0].trim();
-              languageCount[primaryLang] = (languageCount[primaryLang] || 0) + 1;
-            }
-
-            // Count frameworks if available in response
-            if (project.frameworks && Array.isArray(project.frameworks)) {
-              project.frameworks.forEach((fw) => {
-                if (fw.name) {
-                  frameworkCount[fw.name] = (frameworkCount[fw.name] || 0) + 1;
-                }
-              });
-            }
-          });
-
-          setSkills({
-            languages: languageCount,
-            frameworks: frameworkCount,
-          });
+          setProjects(projectsData.projects || []);
         }
 
-        // Fetch evaluations
         try {
-          const evalResponse = await fetch(`${config.API_URL}/api/evaluations/`, {
-            headers: { 'Authorization': `Bearer ${token}` },
+          const skillsRes = await fetch(`${config.API_URL}/api/skills/`, {
+            headers: { 'Authorization': `Bearer ${token}` }
           });
-          if (evalResponse.ok) {
-            const evalData = await evalResponse.json();
-            setEvaluations(evalData.evaluations || []);
+          if (skillsRes.ok) {
+            const skillsData = await skillsRes.json();
+            setSkills({
+              languages: skillsData.languages || [],
+              frameworks: skillsData.frameworks || [],
+              resume_skills: skillsData.resume_skills || [],
+              total_projects: skillsData.total_projects || 0
+            });
           }
         } catch (err) {
-          // evaluations endpoint not available
+          console.error('Skills error:', err);
+        }
+
+        // Fetch ranked projects for avg score
+        try {
+          const rankedResponse = await fetch(`${config.API_URL}/api/projects/ranked/`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (rankedResponse.ok) {
+            const rankedData = await rankedResponse.json();
+            setRankedProjects(rankedData.projects || []);
+          }
+        } catch (err) {
+          console.log('Ranked projects not available:', err);
+        }
+
+        // Fetch top 3 ranked projects
+        try {
+          const topResponse = await fetch(`${config.API_URL}/api/projects/ranked/summary/`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+          });
+          if (topResponse.ok) {
+            const topData = await topResponse.json();
+            setTopProjects(topData.top_projects || []);
+          }
+        } catch (err) {
+          console.log('Top projects not available:', err);
         }
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -96,6 +103,41 @@ export default function DashboardPage() {
 
     fetchData();
   }, [authLoading, isAuthenticated, token, router]);
+
+  const handleExpertiseChange = async (skillName, newExpertise, category) => {
+    // Optimistic update
+    setSkills(prev => {
+      const updatedCategory = prev[category].map(s => 
+        s.name === skillName ? { ...s, expertise: newExpertise } : s
+      );
+      return { ...prev, [category]: updatedCategory };
+    });
+
+    try {
+      const resp = await fetch(`${config.API_URL}/api/skills/expertise/`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ skill: skillName, expertise: newExpertise })
+      });
+      if (!resp.ok) {
+        throw new Error('Failed to update expertise');
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage({ type: 'error', text: 'Could not save expertise level.' });
+    }
+  };
+
+  const getGrade = (score) => {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  };
 
   const getGradeColor = (score) => {
     if (score >= 90) return 'text-green-400';
@@ -126,12 +168,13 @@ export default function DashboardPage() {
     }
   };
 
-  const avgScore = evaluations.length > 0
-    ? evaluations.reduce((sum, e) => sum + e.overall_score, 0) / evaluations.length
+  const avgScore = rankedProjects.length > 0
+    ? rankedProjects.reduce((sum, p) => sum + (p.highlight_score || 0), 0) / rankedProjects.length
     : null;
 
-  const getEvalForProject = (projectId) => {
-    return evaluations.find(e => e.project_id === projectId);
+  const getScoreForProject = (projectId) => {
+    const rp = rankedProjects.find(p => p.id === projectId);
+    return rp ? rp.highlight_score : null;
   };
   if (loading) {
     return (
@@ -143,6 +186,43 @@ export default function DashboardPage() {
       </>
     );
   }
+
+  const renderSkillItem = (skill, category) => (
+    <div key={skill.name} className="flex justify-between items-center group gap-3 py-1">
+      <div className="flex items-center min-w-0 flex-1 gap-2">
+        <span className="text-white/70 text-sm truncate" title={skill.name}>{skill.name}</span>
+        <span className="text-white/40 text-[10px] whitespace-nowrap px-1.5 py-0.5 rounded bg-white/5 border border-white/5">
+          {skill.project_count} {skill.project_count === 1 ? 'proj' : 'projs'}
+        </span>
+      </div>
+      {editingSkill === `${category}-${skill.name}` ? (
+        <select
+          autoFocus
+          value={skill.expertise || ''}
+          onChange={(e) => {
+            handleExpertiseChange(skill.name, e.target.value, category);
+            setEditingSkill(null);
+          }}
+          onBlur={() => setEditingSkill(null)}
+          className="text-xs bg-black/50 border border-white/10 rounded px-1 min-w-[90px] py-1 text-white/80 outline-none hover:border-white/30 transition-colors"
+        >
+          <option value="">Set Level</option>
+          <option value="Beginner">Beginner</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+        </select>
+      ) : (
+        <div
+          className="text-xs text-white/50 hover:text-white/90 cursor-pointer flex items-center gap-1.5 bg-white/5 hover:bg-white/10 px-2 py-1 rounded transition-colors"
+          onClick={() => setEditingSkill(`${category}-${skill.name}`)}
+          title="Click to edit expertise level"
+        >
+          <span className="max-w-[80px] truncate">{skill.expertise || 'Set Level'}</span>
+          <span className="text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">✏️</span>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <>
@@ -206,15 +286,10 @@ export default function DashboardPage() {
                   <div className="mb-4">
                     <p className="text-white/70 text-sm font-medium mb-2">Languages</p>
                     <div className="space-y-2">
-                      {Object.entries(skills.languages).length > 0 ? (
-                        Object.entries(skills.languages).map(([lang, count]) => (
-                          <div key={lang} className="flex justify-between items-center">
-                            <span className="text-white/60 text-sm">{lang}</span>
-                            <span className="text-white font-bold">{count} {count === 1 ? 'project' : 'projects'}</span>
-                          </div>
-                        ))
+                      {skills.languages.length > 0 ? (
+                        skills.languages.map((lang) => renderSkillItem(lang, 'languages'))
                       ) : (
-                        <p className="text-white/40 text-sm">No projects uploaded yet</p>
+                        <p className="text-white/40 text-[10px]">No languages detected</p>
                       )}
                     </div>
                   </div>
@@ -223,15 +298,22 @@ export default function DashboardPage() {
                   <div className="mb-4">
                     <p className="text-white/70 text-sm font-medium mb-2">Frameworks</p>
                     <div className="space-y-2">
-                      {Object.entries(skills.frameworks).length > 0 ? (
-                        Object.entries(skills.frameworks).map(([fw, count]) => (
-                          <div key={fw} className="flex justify-between items-center">
-                            <span className="text-white/60 text-sm">{fw}</span>
-                            <span className="text-white font-bold">{count} {count === 1 ? 'project' : 'projects'}</span>
-                          </div>
-                        ))
+                      {skills.frameworks.length > 0 ? (
+                        skills.frameworks.map((fw) => renderSkillItem(fw, 'frameworks'))
                       ) : (
-                        <p className="text-white/40 text-sm">No frameworks detected</p>
+                        <p className="text-white/40 text-[10px]">No frameworks detected</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Other Skills */}
+                  <div>
+                    <p className="text-white/70 text-sm font-medium mb-2">General Skills</p>
+                    <div className="space-y-2">
+                      {skills.resume_skills && skills.resume_skills.length > 0 ? (
+                        skills.resume_skills.map((skill) => renderSkillItem(skill, 'resume_skills'))
+                      ) : (
+                        <p className="text-white/40 text-[10px]">No general skills detected</p>
                       )}
                     </div>
                   </div>
@@ -249,24 +331,98 @@ export default function DashboardPage() {
                 </div>
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
                   <p className="text-white/60 text-sm mb-1">Languages Used</p>
-                  <p className="text-3xl font-bold text-white">{Object.keys(skills.languages).length}</p>
+                  <p className="text-3xl font-bold text-white">{skills.languages.length || 0}</p>
                 </div>
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
                   <p className="text-white/60 text-sm mb-1">Frameworks Used</p>
-                  <p className="text-3xl font-bold text-white">{Object.keys(skills.frameworks).length}</p>
+                  <p className="text-3xl font-bold text-white">{skills.frameworks.length || 0}</p>
                 </div>
                 <div className="bg-[var(--card-bg)] rounded-lg p-4">
-                  <p className="text-white/60 text-sm mb-1">Avg Quality Score</p>
+                  <p className="text-white/60 text-sm mb-1">Avg Project Score</p>
                   {avgScore !== null ? (
                     <div className="flex items-baseline gap-2">
                       <p className={`text-3xl font-bold ${getGradeColor(avgScore)}`}>{getGrade(avgScore)}</p>
-                      <p className="text-white/60 text-sm">{avgScore.toFixed(1)}%</p>
+                      <p className="text-white/60 text-sm">{avgScore.toFixed(1)}/100</p>
                     </div>
                   ) : (
-                    <p className="text-white/40 text-sm mt-1">No evaluations yet</p>
+                    <p className="text-white/40 text-sm mt-1">No projects yet</p>
                   )}
                 </div>
               </div>
+
+              {/* Upload New Project Section */}
+              <div className="rounded-lg p-6" style={{ background: 'rgba(79, 124, 247, 0.08)', border: '1px solid rgba(79, 124, 247, 0.15)' }}>
+                <h2 className="text-2xl font-bold text-white mb-2">Analyze a New Project</h2>
+                <p className="text-white/70 mb-4">Upload your project folder to extract skills, frameworks, and get AI-powered insights</p>
+                <Link
+                  href="/upload"
+                  className="inline-block px-6 py-3 text-white font-semibold rounded-lg transition-colors"
+                  style={{ background: '#4f7cf7' }}
+                >
+                  Upload Project
+                </Link>
+              </div>
+
+              {/* Top Projects Spotlight */}
+              {topProjects.length > 0 && (
+                <div className="bg-[var(--card-bg)] rounded-lg p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-2xl font-bold text-white">Top 3 Projects</h2>
+                      <p className="text-white/50 text-sm mt-1">Your highest-ranked work by quality, scale, effort &amp; breadth</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {topProjects.map((tp, idx) => {
+                      const fc = tp.file_composition || { code: 0, content: 0, image: 0 };
+                      const totalFiles = fc.code + fc.content + fc.image;
+
+                      return (
+                        <Link key={tp.project_id} href={`/projects/${tp.project_id}`} className="block">
+                          <div
+                            className="rounded-lg p-5 transition-all hover:scale-[1.01]"
+                            style={{ background: 'rgba(79, 124, 247, 0.06)', border: '1px solid #27272a' }}
+                            onMouseEnter={(e) => e.currentTarget.style.borderColor = '#4f7cf7'}
+                            onMouseLeave={(e) => e.currentTarget.style.borderColor = '#27272a'}
+                          >
+                            {/* Header row */}
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <span className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500/20 text-blue-400 font-bold text-sm">#{idx + 1}</span>
+                                <div>
+                                  <h3 className="text-lg font-semibold text-white">{tp.name}</h3>
+                                  <div className="flex flex-wrap gap-1.5 mt-1">
+                                    {tp.languages.slice(0, 3).map((lang) => (
+                                      <span key={lang} className="px-2 py-0.5 bg-blue-500/20 text-blue-300 text-xs rounded-full">{lang}</span>
+                                    ))}
+                                    {tp.frameworks.slice(0, 2).map((fw) => (
+                                      <span key={fw} className="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full">{fw}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <span className="text-white/50 text-xs">Project Score</span>
+                                <p className={`text-xl font-bold ${getGradeColor(tp.highlight_score || 0)}`}>{tp.highlight_score || 0}<span className="text-sm text-white/40">/100</span></p>
+                              </div>
+                            </div>
+
+                            {/* Summary */}
+                            <p className="text-white/70 text-sm mb-3 line-clamp-2">{tp.summary}</p>
+
+                            {/* Quick stats row */}
+                            <div className="flex items-center gap-4 text-[11px] text-white/40">
+                              {tp.total_commits > 0 && <span>{tp.total_commits} commits</span>}
+                              {totalFiles > 0 && <span>{totalFiles} files</span>}
+                              {tp.total_lines_changed > 0 && <span>{tp.total_lines_changed.toLocaleString()} lines changed</span>}
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Recent Projects - Scrollable Carousel */}
               <div className="bg-[var(--card-bg)] rounded-lg p-6">
@@ -294,9 +450,9 @@ export default function DashboardPage() {
                             <span className="text-4xl">📁</span>
                           )}
                           {/* Grade Badge */}
-                          {getEvalForProject(project.id) && (
-                            <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold border ${getGradeBg(getEvalForProject(project.id).overall_score)} ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
-                              {getGrade(getEvalForProject(project.id).overall_score)} · {getEvalForProject(project.id).overall_score.toFixed(0)}%
+                          {getScoreForProject(project.id) !== null && (
+                            <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-bold border ${getGradeBg(getScoreForProject(project.id))} ${getGradeColor(getScoreForProject(project.id))}`}>
+                              {getGrade(getScoreForProject(project.id))} · {getScoreForProject(project.id).toFixed(0)}
                             </div>
                           )}
                         </div>
@@ -347,20 +503,7 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Upload New Project Section */}
-              <div className="rounded-lg p-6" style={{ background: 'rgba(79, 124, 247, 0.08)', border: '1px solid rgba(79, 124, 247, 0.15)' }}>
-                <h2 className="text-2xl font-bold text-white mb-2">Analyze a New Project</h2>
-                <p className="text-white/70 mb-4">Upload your portfolio to extract skills, frameworks, and get AI-powered insights</p>
-                <Link
-                  href="/upload"
-                  className="inline-block px-6 py-3 text-white font-semibold rounded-lg transition-colors"
-                  style={{ background: '#4f7cf7' }}
-                >
-                  Upload Portfolio
-                </Link>
-              </div>
               <SkillsTimeline />
-
               {/* Recent Activity / Quick Links */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Link

@@ -20,6 +20,7 @@ export default function ProjectsPage() {
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
   const [deletingProject, setDeletingProject] = useState(null);
   const [evaluations, setEvaluations] = useState([]);
+  const [rankedProjects, setRankedProjects] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
@@ -86,7 +87,36 @@ export default function ProjectsPage() {
       }
     };
     fetchEvaluations();
+
+    // Fetch ranked projects for composite highlight_score
+    const fetchRanked = async () => {
+      try {
+        const response = await fetch(`${config.API_URL}/api/projects/ranked/`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setRankedProjects(data.projects || []);
+        }
+      } catch (err) {
+        console.log('Ranked projects not available');
+      }
+    };
+    fetchRanked();
   }, [isAuthenticated, token]);
+
+  const getScoreForProject = (projectId) => {
+    const rp = rankedProjects.find(p => p.id === projectId);
+    return rp ? rp.highlight_score : null;
+  };
+
+  const getGrade = (score) => {
+    if (score >= 90) return 'A';
+    if (score >= 80) return 'B';
+    if (score >= 70) return 'C';
+    if (score >= 60) return 'D';
+    return 'F';
+  };
 
   const getGradeColor = (score) => {
     if (score >= 90) return 'text-green-400 bg-green-500/20 border-green-500/30';
@@ -118,13 +148,11 @@ export default function ProjectsPage() {
     if (sortBy === 'files') return [...result].sort((a, b) => (b.total_files || 0) - (a.total_files || 0));
     if (sortBy === 'grade') {
       return [...result].sort((a, b) => {
-        const ea = getEvalForProject(a.id);
-        const eb = getEvalForProject(b.id);
-        return (eb?.overall_score || 0) - (ea?.overall_score || 0);
+        return (getScoreForProject(b.id) || 0) - (getScoreForProject(a.id) || 0);
       });
     }
     return result;
-  }, [projects, typeFilter, sortBy, evaluations]);
+  }, [projects, typeFilter, sortBy, rankedProjects]);
 
   const formatDate = (timestamp) => {
     if (!timestamp) return 'N/A';
@@ -353,9 +381,9 @@ export default function ProjectsPage() {
                       </div>
                     )}
                     {/* Grade Badge */}
-                    {getEvalForProject(project.id) && (
-                      <div className={`absolute top-10 right-2 px-2 py-1 rounded text-xs font-bold border ${getGradeColor(getEvalForProject(project.id).overall_score)}`}>
-                        {getGrade(getEvalForProject(project.id).overall_score)} · {getEvalForProject(project.id).overall_score.toFixed(0)}%
+                    {getScoreForProject(project.id) !== null && (
+                      <div className={`absolute top-10 right-2 px-2 py-1 rounded text-xs font-bold border ${getGradeColor(getScoreForProject(project.id))} ${getGradeColor(getScoreForProject(project.id)).split(' ')[0]}`}>
+                        {getGrade(getScoreForProject(project.id))} · {getScoreForProject(project.id).toFixed(0)}
                       </div>
                     )}
                     {/* New Badge */}
@@ -391,19 +419,19 @@ export default function ProjectsPage() {
                     </div>
                   </div>
 
-                  {/* Quality Score Bar */}
-                  {getEvalForProject(project.id) && (() => {
-                    const ev = getEvalForProject(project.id);
+                  {/* Project Score */}
+                  {getScoreForProject(project.id) !== null && (() => {
+                    const score = getScoreForProject(project.id);
                     return (
                       <div className="mb-3">
                         <div className="flex justify-between items-center mb-1">
-                          <span className="text-white/50 text-xs">Quality Score</span>
-                          <span className="text-white/80 text-xs font-semibold">{ev.overall_score.toFixed(0)}%</span>
+                          <span className="text-white/50 text-xs">Project Score</span>
+                          <span className={`text-xs font-semibold ${getGradeColor(score).split(' ')[0]}`}>{score.toFixed(0)}<span className="text-white/40">/100</span></span>
                         </div>
                         <div className="w-full bg-white/10 rounded-full h-1.5">
                           <div
-                            className={`h-1.5 rounded-full transition-all ${getBarColor(ev.overall_score)}`}
-                            style={{ width: `${Math.min(ev.overall_score, 100)}%` }}
+                            className={`h-1.5 rounded-full transition-all ${getBarColor(score)}`}
+                            style={{ width: `${Math.min(score, 100)}%` }}
                           />
                         </div>
                       </div>

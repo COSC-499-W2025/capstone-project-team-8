@@ -16,3 +16,4 @@ django-cors-headers
 Pillow
 rendercv[full]
 pyyaml
+google-genai>=0.1.0
