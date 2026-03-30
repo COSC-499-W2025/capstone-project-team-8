@@ -2,7 +2,7 @@
 
 ### Milestone 2/3
 | [Week 1](#milestone-2-week-1-jan-5---jan-11) | [Week 2](#milestone-2-week-2-jan-12-18) | [Week 3](#milestone-2-week-3-jan-19-25) | [Week 4-5](#milestone-2-week-4-5-jan-26-feb-8) | 
-[Week 6-7-8](#milestone-2-week-6-7-8-feb-9---mar-1) | [Week 9](#milestone-2-week-9-mar-2---mar-8) | [Week 10] | 
+[Week 6-7-8](#milestone-2-week-6-7-8-feb-9---mar-1) | [Week 9](#milestone-2-week-9-mar-2---mar-8) | [Week 10] | [Week 11-12](#milestone-2-week-11-12-mar-9---mar-29) 
 
 
 ### Milestone 1
@@ -438,5 +438,45 @@ NEXT WEEK: Discuss with the team and continue work on Portfolio implementation
 #### Issues
 - Had to resolve some merge conflicts in my branch, which were fortunaltely sorted smoothly
 
+## Milestone 2 Week 11-12 (Mar 9 - Mar 29)
 
 <img width="1878" height="1099" alt="image" src="https://github.com/user-attachments/assets/015a0d26-cc89-4530-8451-6610c4e3f055" />
+
+#### PR's Worked on
+
+- **[#352](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/352) [ui] Update onboarding and profile UI: LinkedIn URL and date input**
+- **[#362](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/362) UI: Add download button on resume card**
+
+
+#### PR's Reviewed
+
+- **[#365](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/365) Refactor/split language rubrics**
+- **[#355](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/355) feat: add skills timeline to dashboard**
+- **[#340](https://github.com/COSC-499-W2025/capstone-project-team-8/pull/340) feat!: add gemini LLM option**
+
+#### Coding
+- Created PR which allows users to downlaod their resumes without having to open the resume page
+- Created PR which updated the input requirements for fields in the oncoarding and profile editing stages
+
+#### Testing or Debugging
+- Ran automated testing for PR # 365
+- Manually tested all reviewed PRs
+- PR 352 was all about debugging, as it allowed users to input 6 digit years
+- PR 352 also prevents users from using non-linkedin links for their linkeding, which could be a security hazard
+#### Reviewing or Collaboration
+- reviewed and commented on 3 PRs
+- Collaborated with team members to complete our weekly team log
+
+#### Last week to this week
+- Last week my goal was to actually push my weekly log to the repository, becasue I forgot last week.
+- I hope to be successful with that this week
+- Jokes aside, after the Peer evaluation, we found  a a couple bugs, and my goal for the week was to fix the bugs covered in PR 352
+- I did that successfully
+
+
+#### Upcoming goals
+- Relax
+- Maybe review with team to prepare for final quiz/exam
+
+#### Issues
+- Some local issues appeared on my machine with Kyle Porter's Gemini LLM branch, but I was able to fix those by rebuilding my docker image.
