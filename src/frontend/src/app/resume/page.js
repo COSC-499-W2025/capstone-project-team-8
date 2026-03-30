@@ -349,6 +349,7 @@ export default function ResumeNewPage({ resumeId = null }) {
   const [autoGenerating, setAutoGenerating] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [theme, setTheme] = useState('classic');
+  const [fieldErrors, setFieldErrors] = useState({});
   const [currentResumeId, setCurrentResumeId] = useState(
     resumeId ? Number.parseInt(resumeId, 10) : null
   );
@@ -654,7 +655,22 @@ export default function ResumeNewPage({ resumeId = null }) {
     setResumeData(updated);
   };
 
-  const flushPersonal = () => pushToHistory(resumeData);
+  const flushPersonal = (key) => {
+    if (key && ['github_url', 'linkedin_url', 'portfolio_url'].includes(key)) {
+      let val = resumeData[key];
+      if (val && val.trim() !== '') {
+        val = val.trim();
+        if (!val.startsWith('http://') && !val.startsWith('https://')) {
+          val = `https://${val}`;
+          const updated = { ...resumeData, [key]: val };
+          setResumeData(updated);
+          pushToHistory(updated);
+          return;
+        }
+      }
+    }
+    pushToHistory(resumeData);
+  };
 
   /** Coerce a raw phone string to E.164 format (+1XXXXXXXXXX for NA numbers). */
   const normalizePhone = (raw) => {
@@ -934,7 +950,38 @@ export default function ResumeNewPage({ resumeId = null }) {
 
   // ── PDF generation ───────────────────────────────────────────────────────
 
+  const validateUrls = () => {
+    const errors = {};
+    const urlFields = ['github_url', 'linkedin_url', 'portfolio_url'];
+    let hasError = false;
+
+    urlFields.forEach((field) => {
+      const val = resumeData[field];
+      if (val && val.trim() !== '') {
+        try {
+          if (!val.startsWith('http://') && !val.startsWith('https://')) {
+            throw new Error('Missing scheme');
+          }
+          new URL(val);
+        } catch (e) {
+          errors[field] = 'Must start with http:// or https://';
+          hasError = true;
+        }
+      }
+    });
+
+    setFieldErrors(errors);
+    if (hasError) {
+      setCollapsed((prev) => ({ ...prev, personal: false }));
+    }
+    return !hasError;
+  };
+
   const handleGeneratePDF = async () => {
+    if (!validateUrls()) {
+      setMessage({ type: 'error', text: 'Please fix the URL errors in Personal Info.' });
+      return;
+    }
     setGenerating(true);
     setMessage({ type: '', text: '' });
     try {
@@ -960,6 +1007,10 @@ export default function ResumeNewPage({ resumeId = null }) {
   };
 
   const handleDownloadYAML = async () => {
+    if (!validateUrls()) {
+      setMessage({ type: 'error', text: 'Please fix the URL errors in Personal Info.' });
+      return;
+    }
     try {
       let activeToken = token;
       try {
@@ -1192,23 +1243,26 @@ export default function ResumeNewPage({ resumeId = null }) {
                   { key: 'linkedin_url', placeholder: 'LinkedIn URL' },
                   { key: 'portfolio_url', placeholder: 'Portfolio URL' },
                 ].map(({ key, placeholder }) => (
-                  <input
-                    key={key}
-                    type={key === 'phone' ? 'tel' : 'text'}
-                    className={styles.personalInput}
-                    value={resumeData[key] || ''}
-                    onChange={(e) => {
-                      if (key === 'phone') {
-                        // only allow digits, +, spaces, dashes, parens
-                        const val = e.target.value.replace(/[^\d+\s()\-]/g, '');
-                        updatePersonal('phone', val);
-                      } else {
-                        updatePersonal(key, e.target.value);
-                      }
-                    }}
-                    onBlur={key === 'phone' ? handlePhoneBlur : flushPersonal}
-                    placeholder={placeholder}
-                  />
+                  <div key={key} className={styles.inputWrapper}>
+                    <input
+                      type={key === 'phone' ? 'tel' : 'text'}
+                      className={`${styles.personalInput} ${fieldErrors[key] ? styles.inputError : ''}`}
+                      value={resumeData[key] || ''}
+                      onChange={(e) => {
+                        if (fieldErrors[key]) setFieldErrors(prev => ({ ...prev, [key]: undefined }));
+                        if (key === 'phone') {
+                          // only allow digits, +, spaces, dashes, parens
+                          const val = e.target.value.replace(/[^\d+\s()\-]/g, '');
+                          updatePersonal('phone', val);
+                        } else {
+                          updatePersonal(key, e.target.value);
+                        }
+                      }}
+                      onBlur={key === 'phone' ? handlePhoneBlur : () => flushPersonal(key)}
+                      placeholder={placeholder}
+                    />
+                    {fieldErrors[key] && <span className={styles.errorText}>{fieldErrors[key]}</span>}
+                  </div>
                 ))}
               </div>
             )}

@@ -30,7 +30,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Two-column layout ────────────────────────────────────────────────────── */
@@ -276,7 +278,7 @@
   display: inline-block;
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -564,7 +566,8 @@
   text-align-last: right;
 }
 
-.skillExpertiseSelect:focus, .skillExpertiseSelect:hover {
+.skillExpertiseSelect:focus,
+.skillExpertiseSelect:hover {
   color: #e4e4e7;
 }
 
@@ -608,6 +611,7 @@
   text-align: center;
   margin-bottom: 12px;
 }
+
 /* ── Empty hint ────────────────────────────────────────────────────── */
 
 .emptyHint {
