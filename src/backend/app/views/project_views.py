@@ -88,6 +88,7 @@ class ProjectsListView(APIView):
                 "frameworks": frameworks,
                 "resume_bullet_points": p.resume_bullet_points or [],
                 "user_role": p.user_role or 'other',
+                "description": p.description or '',
             })
 
         return JsonResponse({"projects": out})
@@ -160,6 +161,7 @@ class ProjectDetailView(APIView):
             "created_at": int(p.created_at.timestamp()) if p.created_at else None,
             "resume_bullet_points": p.resume_bullet_points or [],
             "user_role": p.user_role or 'other',
+            "description": p.description or '',
         }
         return JsonResponse(resp)
 
