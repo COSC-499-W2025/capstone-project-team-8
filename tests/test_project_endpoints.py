@@ -139,6 +139,33 @@ class ProjectEndpointsTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         with self.assertRaises(Project.DoesNotExist):
             Project.objects.get(pk=self.p1.id)
+
+    def test_project_description_save_and_retrieve(self):
+        """Test that project description is saved and retrieved correctly"""
+        self.client.force_authenticate(user=self.user1)
+        detail_url = reverse("projects-detail", args=[self.p1.id])
+        list_url = reverse("projects-list")
+
+        # 1. Initially empty
+        resp = self.client.get(detail_url)
+        data = resp.json()
+        self.assertEqual(data.get("description"), "")
+
+        # 2. Update via PATCH
+        test_desc = "New description for testing"
+        resp = self.client.patch(detail_url, data={"description": test_desc}, format="json")
+        self.assertEqual(resp.status_code, 200)
+
+        # 3. Retrieve via detail view
+        resp = self.client.get(detail_url)
+        data = resp.json()
+        self.assertEqual(data.get("description"), test_desc)
+
+        # 4. Retrieve via list view
+        resp = self.client.get(list_url)
+        data = resp.json()
+        proj = next(p for p in data["projects"] if p["id"] == self.p1.id)
+        self.assertEqual(proj.get("description"), test_desc)
     
     def test_project_detail_includes_resume_bullet_points(self):
         """Test that project detail endpoint returns resume_bullet_points"""
