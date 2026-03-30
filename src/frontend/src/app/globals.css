@@ -145,6 +145,17 @@ input::placeholder {
   color: #a1a1aa !important;
 }
 
+/* Native date input text colors */
+input[type="date"].date-input-empty::-webkit-datetime-edit,
+input[type="date"].date-input-empty::-webkit-date-and-time-value {
+  color: #a1a1aa !important;
+}
+
+input[type="date"].date-input-filled::-webkit-datetime-edit,
+input[type="date"].date-input-filled::-webkit-date-and-time-value {
+  color: #ffffff !important;
+}
+
 input:focus, textarea:focus, select:focus {
   border-color: #4f7cf7 !important;
   outline: none !important;
