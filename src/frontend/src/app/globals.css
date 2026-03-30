@@ -131,8 +131,29 @@ input, textarea, select {
   font-family: var(--font-montserrat), 'Montserrat', sans-serif;
 }
 
+select option {
+  background-color: #18181b !important;
+  color: #ffffff !important;
+}
+
+select option:checked {
+  background-color: #27272a !important;
+  color: #ffffff !important;
+}
+
 input::placeholder {
   color: #a1a1aa !important;
+}
+
+/* Native date input text colors */
+input[type="date"].date-input-empty::-webkit-datetime-edit,
+input[type="date"].date-input-empty::-webkit-date-and-time-value {
+  color: #a1a1aa !important;
+}
+
+input[type="date"].date-input-filled::-webkit-datetime-edit,
+input[type="date"].date-input-filled::-webkit-date-and-time-value {
+  color: #ffffff !important;
 }
 
 input:focus, textarea:focus, select:focus {

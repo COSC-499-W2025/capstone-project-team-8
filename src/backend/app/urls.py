@@ -12,7 +12,7 @@ from .views.project_views import (
     ProjectThumbnailUploadView,
     LLMPrivacyConsentView,
 )
-from .views.skill_views import SkillsView
+from .views.skill_views import SkillsView, SkillsTimelineView
 from .views.user_views import UserMeView, PublicUserView, PasswordChangeView, ProfileImageUploadView
 from .views.portfolio_views import (
     PortfolioListView,
@@ -74,6 +74,7 @@ urlpatterns = [
   
     # Skills endpoints
     path("skills/", SkillsView.as_view(), name="skills"),
+    path("skills/timeline/", SkillsTimelineView.as_view(), name="skills-timeline"),
 
     # Portfolio endpoints
     path("portfolio/", PortfolioListView.as_view(), name="portfolio-list"),

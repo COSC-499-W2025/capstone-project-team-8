@@ -16,6 +16,15 @@
 const MAX_PROJECTS = 4;
 const MAX_SKILLS = 15;
 const MAX_BULLETS_PER_PROJECT = 5;
+const MS_PER_YEAR = 1000 * 60 * 60 * 24 * 365;
+
+const normalizeTimestamp = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+
+  const parsed = typeof value === 'number' ? new Date(value * 1000) : new Date(value);
+  const time = parsed.getTime();
+  return Number.isNaN(time) ? null : time;
+};
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -30,17 +39,23 @@ export function scoreProject(project) {
   const bulletCount = (project.resume_bullet_points || []).length;
   const languageCount = (project.languages || []).length;
   const frameworkCount = (project.frameworks || []).length;
+  const resumeSkillCount = (project.resume_skills || []).length;
   const skillCount = languageCount + frameworkCount;
 
   // Recency: projects with a more-recent created_at get a small bonus (0-10 pts)
   let recencyBonus = 0;
-  if (project.created_at) {
-    const ageMs = Date.now() - new Date(project.created_at).getTime();
-    const ageYears = ageMs / (1000 * 60 * 60 * 24 * 365);
+  const latestActivity = Math.max(
+    normalizeTimestamp(project.last_updated) || 0,
+    normalizeTimestamp(project.created_at) || 0,
+    normalizeTimestamp(project.first_commit_date) || 0,
+  );
+  if (latestActivity > 0) {
+    const ageMs = Date.now() - latestActivity;
+    const ageYears = ageMs / MS_PER_YEAR;
     recencyBonus = Math.max(0, 10 - ageYears * 2);
   }
 
-  return bulletCount * 3 + skillCount * 2 + recencyBonus;
+  return bulletCount * 3 + (skillCount + resumeSkillCount) * 2 + recencyBonus;
 }
 
 /**
@@ -70,22 +85,56 @@ export function selectTopProjects(projects, max = MAX_PROJECTS) {
  */
 export function selectTopSkills(projects, aggregatedSkills, max = MAX_SKILLS) {
   const freq = {};
+  const preferredName = {};
+
+  const shouldReplacePreferredName = (existing, candidate) => {
+    if (!existing) return true;
+    if (candidate.length > existing.length) return true;
+
+    const existingHasUpper = /[A-Z]/.test(existing);
+    const candidateHasUpper = /[A-Z]/.test(candidate);
+    return candidateHasUpper && !existingHasUpper;
+  };
+
+  const trackSkill = (skillLike, count = 1) => {
+    const rawName = typeof skillLike === 'string' ? skillLike : skillLike?.name;
+    if (!rawName) return;
+
+    const normalized = rawName.trim();
+    if (!normalized) return;
+
+    const key = normalized.toLowerCase();
+    freq[key] = (freq[key] || 0) + count;
+
+    // Keep the most descriptive (usually title-cased) variant for display.
+    if (shouldReplacePreferredName(preferredName[key], normalized)) {
+      preferredName[key] = normalized;
+    }
+  };
 
   // Count from per-project data
   (projects || []).forEach((p) => {
-    [...(p.languages || []), ...(p.frameworks || [])].forEach((s) => {
-      const key = s.name.toLowerCase();
-      freq[key] = (freq[key] || 0) + 1;
-    });
+    [...(p.languages || []), ...(p.frameworks || []), ...(p.resume_skills || [])]
+      .forEach((s) => trackSkill(s));
   });
 
   // Merge aggregated skills endpoint data (which includes project_count)
   if (aggregatedSkills) {
-    [...(aggregatedSkills.languages || []), ...(aggregatedSkills.frameworks || [])].forEach((s) => {
-      const key = s.name.toLowerCase();
-      // keep the higher number between our count and the endpoint's project_count
-      freq[key] = Math.max(freq[key] || 0, s.project_count || 0);
-    });
+    [...(aggregatedSkills.languages || []), ...(aggregatedSkills.frameworks || []), ...(aggregatedSkills.resume_skills || [])]
+      .forEach((s) => {
+        const rawName = typeof s === 'string' ? s : s?.name;
+        if (!rawName) return;
+
+        const normalized = rawName.trim();
+        if (!normalized) return;
+
+        const key = normalized.toLowerCase();
+        const count = typeof s?.project_count === 'number' ? s.project_count : 1;
+        freq[key] = Math.max(freq[key] || 0, count);
+        if (shouldReplacePreferredName(preferredName[key], normalized)) {
+          preferredName[key] = normalized;
+        }
+      });
   }
 
   return Object.entries(freq)
@@ -93,9 +142,48 @@ export function selectTopSkills(projects, aggregatedSkills, max = MAX_SKILLS) {
     .slice(0, max)
     .map(([name], idx) => ({
       id: `auto-skill-${idx}`,
-      title: name.charAt(0).toUpperCase() + name.slice(1), // capitalize
+      title: preferredName[name] || name,
     }));
 }
+
+const deriveFallbackBullets = (project, maxBullets) => {
+  const techList = [
+    ...(project.languages || []).map((l) => l.name).filter(Boolean),
+    ...(project.frameworks || []).map((f) => f.name).filter(Boolean),
+    ...(project.resume_skills || []).map((s) => (typeof s === 'string' ? s : s?.name)).filter(Boolean),
+  ];
+
+  const uniqueTech = [...new Set(techList)].slice(0, 5);
+  const bullets = [];
+
+  if (uniqueTech.length > 0) {
+    bullets.push(`Built and delivered features using ${uniqueTech.join(', ')}`);
+  }
+
+  if (project.classification_type) {
+    bullets.push(`Developed a ${project.classification_type.toLowerCase()} project from concept to implementation`);
+  }
+
+  bullets.push('Collaborated on implementation, debugging, and iterative improvements');
+  return bullets.slice(0, Math.max(1, maxBullets));
+};
+
+const buildAutoSummary = (topProjects, skills) => {
+  if (!topProjects?.length) {
+    return 'Motivated software developer with hands-on experience building practical projects and continuously learning new technologies.';
+  }
+
+  const projectCount = topProjects.length;
+  const topSkills = (skills || []).slice(0, 4).map((s) => s.title).filter(Boolean);
+  const domains = [...new Set((topProjects || []).map((p) => p.classification_type).filter(Boolean))]
+    .slice(0, 3)
+    .join(', ');
+
+  const skillsText = topSkills.length ? ` with experience in ${topSkills.join(', ')}` : '';
+  const domainText = domains ? ` across ${domains}` : '';
+
+  return `Project-focused developer with ${projectCount} showcased projects${skillsText}${domainText}. Proven ability to ship maintainable solutions and communicate impact clearly.`;
+};
 
 /**
  * Build project section entries from selected projects.
@@ -106,7 +194,10 @@ export function selectTopSkills(projects, aggregatedSkills, max = MAX_SKILLS) {
  */
 export function buildProjectEntries(topProjects, maxBullets = MAX_BULLETS_PER_PROJECT) {
   return (topProjects || []).map((p, idx) => {
-    const bullets = (p.resume_bullet_points || []).slice(0, maxBullets);
+    const selectedBullets = (p.resume_bullet_points || []).slice(0, maxBullets);
+    const bullets = selectedBullets.length > 0
+      ? selectedBullets
+      : deriveFallbackBullets(p, maxBullets);
     const content = bullets.map((b) => `• ${b}`).join('\n');
 
     // Build a date range string
@@ -131,7 +222,7 @@ export function buildProjectEntries(topProjects, maxBullets = MAX_BULLETS_PER_PR
     ].join(', ');
 
     return {
-      id: Date.now() + idx,
+      id: p.id ? `auto-project-${p.id}` : `auto-project-${idx}`,
       title: p.name || 'Untitled Project',
       company: techs,
       duration,
@@ -169,6 +260,9 @@ export function autoGenerateResume({
   // Carry forward personal info & education from the current state
   const base = currentResumeData || {};
   const existingSections = base.sections || {};
+  const summary = existingSections.summary?.trim()
+    ? existingSections.summary
+    : buildAutoSummary(topProjects, skills);
 
   return {
     name: base.name || '',
@@ -179,7 +273,7 @@ export function autoGenerateResume({
     linkedin_url: base.linkedin_url || '',
     location: base.location || '',
     sections: {
-      summary: existingSections.summary || '',
+      summary,
       education: existingSections.education || [],
       experience: existingSections.experience || [],
       projects: projectEntries,

@@ -8,7 +8,7 @@ Thank you for contributing! Please fill out this template to help us review your
 > Include relevant motivation and context.  
 > List any dependencies that are required for this change.
 
-**Closes:** # (issue number)
+**Closes: # (issue number)**
 
 ---
 

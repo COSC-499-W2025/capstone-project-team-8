@@ -1,6 +1,6 @@
 import OnboardingInput from '../components/OnboardingInput';
 
-export default function OnlinePresenceStep({ form, update, inputStyle }) {
+export default function OnlinePresenceStep({ form, update, inputStyle, linkedinUrlInvalid = false }) {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-white mb-2">Your online presence</h1>
@@ -22,6 +22,11 @@ export default function OnlinePresenceStep({ form, update, inputStyle }) {
           placeholder="https://linkedin.com/in/you"
           inputStyle={inputStyle}
         />
+        {linkedinUrlInvalid && (
+          <p className="text-sm" style={{ color: '#fca5a5', marginTop: '-0.5rem' }}>
+            Must be a valid LinkedIn URL
+          </p>
+        )}
         <OnboardingInput
           label="Portfolio URL"
           value={form.portfolio_url}

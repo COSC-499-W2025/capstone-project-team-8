@@ -35,3 +35,6 @@ npm-debug.log*
 
 # Docker
 .dockerignore
+
+# Stored Data
+src/backend/media

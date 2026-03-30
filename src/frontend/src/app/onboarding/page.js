@@ -9,6 +9,7 @@ import OnboardingActions from './components/OnboardingActions';
 import PersonalInfoStep from './steps/PersonalInfoStep';
 import OnlinePresenceStep from './steps/OnlinePresenceStep';
 import EducationStep from './steps/EducationStep';
+import { isValidLinkedInUrl } from '@/utils/validation';
 
 const TOTAL_STEPS = 3;
 
@@ -38,6 +39,9 @@ export default function OnboardingPage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const linkedinUrlInvalid =
+    form.linkedin_url.trim() !== '' && !isValidLinkedInUrl(form.linkedin_url);
+
   const handleSkip = () => {
     router.push('/dashboard');
   };
@@ -57,6 +61,13 @@ export default function OnboardingPage() {
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
+
+    if (!isValidLinkedInUrl(form.linkedin_url)) {
+      setError('Must be a valid LinkedIn URL');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Filter out empty strings
       const profileData = {};
@@ -88,7 +99,14 @@ export default function OnboardingPage() {
     }
 
     if (step === 2) {
-      return <OnlinePresenceStep form={form} update={update} inputStyle={inputStyle} />;
+      return (
+        <OnlinePresenceStep
+          form={form}
+          update={update}
+          inputStyle={inputStyle}
+          linkedinUrlInvalid={linkedinUrlInvalid}
+        />
+      );
     }
 
     return <EducationStep form={form} update={update} inputStyle={inputStyle} />;

@@ -254,6 +254,17 @@ describe('selectTopSkills', () => {
   test('capitalizes skill names', () => {
     const projects = [makeProject({ languages: [{ id: 1, name: 'python' }] })];
     const result = selectTopSkills(projects, null);
+    expect(result[0].title).toBe('python');
+  });
+
+  test('preserves preferred casing from aggregated skills', () => {
+    const projects = [makeProject({ languages: [{ id: 1, name: 'python' }] })];
+    const agg = {
+      languages: [{ name: 'Python', project_count: 4 }],
+      frameworks: [],
+      resume_skills: [],
+    };
+    const result = selectTopSkills(projects, agg, 3);
     expect(result[0].title).toBe('Python');
   });
 
@@ -316,7 +327,12 @@ describe('buildProjectEntries', () => {
 
   test('handles project with no bullet points', () => {
     const entries = buildProjectEntries([projectE]);
-    expect(entries[0].content).toBe('');
+    expect(entries[0].content).toContain('• ');
+  });
+
+  test('builds stable project ids from project id', () => {
+    const entries = buildProjectEntries([projectA]);
+    expect(entries[0].id).toBe('auto-project-1');
   });
 
   test('handles project with no dates', () => {
@@ -393,6 +409,7 @@ describe('autoGenerateResume', () => {
     expect(result.sections.projects).toEqual([]);
     expect(result.sections.skills).toEqual([]);
     expect(result.name).toBe('Jane Doe');
+    expect(result.sections.summary.length).toBeGreaterThan(0);
   });
 
   test('works with no currentResumeData', () => {
@@ -436,7 +453,17 @@ describe('autoGenerateResume', () => {
       aggregatedSkills,
     });
     result.sections.skills.forEach((s) => {
-      expect(s.title[0]).toBe(s.title[0].toUpperCase());
+      expect(typeof s.title).toBe('string');
+      expect(s.title.length).toBeGreaterThan(0);
     });
+  });
+
+  test('generates summary when existing summary is blank', () => {
+    const result = autoGenerateResume({
+      currentResumeData: baseResumeData,
+      projects: allProjects,
+      aggregatedSkills,
+    });
+    expect(result.sections.summary.length).toBeGreaterThan(0);
   });
 });
