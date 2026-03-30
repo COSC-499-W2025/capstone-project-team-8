@@ -109,6 +109,13 @@ Peer testing and cleaning up the user interface and implementing final features.
 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/358 |  |
 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/359 |  |
 
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/362 |  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/357 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/332 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/352 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/347 |
+
 
 
 
