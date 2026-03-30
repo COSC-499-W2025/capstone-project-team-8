@@ -466,6 +466,7 @@ This week was a mix of challenges and successes. The heatmap feature was a rewar
 ### Reflection:
 
 ## March 23-29 
+<img width="1080" height="636" alt="March23-29" src="https://github.com/user-attachments/assets/3141285a-1dd6-49ad-a8d4-81cc90f3a97c" />
 
 
 - Implemented new step in onboarding process (First upload of project)
