@@ -125,3 +125,6 @@ Overview of components, services, and infrastructure for the application. This d
 
 ### Work Breakdown Structure (WBS) 📄 [View WBS](./docs/plan/WBS.md)
 A brief overview of the work breakdown structure plan.
+
+### List of known bugs
+[docs/BugList.docx](./docs/BugList.docx)
