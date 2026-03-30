@@ -1,9 +1,9 @@
 export const metadata = {
   title: 'Projects',
-  description: 'Browse, search, and manage all your uploaded and analyzed coding projects.',
+  description: 'Browse, search, and manage all your uploaded and analyzed projects.',
   openGraph: {
     title: 'Projects | Portfolio Analyzer',
-    description: 'Browse, search, and manage all your uploaded and analyzed coding projects.',
+    description: 'Browse, search, and manage all your uploaded and analyzed projects.',
   },
 };
 
