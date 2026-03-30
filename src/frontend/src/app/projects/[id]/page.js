@@ -191,7 +191,7 @@ export default function ProjectDetailPage() {
       <div className="bg-[var(--card-bg)] rounded-lg border border-white/5 overflow-hidden">
         <div className="px-4 pt-4 pb-3 border-b border-white/5">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] uppercase tracking-wider text-white/40">Quality Eval</span>
+            <span className="text-[11px] uppercase tracking-wider text-white/40">Quality Analysis</span>
             <span className="text-[11px] text-white/30">{ev.language}</span>
           </div>
           <div className="flex items-center justify-between">
@@ -582,9 +582,99 @@ export default function ProjectDetailPage() {
             })()}
           </div>
 
-          {/* Mobile Eval Card + Actions */}
+          {/* Development Journey */}
+          {(() => {
+            const totalCommits = project.contributors?.reduce((s, c) => s + (c.commits || 0), 0) || 0;
+            const totalLinesAdded = project.contributors?.reduce((s, c) => s + (c.lines_added || 0), 0) || 0;
+            const totalLinesDeleted = project.contributors?.reduce((s, c) => s + (c.lines_deleted || 0), 0) || 0;
+            const fc = project.files || {};
+            const codeFiles = fc.code?.length || 0;
+            const contentFiles = fc.content?.length || 0;
+            const imageFiles = fc.image?.length || 0;
+            const totalFiles = project.total_files || 0;
+            const startDate = project.first_commit_date ? new Date(project.first_commit_date * 1000) : null;
+            const uploadDate = project.created_at ? new Date(project.created_at * 1000) : null;
+            const fmtDate = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+            const steps = [];
+            if (startDate) steps.push({ label: 'Development Started', detail: fmtDate(startDate), icon: '🚀' });
+            if (totalCommits > 0) steps.push({ label: `${totalCommits.toLocaleString()} Commits`, detail: `+${totalLinesAdded.toLocaleString()} added · −${totalLinesDeleted.toLocaleString()} deleted`, icon: '📝' });
+            if (totalFiles > 0) steps.push({ label: `${totalFiles} Files`, detail: `${codeFiles} code · ${contentFiles} docs · ${imageFiles} assets`, icon: '📂' });
+            if (project.highlight_score != null) steps.push({ label: `Project Score: ${project.highlight_score}/100`, detail: `${getGrade(project.highlight_score)} Grade`, icon: '⭐' });
+            if (uploadDate) steps.push({ label: 'Uploaded to Portfolio', detail: fmtDate(uploadDate), icon: '✅' });
+
+            if (steps.length === 0) return null;
+
+            return (
+              <div className="bg-[var(--card-bg)] rounded-lg overflow-hidden mb-6 border border-white/5">
+                <div className="px-5 py-3 border-b border-white/10 flex items-center justify-between">
+                  <span className="text-[11px] uppercase tracking-widest text-white/50 font-black">Development Journey</span>
+                  {startDate && uploadDate && (
+                    <span className="text-[11px] text-white/30">
+                      {Math.max(1, Math.round((uploadDate - startDate) / (1000 * 60 * 60 * 24)))} days span
+                    </span>
+                  )}
+                </div>
+                <div className="px-5 py-4">
+                  <div className="relative">
+                    {/* Vertical line */}
+                    <div className="absolute left-[15px] top-3 bottom-3 w-0.5 bg-blue-500/20" />
+                    <div className="space-y-5">
+                      {steps.map((step, sIdx) => (
+                        <div key={sIdx} className="flex items-start gap-4 relative">
+                          <div className="w-[31px] h-[31px] rounded-full bg-blue-500/20 border border-blue-500/30 flex items-center justify-center text-sm shrink-0 z-10">
+                            {step.icon}
+                          </div>
+                          <div className="pt-1">
+                            <p className="text-white text-sm font-semibold">{step.label}</p>
+                            <p className="text-white/40 text-xs mt-0.5">{step.detail}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Mobile Project Score + Actions */}
           <div className="lg:hidden mb-6">
             {renderEvalCard()}
+            {project.highlight_score != null && (
+              <div className="bg-[var(--card-bg)] rounded-lg border border-white/5 overflow-hidden mb-3">
+                <div className="px-4 pt-4 pb-3 border-b border-white/5">
+                  <span className="text-[11px] uppercase tracking-wider text-white/40">Project Score</span>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-sm text-white/80 truncate pr-2">{project.name || 'Project'}</p>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className={`text-2xl font-bold leading-none ${getGradeColor(project.highlight_score).split(' ')[0]}`}>{project.highlight_score}</span>
+                      <span className="text-white/40 text-xs">/100</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-4 py-3">
+                  {project.score_breakdown && (
+                    <div className="grid grid-cols-4 gap-3">
+                      {[
+                        { label: 'Quality', value: project.score_breakdown.quality },
+                        { label: 'Scale', value: project.score_breakdown.scale },
+                        { label: 'Effort', value: project.score_breakdown.effort },
+                        { label: 'Breadth', value: project.score_breakdown.breadth },
+                      ].map((item) => (
+                        <div key={item.label} className="text-center">
+                          <div className="text-[10px] text-white/40 mb-1">{item.label}</div>
+                          <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div className={`h-full rounded-full ${item.value >= 70 ? 'bg-green-500' : item.value >= 40 ? 'bg-blue-500' : 'bg-white/30'}`} style={{ width: `${Math.min(item.value, 100)}%` }} />
+                          </div>
+                          <div className="text-[10px] text-white/50 mt-0.5">{Math.round(item.value)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             <div className="flex flex-col gap-2 mt-3">
               <button
                 onClick={handleEditClick}
@@ -592,6 +682,8 @@ export default function ProjectDetailPage() {
               >
                 Edit Project
               </button>
+            </div>
+            <div className="flex flex-col gap-2">
               <Link
                 href="/results"
                 className="w-full text-center px-4 py-2.5 bg-white text-[var(--card-bg)] text-xs font-black uppercase tracking-widest rounded hover:opacity-80 transition-opacity"
@@ -731,9 +823,49 @@ export default function ProjectDetailPage() {
 
           </div>
 
-          {/* Sticky Evaluation Sidebar - Right (desktop only) */}
+          {/* Sticky Project Score Sidebar - Right (desktop only) */}
           <div className="hidden lg:flex flex-col gap-3 w-72 shrink-0 sticky top-24">
             {renderEvalCard()}
+            {/* Project Score Card */}
+            {project.highlight_score != null && (
+              <div className="bg-[var(--card-bg)] rounded-lg border border-white/5 overflow-hidden">
+                <div className="px-4 pt-4 pb-3 border-b border-white/5">
+                  <span className="text-[11px] uppercase tracking-wider text-white/40">Project Score</span>
+                  <div className="flex items-center justify-between mt-1">
+                    <p className="text-sm text-white/80 truncate pr-2">{project.name || 'Project'}</p>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <span className={`text-2xl font-bold leading-none ${getGradeColor(project.highlight_score).split(' ')[0]}`}>{project.highlight_score}</span>
+                      <span className="text-white/40 text-xs">/100</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="px-4 py-3 space-y-2">
+                  {project.score_breakdown && [
+                    { label: 'Quality', value: project.score_breakdown.quality, desc: 'Code evaluation score' },
+                    { label: 'Scale', value: project.score_breakdown.scale, desc: 'Total lines of code' },
+                    { label: 'Effort', value: project.score_breakdown.effort, desc: 'Lines you changed' },
+                    { label: 'Breadth', value: project.score_breakdown.breadth, desc: 'Languages & frameworks' },
+                  ].map((item) => (
+                    <div key={item.label}>
+                      <div className="flex items-center justify-between mb-0.5">
+                        <span className="text-[11px] text-white/50">{item.label}</span>
+                        <span className="text-[11px] text-white/40">{Math.round(item.value)}</span>
+                      </div>
+                      <div className="w-full bg-white/5 rounded-sm h-1.5">
+                        <div className={`h-1.5 rounded-sm transition-all ${item.value >= 70 ? 'bg-green-500' : item.value >= 40 ? 'bg-blue-500' : 'bg-white/30'}`} style={{ width: `${Math.min(item.value, 100)}%` }} />
+                      </div>
+                      <p className="text-[9px] text-white/25 mt-0.5">{item.desc}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="px-4 py-3 border-t border-white/5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-wider text-white/30">Formula</span>
+                  </div>
+                  <p className="text-[10px] text-white/40 mt-1">40% Quality · 25% Scale · 20% Effort · 15% Breadth</p>
+                </div>
+              </div>
+            )}
             <button
               onClick={handleEditClick}
               className="w-full px-4 py-2.5 bg-blue-500/10 text-blue-400 text-xs font-black uppercase tracking-widest rounded hover:bg-blue-500/20 transition-colors border border-blue-500/50"

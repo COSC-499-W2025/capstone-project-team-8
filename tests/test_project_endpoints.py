@@ -217,8 +217,8 @@ class ProjectEndpointsTests(TestCase):
 
 class RankedProjectsTests(TestCase):
     """
-    Test suite for project ranking by user contribution.
-    Ranking formula: (commit_percent * 0.4) + (lines_changed_percent * 0.6)
+    Test suite for project ranking by highlight score.
+    Highlight score: Quality (40%) + Scale (25%) + Effort (20%) + Breadth (15%)
     """
     def setUp(self):
         self.client = APIClient()
@@ -350,12 +350,10 @@ class RankedProjectsTests(TestCase):
 
     def test_ranked_projects_returns_correct_order(self):
         """
-        Test projects are ranked correctly by contribution score.
-        Expected order:
-        1. High Contribution: (50*0.4) + (60*0.6) = 20 + 36 = 56
-        2. Low Contribution: (20*0.4) + (20*0.6) = 8 + 12 = 20
-        3. Medium Contribution: (30*0.4) + (15*0.6) = 12 + 9 = 21
-        Actually: High > Medium > Low > No contribution
+        Test projects are ranked correctly by highlight score.
+        highlight_score is a composite of Quality, Scale, Effort, Breadth.
+        All projects here have no evaluation, no languages/frameworks attached,
+        so only Scale and Effort contribute.
         """
         self.client.force_authenticate(user=self.user)
         url = reverse("projects-ranked")
@@ -366,21 +364,20 @@ class RankedProjectsTests(TestCase):
         self.assertIn("projects", data)
         
         projects = data["projects"]
-        # Should have 3 projects with git contributions
+        # Should include all 4 projects (3 git + 1 non-git)
         self.assertGreaterEqual(len(projects), 3)
         
-        # Verify High Contribution is first
-        self.assertEqual(projects[0]["name"], "High Contribution Project")
-        self.assertIn("contribution_score", projects[0])
+        # Verify highlight_score field is present
+        self.assertIn("highlight_score", projects[0])
         
-        # Verify scores are in descending order
+        # Verify scores are in descending order by highlight_score
         for i in range(len(projects) - 1):
-            score_current = projects[i].get("contribution_score", 0)
-            score_next = projects[i + 1].get("contribution_score", 0)
+            score_current = projects[i].get("highlight_score", 0)
+            score_next = projects[i + 1].get("highlight_score", 0)
             self.assertGreaterEqual(score_current, score_next)
 
     def test_ranked_projects_includes_contribution_metrics(self):
-        """Test that each project includes contribution metrics"""
+        """Test that each project includes contribution and highlight metrics"""
         self.client.force_authenticate(user=self.user)
         url = reverse("projects-ranked")
         resp = self.client.get(url)
@@ -393,15 +390,24 @@ class RankedProjectsTests(TestCase):
         first_project = projects[0]
         self.assertIn("id", first_project)
         self.assertIn("name", first_project)
+        self.assertIn("highlight_score", first_project)
+        self.assertIn("score_breakdown", first_project)
         self.assertIn("contribution_score", first_project)
         self.assertIn("commit_percentage", first_project)
         self.assertIn("lines_changed_percentage", first_project)
         self.assertIn("total_commits", first_project)
         self.assertIn("total_lines_changed", first_project)
         self.assertIn("total_project_lines", first_project)
+        
+        # Verify score_breakdown has the four pillars
+        breakdown = first_project["score_breakdown"]
+        self.assertIn("quality", breakdown)
+        self.assertIn("scale", breakdown)
+        self.assertIn("effort", breakdown)
+        self.assertIn("breadth", breakdown)
 
-    def test_ranked_projects_excludes_non_git_projects(self):
-        """Test that projects without git contributions are excluded or ranked last"""
+    def test_ranked_projects_non_git_ranked_last(self):
+        """Test that projects without git contributions are ranked last"""
         self.client.force_authenticate(user=self.user)
         url = reverse("projects-ranked")
         resp = self.client.get(url)
@@ -410,15 +416,13 @@ class RankedProjectsTests(TestCase):
         data = resp.json()
         projects = data["projects"]
         
-        # No Contribution Project should either be excluded or have score of 0
+        # No Contribution Project should be included with highlight_score of 0
         no_contrib_project = next(
             (p for p in projects if p["name"] == "No Contribution Project"),
             None
         )
-        
-        if no_contrib_project:
-            # If included, should have score of 0
-            self.assertEqual(no_contrib_project.get("contribution_score", 0), 0)
+        self.assertIsNotNone(no_contrib_project)
+        self.assertEqual(no_contrib_project.get("highlight_score", 0), 0)
 
     def test_ranked_projects_user_isolation(self):
         """Test that ranking only shows the authenticated user's projects"""
@@ -473,7 +477,8 @@ class RankedProjectsTests(TestCase):
         self.assertNotIn("Other User Project", project_names)
 
     def test_ranked_projects_correct_score_calculation(self):
-        """Test that contribution scores are calculated correctly"""
+        """Test that highlight scores are calculated correctly"""
+        import math
         self.client.force_authenticate(user=self.user)
         url = reverse("projects-ranked")
         resp = self.client.get(url)
@@ -483,13 +488,17 @@ class RankedProjectsTests(TestCase):
         projects = data["projects"]
         
         # Find High Contribution Project and verify calculation
+        # 1000 total lines, 600 lines changed, no eval, no langs/frameworks
         high_contrib = next(p for p in projects if p["name"] == "High Contribution Project")
         
-        # Expected: (50*0.4) + (60*0.6) = 56
-        expected_score = (50.0 * 0.4) + (60.0 * 0.6)
-        actual_score = high_contrib["contribution_score"]
+        scale = min((math.log2(1000) / 13.3) * 100, 100)
+        effort = min((math.log2(600) / 13.3) * 100, 100)
+        expected = 0 * 0.40 + scale * 0.25 + effort * 0.20 + 0 * 0.15
         
-        self.assertAlmostEqual(actual_score, expected_score, places=1)
+        self.assertAlmostEqual(high_contrib["highlight_score"], round(expected, 1), places=1)
+        
+        # contribution_score should still be present for backward compat
+        self.assertIn("contribution_score", high_contrib)
 
     def test_ranked_projects_includes_resume_bullet_points(self):
         """Test that ranked projects endpoint returns resume_bullet_points"""
