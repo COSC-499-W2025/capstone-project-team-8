@@ -1,4 +1,19 @@
 # Kyle Porter's Weekly Logs
+
+## Table of Contents
+- [September 22-28](#september-22-28)
+- [Sept 29 - Oct 5](#sept-29---oct-5)
+- [Oct 6 - 12](#oct-6---12)
+- [Oct 13 - 19](#oct-13---19)
+- [Nov 3 - 9](#nov-3---9)
+- [Week 12 November 17th - November 21st:](#week-12-november-17th---november-21st)
+- [Week 14 Dec 1st - 7th:](#week-14-dec-1st---7th)
+- [Week 3 T2](#week-3-t2)
+- [Week 10 T2](#week-10-t2)
+- [Week 11-12 T2](#week-11-12-t2)
+
+---
+
 ## September 22-28
 
 <img width="1600" height="927" alt="image" src="https://github.com/user-attachments/assets/afac9817-09c5-45cf-a950-569476fc57c2" />
