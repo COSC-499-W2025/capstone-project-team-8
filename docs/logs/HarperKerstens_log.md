@@ -473,12 +473,13 @@ This week was a mix of challenges and successes. The heatmap feature was a rewar
 - Updated Onboarding UI to reflect new step
 - Reviewed team members code
 - Group meetings preparing for end of Milestone
-
+- Created new diagrams for our project (DFD and Architecture)
 
 ### Completed PRs
 | Pull Request | Issues addressed |
 |---|---|
 | https://github.com/COSC-499-W2025/capstone-project-team-8/pull/354  | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/353 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/371  |  https://github.com/COSC-499-W2025/capstone-project-team-8/issues/370 |
 
 ### What went well
 The onboarding step implementation went smoothly overall. Getting the upload step integrated into the existing onboarding flow without breaking anything was satisfying. The UI updates to reflect the new step also came together without any major issues.
