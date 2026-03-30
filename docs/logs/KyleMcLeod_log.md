@@ -399,6 +399,7 @@ This week:
 - review Harper's PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/354
 - review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/356
 - review Kyle P PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/340
+- review Jordans PR: https://github.com/COSC-499-W2025/capstone-project-team-8/pull/357
 
 What went well:
 - We were able to get a lot of feedback from our peer evaluations and identified plenty of HCI issues and bugs thoughout the app that we were able to mostly fix during this week
