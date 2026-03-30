@@ -34,16 +34,17 @@ export default function OnboardingActions({
         >
           Continue
         </button>
-      ) : (
+      ) : step === totalSteps ? (
+        // For the last step (upload), show "Skip Upload" instead of "Finish"
         <button
           onClick={onSubmit}
           disabled={loading}
           className="px-6 py-2 rounded-md text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           style={{ background: '#4f7cf7', color: 'white' }}
         >
-          {loading ? 'Saving...' : 'Finish'}
+          {loading ? 'Saving...' : 'Skip Upload'}
         </button>
-      )}
+      ) : null}
     </div>
   );
 }
