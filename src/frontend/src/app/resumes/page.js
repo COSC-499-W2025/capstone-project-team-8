@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Toast from '@/components/Toast';
-import { listResumes, deleteResume } from '@/utils/resumeApi';
+import { listResumes, deleteResume, generateRenderCVPdf } from '@/utils/resumeApi';
 import styles from './resumes.module.css';
 import Link from 'next/link';
 
@@ -110,6 +110,7 @@ export default function ResumesListPage() {
   const { isAuthenticated, token, loading: authLoading, refreshAccessToken } = useAuth();
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
+  const [generatingPdfId, setGeneratingPdfId] = useState(null);
   const [resumePendingDelete, setResumePendingDelete] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
   const [resumes, setResumes] = useState([]);
@@ -151,6 +152,38 @@ export default function ResumesListPage() {
   const handleDeleteResumeClick = (event, resume) => {
     event.stopPropagation();
     setResumePendingDelete(resume);
+  };
+
+  const handleGeneratePdfClick = async (event, resume) => {
+    event.stopPropagation();
+
+    if (!resume?.content) {
+      setMessage({ type: 'error', text: 'Resume content is missing. Open and save the resume, then try again.' });
+      return;
+    }
+
+    setGeneratingPdfId(resume.id);
+    setMessage({ type: '', text: '' });
+
+    try {
+      let activeToken = token;
+      try {
+        await generateRenderCVPdf(activeToken, resume.content, resume.theme || 'classic');
+      } catch (err) {
+        if (err.message?.includes('401')) {
+          activeToken = await refreshAccessToken();
+          if (!activeToken) throw new Error('Session expired. Please log in again.');
+          await generateRenderCVPdf(activeToken, resume.content, resume.theme || 'classic');
+        } else {
+          throw err;
+        }
+      }
+    } catch (err) {
+      console.error('Generate PDF error:', err);
+      setMessage({ type: 'error', text: err.message || 'Failed to generate PDF.' });
+    } finally {
+      setGeneratingPdfId(null);
+    }
   };
 
   const handleConfirmDeleteResume = async () => {
@@ -282,10 +315,28 @@ export default function ResumesListPage() {
                     Edit
                   </span>
                   <button
+                    className={`${styles.actionChip} ${styles.pdfChip}`}
+                    onClick={(event) => handleGeneratePdfClick(event, resume)}
+                    type="button"
+                    disabled={generatingPdfId === resume.id}
+                    aria-label="Download PDF"
+                    title="Download PDF"
+                  >
+                    {generatingPdfId === resume.id ? (
+                      '⏳'
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                    )}
+                  </button>
+                  <button
                     className={`${styles.actionChip} ${styles.deleteChip}`}
                     onClick={(event) => handleDeleteResumeClick(event, resume)}
                     type="button"
-                    disabled={deletingId === resume.id}
+                    disabled={deletingId === resume.id || generatingPdfId === resume.id}
                   >
                     {deletingId === resume.id ? 'Deleting...' : 'Delete'}
                   </button>
