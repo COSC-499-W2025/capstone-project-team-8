@@ -69,7 +69,7 @@ def generate_portfolio_summary(portfolio, projects):
     Returns (summary_text, success_bool).
     """
     try:
-        from app.services.llm import ai_analyze
+        from app.services.llm import LLMFactory
     except ImportError:
         logger.warning("LLM service not available for portfolio summary generation")
         return "", False
@@ -77,10 +77,14 @@ def generate_portfolio_summary(portfolio, projects):
     if not projects:
         return "", True
     
-    # Build context from projects
+    # Build context from projects (prefer project-level AI summaries when available)
     project_descriptions = []
+    ai_summary_fragments = []
     for p in projects:
         desc = f"- {p.name}"
+        if p.ai_summary:
+            desc += f" | AI Summary: {p.ai_summary.strip()}"
+            ai_summary_fragments.append(f"{p.name}: {p.ai_summary.strip()}")
         if p.description:
             desc += f": {p.description}"
         if p.classification_type and p.classification_type != 'unknown':
@@ -116,10 +120,15 @@ Return ONLY the summary text, no headers or formatting."""
     system_message = """You are an expert career coach and technical writer who creates compelling portfolio summaries for software developers. Your summaries are concise, impactful, and tailored to the target audience. Focus on skills, achievements, and the value the developer brings."""
 
     try:
-        summary = ai_analyze(prompt, system_message=system_message)
+        summary = LLMFactory.get_provider().analyze(prompt, system_message=system_message)
         return summary.strip(), True
     except Exception as e:
         logger.error(f"Error generating portfolio summary: {e}")
+        # Fallback: if project-level summaries exist, build a concise combined summary
+        # so users still see meaningful content on the portfolio page.
+        if ai_summary_fragments:
+            fallback = " ".join(ai_summary_fragments[:3]).strip()
+            return fallback, True
         return "", False
 
 

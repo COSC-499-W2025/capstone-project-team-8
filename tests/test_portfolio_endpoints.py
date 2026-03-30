@@ -35,9 +35,9 @@ User = get_user_model()
 def is_llm_service_available():
     """Check if LLM service is available for AI summary tests."""
     try:
-        from app.services.llm import ai_analyze
+        from app.services.llm import LLMFactory
         # Try a simple call to verify service is responsive
-        ai_analyze("test", system_message="test")
+        LLMFactory.get_provider().analyze("test", system_message="test")
         return True
     except Exception:
         return False

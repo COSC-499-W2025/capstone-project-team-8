@@ -1,45 +1,6 @@
-"""
-Simple Azure OpenAI client for making LLM requests.
-"""
-from openai import AzureOpenAI
-from decouple import config
+from abc import ABC, abstractmethod
 
-
-def get_azure_client():
-    """
-    Initialize and return an Azure OpenAI client.
-    
-    Returns:
-        AzureOpenAI: Configured Azure OpenAI client instance
-    """
-    endpoint = config('AZURE_OPENAI_ENDPOINT')
-    api_key = config('AZURE_OPENAI_API_KEY')
-    api_version = config('AZURE_OPENAI_API_VERSION', default='2024-12-01-preview')
-    
-    return AzureOpenAI(
-        api_version=api_version,
-        azure_endpoint=endpoint,
-        api_key=api_key
-    )
-
-
-def ai_analyze(prompt, system_message=None, deployment=None):
-    """
-    Send a prompt to Azure OpenAI and get a response.
-    
-    Args:
-        prompt (str): The user prompt/question
-        system_message (str): Optional system message to set context (uses default code analyzer if None)
-        deployment (str): The deployment name (defaults to env variable)
-        
-    Returns:
-        str: The LLM response content
-    """
-    if deployment is None:
-        deployment = config('AZURE_OPENAI_DEPLOYMENT', default='gpt-5-nano')
-    
-    if system_message is None:
-        system_message = """You are an expert software engineer and code analyst specializing in comprehensive project analysis and code review. Your role is to:
+DEFAULT_SYSTEM_MESSAGE = """You are an expert software engineer and code analyst specializing in comprehensive project analysis and code review. Your role is to:
 
 CODE REVIEW EXPERTISE:
 - Identify bugs, security vulnerabilities, and potential runtime errors
@@ -74,15 +35,24 @@ OUTPUT STYLE:
 - Be direct and technical while remaining professional
 - Cite specific line numbers, function names, or file paths when available
 - Provide both summary insights and detailed analysis when appropriate"""
-    
-    client = get_azure_client()
-    
-    response = client.chat.completions.create(
-        model=deployment,
-        messages=[
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    
-    return response.choices[0].message.content
+
+
+class LLMProvider(ABC):
+    """
+    Abstract base class for all LLM providers (Azure, Gemini, Ollama, etc.)
+    """
+
+    @abstractmethod
+    def analyze(self, prompt: str, system_message: str = None, model: str = None) -> str:
+        """
+        Send a prompt to the LLM and get a response.
+        
+        Args:
+            prompt (str): The user prompt/question
+            system_message (str): Optional system message to set context
+            model (str): Optional model or deployment name
+            
+        Returns:
+            str: The LLM response content
+        """
+        pass

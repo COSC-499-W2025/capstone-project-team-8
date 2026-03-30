@@ -15,7 +15,7 @@ from app.serializers import (
     ProjectConsentSerializer,
     ErrorResponseSerializer,
 )
-from app.services.llm import ai_analyze
+from app.services.llm import LLMFactory
 from app.utils.prompt_loader import load_prompt_template
 import logging
 
@@ -610,7 +610,7 @@ Guidelines:
 
 Output ONLY the summary text."""
             
-            summary = ai_analyze(full_prompt, system_message=system_msg)
+            summary = LLMFactory.get_provider().analyze(full_prompt, system_message=system_msg)
             return summary if summary else "Unable to generate summary at this time."
             
         except FileNotFoundError as e:

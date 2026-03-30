@@ -1,15 +1,16 @@
 import unittest
-from app.services.llm import ai_analyze
+from app.services.llm.factory import LLMFactory
 from django.test import TestCase, tag
 
 @tag('llm')
-class TestAzureLLM(TestCase):
-    """Simple tests for Azure OpenAI client"""
+class TestLLM(TestCase):
+    """Simple tests for LLM client"""
 
     def test_basic_completion(self):
         """Test that LLM returns a response"""
+        
         prompt = "Say 'Hello' in one word."
-        response = ai_analyze(prompt)
+        response = LLMFactory.get_provider().analyze(prompt)
         
         self.assertIsNotNone(response)
         self.assertIsInstance(response, str)
@@ -18,10 +19,11 @@ class TestAzureLLM(TestCase):
 
     def test_code_analysis(self):
         """Test LLM code analysis with default system message"""
+        
         code = "def add(a, b): return a + b"
         prompt = f"Analyze this function: {code}"
         
-        response = ai_analyze(prompt)
+        response = LLMFactory.get_provider().analyze(prompt)
         
         self.assertIsNotNone(response)
         self.assertIsInstance(response, str)
@@ -29,6 +31,7 @@ class TestAzureLLM(TestCase):
 
     def test_resume_bullet_generation(self):
         """Test generating resume bullet points from code"""
+        
         code_example = """
 def authenticate_user(username, password):
     hashed = bcrypt.hash(password)
@@ -47,7 +50,7 @@ def authenticate_user(username, password):
 
 Do NOT include any introductions, explanations, or other text. ONLY the bullet points."""
         
-        response = ai_analyze(prompt, system_message=system_msg)
+        response = LLMFactory.get_provider().analyze(prompt, system_message=system_msg)
         
         self.assertIsNotNone(response)
         self.assertIsInstance(response, str)
