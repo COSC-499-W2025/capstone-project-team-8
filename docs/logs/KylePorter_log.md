@@ -1,4 +1,19 @@
 # Kyle Porter's Weekly Logs
+
+## Table of Contents
+- [September 22-28](#september-22-28)
+- [Sept 29 - Oct 5](#sept-29---oct-5)
+- [Oct 6 - 12](#oct-6---12)
+- [Oct 13 - 19](#oct-13---19)
+- [Nov 3 - 9](#nov-3---9)
+- [Week 12 November 17th - November 21st:](#week-12-november-17th---november-21st)
+- [Week 14 Dec 1st - 7th:](#week-14-dec-1st---7th)
+- [Week 3 T2](#week-3-t2)
+- [Week 10 T2](#week-10-t2)
+- [Week 11-12 T2](#week-11-12-t2)
+
+---
+
 ## September 22-28
 
 <img width="1600" height="927" alt="image" src="https://github.com/user-attachments/assets/afac9817-09c5-45cf-a950-569476fc57c2" />
@@ -92,3 +107,39 @@ Got an important refactor done.
 Peer testing and cleaning up the user interface and implementing final features.
 ### Reflection:
 - Need to start working on features and reviews earlier in week.
+
+## Week 11-12 T2
+### March 15th - March 29th:
+<img width="1602" height="933" alt="image" src="https://github.com/user-attachments/assets/06e033ee-01ff-4b30-ba13-d979ace70023" />
+
+
+### PRs Completed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/343 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/342 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/344 |  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/346 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/317 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/355 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/330 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/356 |  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/358 |  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/359 |  |
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/362 |  |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/357 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/332 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/352 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/347 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/365 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/364 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/366 |  |
+
+
+
+
+### What went well
+Many Feature additions and bug fixes.
+
+### What's next
+Nothing, this is the last week before the project deliverable.
+### Reflection:
+Got good work done this week but alot was still left until the end of the week.

@@ -2,7 +2,7 @@
 ### Term 1
 | [Week 3](#week-3) | [Week 4](#week-4) | [Week 5](#week-5) | [Week 6](#week-6) | [Week 7](#week-7) | [Week 8](#week-8) | [Week 9](#week-9) | [Week 10](#week-10) | [Week 12](#week-12) | [Week 13](#week-13) | [Week 14](#week-14) |
 ### Term 2
-| [Week 1](#week-1-t2) | [Week 2](#week-2-t2) | [Week 3](#week-3-t2) | [Week 5](#week-5-t2) | [Week 8](#week-8-t2) | [Week 9](#week-9-t2) | [Week 10](#week-10-t2) |  
+| [Week 1](#week-1-t2) | [Week 2](#week-2-t2) | [Week 3](#week-3-t2) | [Week 5](#week-5-t2) | [Week 8](#week-8-t2) | [Week 9](#week-9-t2) | [Week 10](#week-10-t2) |  [Week 12](#week-12-t2)
 
 ## Week 3
 ### September 15th - September 19th:
@@ -357,3 +357,32 @@ I overlooked that the quality evaluations were still in the project id page whic
 
 ### What's next
 Next week we'll do our peer testing and update our web app based on the feedback we get from our peers tomorrow.
+
+## Week 12 T2
+### March 16th - March 27th:
+<img width="1076" height="626" alt="image" src="https://github.com/user-attachments/assets/57ed8e52-842f-49ca-8592-fc0cf55342ac" /></br>
+
+### PRs Completed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/333 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/331 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/357 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/332 |
+
+### PRs Reviewed
+| Pull Request | Issues addressed |
+|---|---|
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/352 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/347 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/362 | 
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/358 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/359 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/369 | https://github.com/COSC-499-W2025/capstone-project-team-8/issues/368 |
+| https://github.com/COSC-499-W2025/capstone-project-team-8/pull/373 |
+
+### What went well
+Our presentation went really well! Lots of good feedback from the peer testing gave us opportunities to make changes for the better and have a solid app to showcase for the presentation. 
+
+### What didn't go well
+Ran into issues with my PR from last week, had to make those changes to fix them which caused a delay in getting them merged before the end of the week. Didn't allocate enough time into these weeks due to midterms and project due dates, so I couldn't get a new PR going but tried to review as many as I could while letting others a change at getting first reviews.
+
+### What's next
+Next week, will be time to vote for the projects and wrap up the end of the course.
