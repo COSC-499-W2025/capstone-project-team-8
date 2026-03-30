@@ -13,7 +13,7 @@ export const metadata = {
     default: 'Portfolio Analyzer — Showcase Your Best Work',
     template: '%s | Portfolio Analyzer',
   },
-  description: 'Upload your coding projects, automatically extract skills and frameworks, and generate professional portfolios and resumes — all powered by AI.',
+  description: 'Upload your coding projects, automatically extract skills and frameworks, and generate professional portfolios and resumes.',
   keywords: ['portfolio', 'resume builder', 'project analysis', 'developer tools', 'AI insights', 'code analysis', 'skills extraction'],
   authors: [{ name: 'Portfolio Analyzer' }],
   openGraph: {
