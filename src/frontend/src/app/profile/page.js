@@ -9,6 +9,7 @@ import Toast from '@/components/Toast';
 import { initializeButtons } from '@/utils/buttonAnimation';
 import { isValidLinkedInUrl } from '@/utils/validation';
 import config from '@/config';
+import EducationSection from './components/EducationSection';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -28,11 +29,6 @@ export default function ProfilePage() {
     linkedin_url: '',
     portfolio_url: '',
     twitter_username: '',
-    university: '',
-    degree_major: '',
-    education_city: '',
-    education_state: '',
-    expected_graduation: '',
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -78,11 +74,6 @@ export default function ProfilePage() {
           linkedin_url: data.user.linkedin_url || '',
           portfolio_url: data.user.portfolio_url || '',
           twitter_username: data.user.twitter_username || '',
-          university: data.user.university || '',
-          degree_major: data.user.degree_major || '',
-          education_city: data.user.education_city || '',
-          education_state: data.user.education_state || '',
-          expected_graduation: data.user.expected_graduation || '',
         });
       } catch (err) {
         console.error('Error fetching user:', err);
@@ -502,81 +493,6 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Education */}
-              <div className="mt-8">
-                <h3 className="text-lg font-semibold text-white mb-4">Education</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">
-                      University
-                    </label>
-                    <input
-                      type="text"
-                      name="university"
-                      value={formData.university}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">
-                      Degree/Major
-                    </label>
-                    <input
-                      type="text"
-                      name="degree_major"
-                      value={formData.degree_major}
-                      onChange={handleInputChange}
-                      placeholder="e.g., Bachelor of Science in Computer Science"
-                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">
-                      Education City
-                    </label>
-                    <input
-                      type="text"
-                      name="education_city"
-                      value={formData.education_city}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-white/80 text-sm font-medium mb-2">
-                      Education State/Province
-                    </label>
-                    <input
-                      type="text"
-                      name="education_state"
-                      value={formData.education_state}
-                      onChange={handleInputChange}
-                      className="w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-white/80 text-sm font-medium mb-2">
-                      Expected Graduation Date
-                    </label>
-                    <input
-                      type="date"
-                      name="expected_graduation"
-                      value={formData.expected_graduation}
-                      onChange={handleGraduationDateChange}
-                      onInput={handleGraduationDateChange}
-                      min="0001-01-01"
-                      max="9999-12-31"
-                      className={`w-full px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white focus:outline-none focus:border-white/30 transition-colors ${formData.expected_graduation ? 'date-input-filled' : 'date-input-empty'}`}
-                    />
-                  </div>
-                </div>
-              </div>
-
               <div className="mt-6 flex justify-end">
                 <button
                   type="submit"
@@ -585,11 +501,15 @@ export default function ProfilePage() {
                   data-block="button"
                 >
                   <span className="button__flair"></span>
-                  <span className="button__label">{saving ? 'Saving...' : 'Save Changes'}</span>
+                  <span className="button__label">{saving ? 'Saving...' : 'Save Personal Info'}</span>
                 </button>
               </div>
             </form>
           </div>
+
+          {/* Education - Handled by standalone component that hits `/api/education/` */}
+          <EducationSection />
+
 
           {/* Change Password */}
           <div className="bg-[var(--card-bg)] rounded-lg p-6 mt-6">

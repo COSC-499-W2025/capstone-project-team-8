@@ -119,3 +119,52 @@ export async function uploadFolder(file, scanConsent, llmConsent, token, project
 
   return response.json();
 }
+
+/**
+ * Add a new education entry
+ */
+export async function addEducation(educationData, token) {
+  const data = await apiCall('/api/education/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(educationData),
+  }, token);
+  return data;
+}
+
+/**
+ * Update an existing education entry
+ */
+export async function updateEducation(id, educationData, token) {
+  const data = await apiCall(`/api/education/${id}/`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(educationData),
+  }, token);
+  return data;
+}
+
+/**
+ * Delete an education entry
+ */
+export async function deleteEducation(id, token) {
+  const response = await fetch(`${config.API_URL}/api/education/${id}/`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to delete education: ${response.statusText}`);
+  }
+  
+  if (response.status !== 204) {
+    return response.json();
+  }
+  return { success: true };
+}

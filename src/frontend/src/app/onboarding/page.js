@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { updateUserProfile } from '@/utils/api';
+import { updateUserProfile, addEducation } from '@/utils/api';
 import OnboardingProgress from './components/OnboardingProgress';
 import OnboardingActions from './components/OnboardingActions';
 import PersonalInfoStep from './steps/PersonalInfoStep';
@@ -28,11 +28,7 @@ export default function OnboardingPage() {
     linkedin_url: '',
     portfolio_url: '',
     twitter_username: '',
-    university: '',
-    degree_major: '',
-    education_city: '',
-    education_state: '',
-    expected_graduation: '',
+    educations: [],
   });
 
   const update = (field, value) => {
@@ -69,10 +65,10 @@ export default function OnboardingPage() {
     }
 
     try {
-      // Filter out empty strings
+      // Filter out empty strings for profile fields
       const profileData = {};
       Object.entries(form).forEach(([key, value]) => {
-        if (value.trim() !== '') {
+        if (key !== 'educations' && typeof value === 'string' && value.trim() !== '') {
           profileData[key] = value.trim();
         }
       });
@@ -80,6 +76,21 @@ export default function OnboardingPage() {
       if (Object.keys(profileData).length > 0) {
         await updateUserProfile(profileData, token);
       }
+
+      const validEducations = (form.educations || []).filter(e => e.university?.trim() || e.degree_major?.trim());
+      if (validEducations.length > 0) {
+        await Promise.all(validEducations.map(e => addEducation({
+          institution: e.university?.trim() || 'University',
+          degree: '',
+          major: e.degree_major?.trim() || '',
+          location: [e.education_city?.trim(), e.education_state?.trim()].filter(Boolean).join(', '),
+          start_date: null,
+          end_date: e.expected_graduation || null,
+          currently_studying: false,
+          description: ''
+        }, token)));
+      }
+      
       router.push('/dashboard');
     } catch (err) {
       setError(err.message || 'Failed to save profile');

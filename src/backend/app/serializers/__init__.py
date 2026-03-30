@@ -41,3 +41,5 @@ from .evaluation import (
     ProjectEvaluationListSerializer,
     LanguageComparisonSerializer,
 )
+from .education import EducationSerializer
+from .award import AwardSerializer

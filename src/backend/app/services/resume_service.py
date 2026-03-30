@@ -77,4 +77,5 @@ def build_resume_context(user: User) -> Dict[str, Any]:
         "skills": [],
         "education": [],
         "experience": [],
+        "awards": [],
     }
