@@ -46,6 +46,15 @@ from .views.evaluation_views import (
     ProjectAllEvaluationsView,
     AllEvaluationsView,
 )
+from .views.education_views import EducationViewSet
+from .views.award_views import AwardViewSet
+from rest_framework.routers import DefaultRouter
+from django.urls import path, include
+
+router = DefaultRouter()
+router.register(r'education', EducationViewSet, basename='education')
+router.register(r'awards', AwardViewSet, basename='award')
+
 
 urlpatterns = [
     # API Documentation
@@ -122,4 +131,7 @@ urlpatterns = [
 
     # Privacy consent endpoints
     path("privacy-consent/llm/", LLMPrivacyConsentView.as_view(), name="privacy-consent-llm"),
+    
+    # ViewSet Routes (Education, Awards, etc.)
+    path("", include(router.urls)),
 ]

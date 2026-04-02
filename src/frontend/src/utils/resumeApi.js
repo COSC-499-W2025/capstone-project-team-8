@@ -263,6 +263,44 @@ export const getSkills = async (token) => {
 };
 
 /**
+ * Fetch all education entries for the authenticated user.
+ */
+export const getEducation = async (token) => {
+  const response = await fetch(`${config.API_URL}/api/education/`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch education: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+/**
+ * Fetch all awards for the authenticated user.
+ */
+export const getAwards = async (token) => {
+  const response = await fetch(`${config.API_URL}/api/awards/`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch awards: ${response.status}`);
+  }
+
+  return response.json();
+};
+
+/**
  * Download the raw RenderCV YAML for the current resume (for debugging).
  */
 export const downloadRenderCVYaml = async (token, resumeData, theme = 'classic') => {

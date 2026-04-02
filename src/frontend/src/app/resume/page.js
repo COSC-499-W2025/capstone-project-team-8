@@ -10,6 +10,8 @@ import { getCurrentUser } from '@/utils/api';
 import {
   getProjects,
   getSkills,
+  getEducation,
+  getAwards,
   generateRenderCVPdf,
   downloadRenderCVYaml,
   generateResume,
@@ -45,6 +47,7 @@ const EMPTY_RESUME = {
     projects: [],
     skills: [],
     certifications: [],
+    awards: [],
   },
 };
 
@@ -307,7 +310,9 @@ function ResumePreview({ resumeData }) {
         {!sec.education?.length &&
           !sec.experience?.length &&
           !sec.projects?.length &&
-          !sec.skills?.filter((s) => s.title).length && (
+          !sec.skills?.filter((s) => s.title).length &&
+          !sec.certifications?.length &&
+          !sec.awards?.length && (
             <p className={styles.previewEmpty}>
               Fill in your info to see a preview here.
             </p>
@@ -334,6 +339,7 @@ function mergeResumeData(baseResume, savedResume) {
       projects: savedSections.projects || baseResume.sections.projects,
       skills: savedSections.skills || baseResume.sections.skills,
       certifications: savedSections.certifications || baseResume.sections.certifications,
+      awards: savedSections.awards || baseResume.sections.awards,
       summary: savedSections.summary ?? baseResume.sections.summary,
     },
   };
@@ -366,6 +372,7 @@ export default function ResumeNewPage({ resumeId = null }) {
     projects: false,
     skills: false,
     certifications: true,
+    awards: false,
   });
 
   const toggleSection = (key) =>
@@ -469,10 +476,12 @@ export default function ResumeNewPage({ resumeId = null }) {
 
     const init = async () => {
       try {
-        const [userData, projectsData, skillsData] = await Promise.all([
+        const [userData, projectsData, skillsData, educationData, awardsData] = await Promise.all([
           getCurrentUser(token),
           getProjects(token),
           getSkills(token).catch(() => ({ languages: [], frameworks: [] })),
+          getEducation(token).catch(() => []),
+          getAwards(token).catch(() => []),
         ]);
 
         const u = userData.user || {};
@@ -516,8 +525,16 @@ export default function ResumeNewPage({ resumeId = null }) {
         ];
 
         // Build pre-populated education entry
-        const education = [];
-        if (u.university || u.degree_major) {
+        const education = educationData.length > 0 ? educationData.map(e => ({
+          id: e.id || Date.now() + Math.random(),
+          title: e.institution || 'University',
+          degree_type: e.degree || '',
+          company: e.major || '',
+          duration: `${e.start_date ? e.start_date.substring(0,4) : ''}${e.start_date || e.end_date ? ' - ' : ''}${e.end_date ? e.end_date.substring(0,4) : (e.currently_studying ? 'Present' : '')}`.trim() || e.location || '',
+          content: e.description || '',
+        })) : [];
+
+        if (education.length === 0 && (u.university || u.degree_major)) {
           education.push({
             id: Date.now(),
             title: u.university || 'University',
@@ -530,6 +547,14 @@ export default function ResumeNewPage({ resumeId = null }) {
             content: '',
           });
         }
+        
+        const awards = awardsData.length > 0 ? awardsData.map(a => ({
+          id: a.id || Date.now() + Math.random(),
+          title: a.title || 'Award',
+          company: a.issuer || '',
+          duration: a.date_received ? a.date_received.substring(0,4) : '',
+          content: a.description || '',
+        })) : [];
 
         const initial = {
           ...contactInfo,
@@ -540,6 +565,7 @@ export default function ResumeNewPage({ resumeId = null }) {
             projects: [],
             skills: allSkills,
             certifications: [],
+            awards,
           },
         };
 
@@ -1427,6 +1453,33 @@ export default function ResumeNewPage({ resumeId = null }) {
                   onRemove={() => removeEntry('certifications', item.id)}
                   fields={[
                     { key: 'title', placeholder: 'Certification Name' },
+                    { key: 'company', placeholder: 'Issuing Organization' },
+                    { key: 'duration', placeholder: 'Date' },
+                  ]}
+                />
+              ))}
+          </section>
+
+          {/* Awards */}
+          <section className={styles.formSection}>
+            <SectionHeader
+              title="Awards"
+              collapsed={collapsed.awards}
+              onToggle={() => toggleSection('awards')}
+              onAdd={() => addEntry('awards')}
+            />
+            {!collapsed.awards && sec.awards.length === 0 && (
+              <p className={styles.emptyHint}>No awards yet — click + Add</p>
+            )}
+            {!collapsed.awards &&
+              sec.awards.map((item) => (
+                <EntryCard
+                  key={item.id}
+                  item={item}
+                  onUpdate={(u) => updateEntry('awards', u)}
+                  onRemove={() => removeEntry('awards', item.id)}
+                  fields={[
+                    { key: 'title', placeholder: 'Award Name' },
                     { key: 'company', placeholder: 'Issuing Organization' },
                     { key: 'duration', placeholder: 'Date' },
                   ]}
